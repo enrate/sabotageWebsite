@@ -1,0 +1,84 @@
+.news-item {
+  background: linear-gradient(120deg, #232526 60%, #ffb347 100%);
+  border-radius: 18px;
+  box-shadow: 0 6px 32px 0 rgba(255,179,71,0.18), 0 2px 12px rgba(0,0,0,0.18);
+  border: 2px solid #ffb347;
+  padding: 28px 24px;
+  margin-bottom: 24px;
+  max-width: 420px;
+  min-width: 320px;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+  overflow: hidden;
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+.news-item::before {
+  content: '';
+  position: absolute;
+  top: -40px;
+  right: -40px;
+  width: 140px;
+  height: 140px;
+  background: radial-gradient(circle, rgba(255,179,71,0.35) 0%, rgba(255,179,71,0) 80%);
+  z-index: 0;
+}
+.news-item:hover {
+  box-shadow: 0 10px 40px 0 rgba(255,179,71,0.28), 0 4px 16px rgba(0,0,0,0.22);
+  border-color: #ffd580;
+}
+.news-item > * {
+  position: relative;
+  z-index: 1;
+}
+.news-item h2 {
+  font-size: 1.3rem;
+  margin-bottom: 8px;
+}
+.news-item a {
+  color: #ffb347;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.news-item a:hover {
+  color: #ffd580;
+}
+.news-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.95rem;
+  color: #bdbdbd;
+  margin-top: 10px;
+}
+
+/* Для модалки создания отряда: убираем градиент, делаем белый фон и тёмный текст */
+.create-squad-modal-card {
+  background: #fff !important;
+  color: #232526 !important;
+  border-radius: 18px;
+  box-shadow: 0 6px 32px 0 rgba(35,37,38,0.18), 0 2px 12px rgba(0,0,0,0.18);
+  border: 2px solid #ffb347;
+  padding: 28px 24px;
+  max-width: 420px;
+  min-width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+  overflow: hidden;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(30,30,30,0.75);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+} 

@@ -1,0 +1,80 @@
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(30, 30, 30, 0.85);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.modal {
+  background: #232526;
+  border-radius: 16px;
+  box-shadow: 0 4px 32px rgba(0,0,0,0.25);
+  padding: 36px 32px 28px 32px;
+  min-width: 340px;
+  max-width: 95vw;
+  color: #fff;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  position: relative;
+}
+.modal h2 {
+  font-size: 1.4rem;
+  margin-bottom: 18px;
+  color: #ffb347;
+}
+.squad-options {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+.squad-option {
+  background: rgba(44, 44, 44, 0.95);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  padding: 16px 14px;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.squad-option h3 {
+  font-size: 1.1rem;
+  color: #ffb347;
+}
+.squad-option button {
+  margin-top: 8px;
+  padding: 8px 18px;
+  border: none;
+  border-radius: 8px;
+  background: #ffb347;
+  color: #232526;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.squad-option button:hover {
+  background: #ffd580;
+}
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 8px;
+}
+.modal-actions button {
+  padding: 10px 24px;
+  border: none;
+  border-radius: 8px;
+  background: #2c2c2c;
+  color: #fff;
+  border: 1px solid #ffb347;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.modal-actions button:hover {
+  background: #ffd580;
+  color: #232526;
+} 

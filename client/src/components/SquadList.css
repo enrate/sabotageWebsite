@@ -1,0 +1,46 @@
+.squad-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  justify-content: center;
+}
+.squad-card {
+  background: linear-gradient(120deg, #232526 60%, #ffb347 100%);
+  border-radius: 18px;
+  box-shadow: 0 6px 32px 0 rgba(255,179,71,0.18), 0 2px 12px rgba(0,0,0,0.18);
+  border: 2px solid #ffb347;
+  padding: 24px 20px;
+  min-width: 220px;
+  max-width: 320px;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-start;
+  position: relative;
+  overflow: hidden;
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+.squad-card::before {
+  content: '';
+  position: absolute;
+  top: -30px;
+  right: -30px;
+  width: 100px;
+  height: 100px;
+  background: radial-gradient(circle, rgba(255,179,71,0.28) 0%, rgba(255,179,71,0) 80%);
+  z-index: 0;
+}
+.squad-card:hover {
+  box-shadow: 0 10px 40px 0 rgba(255,179,71,0.28), 0 4px 16px rgba(0,0,0,0.22);
+  border-color: #ffd580;
+}
+.squad-card > * {
+  position: relative;
+  z-index: 1;
+}
+.squad-card h3 {
+  font-size: 1.1rem;
+  margin-bottom: 6px;
+  color: #ffb347;
+} 

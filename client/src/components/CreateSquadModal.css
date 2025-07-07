@@ -1,0 +1,102 @@
+/* Оставлены только потенциально полезные кастомные стили. Удалены стили .modal, .modal-overlay, .modal-actions, .form-group, так как используется MUI Dialog. */
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(30,30,30,0.75);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.create-squad-modal-card {
+  background: rgba(35, 37, 38, 0.8);
+  border-radius: 16px;
+  box-shadow: 0 6px 24px 0 rgba(255,179,71,0.16), 0 2px 10px rgba(0,0,0,0.14);
+  border: 2px solid #ffb347;
+  padding: 28px 24px;
+  max-width: 420px;
+  min-width: 320px;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+  overflow: hidden;
+  transition: box-shadow 0.2s, border-color 0.2s;
+  backdrop-filter: blur(10px);
+}
+
+.create-squad-modal-card h2 {
+  font-size: 1.3rem;
+  margin-bottom: 8px;
+  color: #ffb347;
+}
+
+.create-squad-modal-card label {
+  font-weight: 500;
+}
+
+.create-squad-modal-card input,
+.create-squad-modal-card textarea {
+  width: 100%;
+  margin-top: 4px;
+  border-radius: 8px;
+  border: 1.5px solid #ffb347;
+  padding: 8px 12px;
+  background: #232526;
+  color: #fff;
+  font-size: 16px;
+}
+
+.create-squad-modal-card textarea {
+  font-size: 15px;
+  resize: vertical;
+}
+
+.create-squad-modal-card button[type="submit"] {
+  background: #ffb347;
+  border: none;
+  color: #232526;
+  border-radius: 8px;
+  padding: 10px 0;
+  font-weight: 700;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.create-squad-modal-card button[type="button"] {
+  background: none;
+  border: 2px solid #ffb347;
+  color: #ffb347;
+  border-radius: 8px;
+  padding: 10px 0;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.create-squad-modal-card button[disabled] {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.create-squad-modal-card .error {
+  color: #ff4d4f;
+  font-weight: 500;
+  margin-top: -8px;
+}
+
+@media (max-width: 500px) {
+  .modal {
+    min-width: 0;
+    width: 98vw;
+    padding: 18px 6px 18px 6px;
+  }
+} 

@@ -1,0 +1,780 @@
+import React, { useState, useEffect, useContext } from 'react';
+import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
+import SquadList from '../components/SquadList';
+import CreateSquadModal from '../components/CreateSquadModal';
+import JoinSquadModal from '../components/JoinSquadModal';
+import Loader from '../components/Loader';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
+import {
+  Container,
+  Typography,
+  Box,
+  Button,
+  Paper,
+  Grid,
+  Card,
+  CardContent,
+  Avatar,
+  Chip,
+  Divider,
+  useTheme,
+  useMediaQuery,
+  Tabs,
+  Tab
+} from '@mui/material';
+import {
+  Add as AddIcon,
+  Group as GroupIcon,
+  Person as PersonIcon,
+  Security as SecurityIcon,
+  CheckCircle as CheckCircleIcon,
+  Cancel as CancelIcon
+} from '@mui/icons-material';
+
+const TEST_SQUADS = [
+  { id: 1, name: 'Alpha', leader: { username: 'Командир1' }, members: [1,2,3], description: 'Элитный отряд специального назначения', isJoinRequestOpen: true },
+  { id: 2, name: 'Bravo', leader: { username: 'Командир2' }, members: [4,5], description: 'Тактическая группа поддержки', isJoinRequestOpen: false },
+  { id: 3, name: 'Charlie', leader: { username: 'Командир3' }, members: [6], description: 'Разведывательный отряд', isJoinRequestOpen: true },
+];
+
+// Временный компонент SquadCard
+const SquadCard = ({ squad, onClose }) => {
+  if (!squad) return null;
+  return (
+    <div className="squad-card-modal">
+      <button className="close-btn" onClick={onClose}>Закрыть</button>
+      <h2>{squad.name}</h2>
+      {/* TODO: логотип, описание, результативность, роли, статистика */}
+      <p>Описание: {squad.description || 'Нет описания'}</p>
+      <p>Лидер: {squad.leader?.username || 'Неизвестно'}</p>
+      <p>Участников: {squad.members?.length || 0}</p>
+      <h4>Список участников:</h4>
+      <ul>
+        {squad.members?.map((member, idx) => (
+          <li key={member.id || idx}>{member.username || member} {/* TODO: роль */}</li>
+        ))}
+      </ul>
+      {/* TODO: результативность и статистика */}
+    </div>
+  );
+};
+
+const SquadPage = () => {
+  const { currentUser } = useAuth();
+  const [squads, setSquads] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showJoinModal, setShowJoinModal] = useState(false);
+  const [tab, setTab] = useState(0);
+  const [lookingUsers, setLookingUsers] = useState([]);
+  const [loadingUsers, setLoadingUsers] = useState(false);
+  const [inviteLoading, setInviteLoading] = useState({});
+  const [inviteSuccess, setInviteSuccess] = useState({});
+  const [inviteError, setInviteError] = useState({});
+  const [hasInvite, setHasInvite] = useState({});
+  const [checkingInvite, setCheckingInvite] = useState({});
+  const [invites, setInvites] = useState([]);
+  const [invitesLoading, setInvitesLoading] = useState(false);
+  const [invitesError, setInvitesError] = useState(null);
+  const [inviteAction, setInviteAction] = useState({}); // { [inviteId]: 'accepted'|'declined'|null }
+  const navigate = useNavigate();
+  const location = useLocation();
+  
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+
+  useEffect(() => {
+    if (tab === 0) {
+      setLoading(true);
+      axios.get('/api/squads').then(res => {
+        setSquads(res.data);
+        setLoading(false);
+      }).catch(() => setLoading(false));
+    } else if (tab === 1) {
+      setLoadingUsers(true);
+      axios.get('/api/users/looking-for-squad').then(res => {
+        setLookingUsers(res.data);
+        setLoadingUsers(false);
+        
+        // Проверяем приглашения для всех пользователей
+        if (currentUser && currentUser.squadId && currentUser.squadRole && 
+            (currentUser.squadRole === 'leader' || currentUser.squadRole === 'deputy')) {
+          res.data.forEach(user => {
+            if (canInviteToSquad(user)) {
+              checkExistingInvite(currentUser.squadId, user.id);
+            }
+          });
+        }
+      }).catch(() => setLoadingUsers(false));
+    } else if (tab === 2 && currentUser && !currentUser.squadId) {
+      setInvitesLoading(true);
+      setInvitesError(null);
+      axios.get('/api/squads/invites', {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      })
+        .then(res => setInvites(res.data))
+        .catch(() => setInvitesError('Ошибка загрузки приглашений'))
+        .finally(() => setInvitesLoading(false));
+    }
+  }, [tab, currentUser]);
+
+  // --- Новый useEffect для открытия таба приглашений по state ---
+  useEffect(() => {
+    if (location.state?.openInvitesTab && currentUser && !currentUser.squadId) {
+      setTab(2);
+      // Очищаем state, чтобы при повторном переходе не было эффекта
+      navigate('/squads', { replace: true, state: {} });
+    }
+  }, [location.state, currentUser, navigate]);
+
+  const handleSquadCreated = (newSquad) => {
+    setSquads([...squads, newSquad]);
+    setShowCreateModal(false);
+  };
+
+  const handleJoinSquad = (squadId) => {
+    setSquads(squads.map(squad => 
+      squad._id === squadId 
+        ? { ...squad, members: [...squad.members, currentUser._id] } 
+        : squad
+    ));
+    setShowJoinModal(false);
+  };
+
+  // Функция проверки существующего приглашения
+  const checkExistingInvite = async (squadId, userId) => {
+    if (!currentUser) return;
+    
+    setCheckingInvite(prev => ({ ...prev, [userId]: true }));
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`/api/squads/${squadId}/invite/check/${userId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setHasInvite(prev => ({ ...prev, [userId]: response.data.hasInvite }));
+    } catch (err) {
+      console.error('Ошибка проверки приглашения:', err);
+      setHasInvite(prev => ({ ...prev, [userId]: false }));
+    } finally {
+      setCheckingInvite(prev => ({ ...prev, [userId]: false }));
+    }
+  };
+
+  // Функция приглашения пользователя в отряд
+  const handleInvite = async (userId) => {
+    setInviteLoading(prev => ({ ...prev, [userId]: true }));
+    setInviteSuccess(prev => ({ ...prev, [userId]: null }));
+    setInviteError(prev => ({ ...prev, [userId]: null }));
+    
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post(`/api/squads/${currentUser.squadId}/invite`, { userId }, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      });
+      setInviteSuccess(prev => ({ ...prev, [userId]: 'Приглашение отправлено!' }));
+      setHasInvite(prev => ({ ...prev, [userId]: true }));
+    } catch (err) {
+      setInviteError(prev => ({ ...prev, [userId]: err.response?.data?.message || 'Ошибка отправки приглашения' }));
+    } finally {
+      setInviteLoading(prev => ({ ...prev, [userId]: false }));
+    }
+  };
+
+  // Проверка: может ли текущий пользователь пригласить этого пользователя в отряд
+  const canInviteToSquad = (user) => {
+    if (!currentUser || !user || currentUser.id === user.id) return false;
+    if (user.squadId) return false;
+    if (!currentUser.squadId) return false;
+    // Проверка: лидер или заместитель
+    if (!currentUser.squadRole) return false;
+    return currentUser.squadRole === 'leader' || currentUser.squadRole === 'deputy';
+  };
+
+  const handleAcceptInvite = async (inviteId, squadId) => {
+    setInviteAction(prev => ({ ...prev, [inviteId]: 'loading' }));
+    try {
+      await axios.patch(`/api/squads/invite/${inviteId}/accept`, {}, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      setInviteAction(prev => ({ ...prev, [inviteId]: 'accepted' }));
+      // После успешного вступления — редирект на страницу отряда
+      setTimeout(() => navigate(`/squads/${squadId}`), 800);
+    } catch {
+      setInviteAction(prev => ({ ...prev, [inviteId]: null }));
+      alert('Ошибка принятия приглашения');
+    }
+  };
+
+  const handleDeclineInvite = async (inviteId) => {
+    setInviteAction(prev => ({ ...prev, [inviteId]: 'loading' }));
+    try {
+      await axios.patch(`/api/squads/invite/${inviteId}/decline`, {}, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      setInviteAction(prev => ({ ...prev, [inviteId]: 'declined' }));
+    } catch {
+      setInviteAction(prev => ({ ...prev, [inviteId]: null }));
+      alert('Ошибка отклонения приглашения');
+    }
+  };
+
+  return (
+    <Box
+      sx={{
+        minHeight: '100vh',
+        width: '100%',
+        color: '#fff',
+        position: 'relative',
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.4)',
+          zIndex: 0
+        }
+      }}
+    >
+      <Container 
+        maxWidth="xl" 
+        sx={{ 
+          position: 'relative', 
+          zIndex: 1,
+          py: 5,
+          px: 3
+        }}
+      >
+        {/* Заголовок страницы */}
+        <Box sx={{ textAlign: 'center', mb: 5 }}>
+          <Typography 
+            variant="h3" 
+            sx={{ 
+              color: '#ffb347', 
+              fontWeight: 700,
+              mb: 2
+            }}
+          >
+            Отряды сообщества
+          </Typography>
+        </Box>
+        {/* Tabs */}
+        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 4 }}>
+          <Tabs value={tab} onChange={(_, v) => setTab(v)}>
+            <Tab label="Отряды" />
+            <Tab label="В поиске отряда" />
+            {currentUser && !currentUser.squadId && <Tab label="Мои приглашения" />}
+          </Tabs>
+        </Box>
+        {tab === 0 && (
+          <>
+            {/* Кнопка создания отряда */}
+            {currentUser && !currentUser.squadId && (
+              <Box sx={{ display: 'flex', justifyContent: 'center', mb: 4 }}>
+                <Button
+                  variant="contained"
+                  size="large"
+                  startIcon={<AddIcon />}
+                  onClick={() => setShowCreateModal(true)}
+                  sx={{
+                    bgcolor: '#ffb347',
+                    color: '#232526',
+                    px: 4,
+                    py: 1.5,
+                    fontSize: '1.1rem',
+                    fontWeight: 600,
+                    borderRadius: 3,
+                    '&:hover': {
+                      bgcolor: '#ffd580',
+                      transform: 'translateY(-2px)',
+                      boxShadow: '0 8px 25px rgba(255, 179, 71, 0.3)'
+                    },
+                    transition: 'all 0.3s ease'
+                  }}
+                >
+                  Создать отряд
+                </Button>
+              </Box>
+            )}
+            {/* Список отрядов */}
+            {loading ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                <Loader />
+              </Box>
+            ) : (
+              <Box sx={{ 
+                display: 'flex', 
+                flexWrap: 'wrap', 
+                gap: 3,
+                width: '100%'
+              }}>
+                {(squads.length ? squads : TEST_SQUADS).map((squad) => (
+                  <Box key={squad._id || squad.id} sx={{ 
+                    flex: '1 1 calc(50% - 12px)',
+                    minWidth: '300px'
+                  }}>
+                    <Card
+                      elevation={8}
+                      sx={{
+                        background: 'rgba(0, 0, 0, 0.3)',
+                        borderRadius: 3,
+                        border: '1px solid rgba(255, 179, 71, 0.2)',
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease',
+                        backdropFilter: 'blur(10px)',
+                        height: '100%',
+                        '&:hover': {
+                          transform: 'translateY(-4px)',
+                          boxShadow: '0 8px 25px rgba(255, 179, 71, 0.2)',
+                          borderColor: '#ffb347'
+                        }
+                      }}
+                      onClick={() => navigate(`/squads/${squad._id || squad.id}`)}
+                    >
+                      <CardContent sx={{ p: 3 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                          <Avatar
+                            src={squad.logo}
+                            sx={{
+                              bgcolor: squad.logo ? 'transparent' : '#ffb347',
+                              width: 48,
+                              height: 48,
+                              mr: 2,
+                              border: squad.logo ? '1px solid rgba(255, 179, 71, 0.3)' : 'none'
+                            }}
+                          >
+                            {!squad.logo && <GroupIcon />}
+                          </Avatar>
+                          <Box sx={{ flex: 1 }}>
+                            <Typography
+                              variant="h6"
+                              sx={{
+                                color: '#ffb347',
+                                fontWeight: 600,
+                                mb: 0.5
+                              }}
+                            >
+                              {squad.name}
+                            </Typography>
+                            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                              <Chip
+                                label={`${squad.members?.length || 0} участников`}
+                                size="small"
+                                sx={{
+                                  bgcolor: 'rgba(255, 179, 71, 0.1)',
+                                  color: '#ffb347',
+                                  fontSize: '0.75rem'
+                                }}
+                              />
+                              {squad.isJoinRequestOpen ? (
+                                <Chip
+                                  icon={<CheckCircleIcon />}
+                                  label="Набор открыт"
+                                  size="small"
+                                  sx={{
+                                    bgcolor: 'rgba(76, 175, 80, 0.2)',
+                                    color: '#4caf50',
+                                    fontSize: '0.75rem',
+                                    '& .MuiChip-icon': {
+                                      color: '#4caf50'
+                                    }
+                                  }}
+                                />
+                              ) : (
+                                <Chip
+                                  icon={<CancelIcon />}
+                                  label="Набор закрыт"
+                                  size="small"
+                                  sx={{
+                                    bgcolor: 'rgba(244, 67, 54, 0.2)',
+                                    color: '#f44336',
+                                    fontSize: '0.75rem',
+                                    '& .MuiChip-icon': {
+                                      color: '#f44336'
+                                    }
+                                  }}
+                                />
+                              )}
+                            </Box>
+                          </Box>
+                        </Box>
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            color: 'rgba(255, 255, 255, 0.8)',
+                            mb: 2,
+                            lineHeight: 1.5
+                          }}
+                        >
+                          {squad.description || 'Описание отряда отсутствует'}
+                        </Typography>
+                        <Divider sx={{ my: 2, borderColor: 'rgba(255, 179, 71, 0.2)' }} />
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            <PersonIcon sx={{ fontSize: 16, color: '#ffb347', mr: 1 }} />
+                            <Typography
+                              variant="body2"
+                              sx={{
+                                color: 'rgba(255, 255, 255, 0.7)',
+                                fontSize: '0.85rem'
+                              }}
+                            >
+                              Лидер:
+                            </Typography>
+                          </Box>
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              color: '#fff',
+                              fontWeight: 600,
+                              fontSize: '0.85rem'
+                            }}
+                          >
+                            {squad.leader?.username || 'Неизвестно'}
+                          </Typography>
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  </Box>
+                ))}
+              </Box>
+            )}
+            {/* Модальные окна */}
+            {showCreateModal && (
+              <CreateSquadModal 
+                onClose={() => setShowCreateModal(false)} 
+                onSquadCreated={handleSquadCreated} 
+              />
+            )}
+            {showJoinModal && (
+              <JoinSquadModal 
+                onClose={() => setShowJoinModal(false)} 
+                onJoinSquad={handleJoinSquad} 
+              />
+            )}
+          </>
+        )}
+        {tab === 1 && (
+          <Box>
+            {loadingUsers ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                <Loader />
+              </Box>
+            ) : (
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, width: '100%' }}>
+                {lookingUsers.length === 0 ? (
+                  <Box sx={{ 
+                    textAlign: 'center', 
+                    py: 8,
+                    width: '100%'
+                  }}>
+                    <PersonIcon sx={{ fontSize: 64, color: 'rgba(255,255,255,0.3)', mb: 2 }} />
+                    <Typography variant="h6" sx={{ color: 'rgba(255,255,255,0.7)', mb: 1 }}>
+                      Нет игроков в поиске отряда
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.5)' }}>
+                      Игроки, ищущие отряд, появятся здесь
+                    </Typography>
+                  </Box>
+                ) : (
+                  lookingUsers.map(user => (
+                    <Box key={user.id} sx={{ 
+                      flex: '1 1 calc(33.333% - 16px)',
+                      minWidth: '320px',
+                      maxWidth: '400px'
+                    }}>
+                      <Card
+                        elevation={8}
+                        sx={{
+                          background: 'rgba(0, 0, 0, 0.4)',
+                          borderRadius: 4,
+                          border: '1px solid rgba(255, 179, 71, 0.2)',
+                          transition: 'all 0.3s ease',
+                          backdropFilter: 'blur(10px)',
+                          height: '100%',
+                          overflow: 'hidden',
+                          '&:hover': {
+                            transform: 'translateY(-6px)',
+                            boxShadow: '0 12px 30px rgba(255, 179, 71, 0.25)',
+                            borderColor: '#ffb347'
+                          }
+                        }}
+                      >
+                        {/* Верхняя часть с аватаром и основной информацией */}
+                        <Box sx={{ 
+                          p: 3, 
+                          background: 'linear-gradient(135deg, rgba(255, 179, 71, 0.1) 0%, rgba(0, 0, 0, 0.2) 100%)',
+                          borderBottom: '1px solid rgba(255, 179, 71, 0.1)'
+                        }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                            <Avatar
+                              src={user.avatar}
+                              sx={{
+                                width: 64,
+                                height: 64,
+                                bgcolor: user.avatar ? 'transparent' : '#ffb347',
+                                color: '#232526',
+                                fontWeight: 700,
+                                border: '3px solid rgba(255, 179, 71, 0.3)',
+                                mr: 2
+                              }}
+                            >
+                              {!user.avatar && <PersonIcon sx={{ fontSize: 36 }} />}
+                        {user.avatar && (user.username?.charAt(0)?.toUpperCase() || 'U')}
+                      </Avatar>
+                      <Box sx={{ flex: 1 }}>
+                              <Typography
+                                variant="h6"
+                                sx={{
+                                  color: '#ffb347',
+                                  fontWeight: 700,
+                                  mb: 0.5,
+                                  fontSize: '1.1rem'
+                                }}
+                              >
+                                {user.username}
+                          </Typography>
+                              <Chip
+                                label="В поиске отряда"
+                                size="small"
+                                sx={{
+                                  bgcolor: 'rgba(76, 175, 80, 0.2)',
+                                  color: '#4caf50',
+                                  fontSize: '0.75rem',
+                                  fontWeight: 600
+                                }}
+                              />
+                            </Box>
+                          </Box>
+                          
+                          {/* Описание */}
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              color: 'rgba(255, 255, 255, 0.8)',
+                              lineHeight: 1.6,
+                              mb: 2,
+                              fontStyle: user.description ? 'normal' : 'italic'
+                            }}
+                          >
+                            {user.description || 'Описание отсутствует'}
+                          </Typography>
+                        </Box>
+
+                        {/* Статистика игрока */}
+                        <Box sx={{ p: 3 }}>
+                          <Box sx={{ 
+                            display: 'grid', 
+                            gridTemplateColumns: '1fr 1fr', 
+                            gap: 2, 
+                            mb: 3 
+                          }}>
+                            <Box sx={{ textAlign: 'center', p: 2, bgcolor: 'rgba(255, 179, 71, 0.05)', borderRadius: 2 }}>
+                              <Typography variant="h5" sx={{ color: '#ffb347', fontWeight: 700, mb: 0.5 }}>
+                                {user.elo || 1000}
+                              </Typography>
+                              <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.75rem' }}>
+                                Рейтинг Эло
+                              </Typography>
+                            </Box>
+                            <Box sx={{ textAlign: 'center', p: 2, bgcolor: 'rgba(79, 140, 255, 0.05)', borderRadius: 2 }}>
+                              <Typography variant="h5" sx={{ color: '#4f8cff', fontWeight: 700, mb: 0.5 }}>
+                                {Math.floor((new Date() - new Date(user.createdAt)) / (1000*60*60*24))}
+                              </Typography>
+                              <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.75rem' }}>
+                                Дней на проекте
+                              </Typography>
+                            </Box>
+                          </Box>
+
+                          {/* Дополнительная статистика */}
+                          <Box sx={{ 
+                            display: 'flex', 
+                            justifyContent: 'space-between', 
+                            alignItems: 'center',
+                            mb: 3,
+                            p: 2,
+                            bgcolor: 'rgba(0, 0, 0, 0.2)',
+                            borderRadius: 2
+                          }}>
+                            <Box sx={{ textAlign: 'center' }}>
+                              <Typography variant="body2" sx={{ color: '#4caf50', fontWeight: 600 }}>
+                                {user.kills || 0}
+                              </Typography>
+                              <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.6)' }}>
+                                Убийств
+                              </Typography>
+                            </Box>
+                            <Box sx={{ textAlign: 'center' }}>
+                              <Typography variant="body2" sx={{ color: '#f44336', fontWeight: 600 }}>
+                                {user.deaths || 0}
+                              </Typography>
+                              <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.6)' }}>
+                                Смертей
+                              </Typography>
+                            </Box>
+                            <Box sx={{ textAlign: 'center' }}>
+                              <Typography variant="body2" sx={{ color: '#ff9800', fontWeight: 600 }}>
+                                {user.teamkills || 0}
+                              </Typography>
+                              <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.6)' }}>
+                                Тимкиллов
+                              </Typography>
+                            </Box>
+                            <Box sx={{ textAlign: 'center' }}>
+                              <Typography variant="body2" sx={{ color: '#9c27b0', fontWeight: 600 }}>
+                                {user.winrate ? `${user.winrate}%` : '0%'}
+                              </Typography>
+                              <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.6)' }}>
+                                Win Rate
+                              </Typography>
+                            </Box>
+                          </Box>
+
+                          {/* Кнопки действий */}
+                          <Box sx={{ display: 'flex', gap: 1 }}>
+                            <Button
+                              variant="contained"
+                              fullWidth
+                              size="small"
+                              onClick={() => navigate(`/profile/${user.id}`)}
+                              sx={{
+                                bgcolor: '#ffb347',
+                                color: '#232526',
+                                fontWeight: 600,
+                                py: 1,
+                                '&:hover': {
+                                  bgcolor: '#ffd580',
+                                  transform: 'translateY(-1px)'
+                                }
+                              }}
+                            >
+                              Профиль
+                            </Button>
+                            {canInviteToSquad(user) && (
+                              <Button
+                                variant="outlined"
+                                size="small"
+                                disabled={inviteLoading[user.id] || checkingInvite[user.id] || hasInvite[user.id]}
+                                onClick={() => handleInvite(user.id)}
+                                sx={{
+                                  color: hasInvite[user.id] ? '#666' : '#4caf50',
+                                  borderColor: hasInvite[user.id] ? '#666' : '#4caf50',
+                                  minWidth: 'auto',
+                                  px: 2,
+                                  '&:hover': {
+                                    bgcolor: hasInvite[user.id] ? 'transparent' : 'rgba(76, 175, 80, 0.1)',
+                                    borderColor: hasInvite[user.id] ? '#666' : '#66bb6a'
+                                  },
+                                  '&:disabled': {
+                                    color: hasInvite[user.id] ? '#666' : '#90caf9',
+                                    borderColor: hasInvite[user.id] ? '#666' : '#90caf9'
+                                  }
+                                }}
+                              >
+                                {inviteLoading[user.id] ? 'Отправка...' : 
+                                 checkingInvite[user.id] ? 'Проверка...' : 
+                                 hasInvite[user.id] ? 'Приглашён' : 
+                                 'Пригласить'}
+                              </Button>
+                            )}
+                          </Box>
+                          
+                          {/* Сообщения об успехе и ошибках */}
+                          {inviteSuccess[user.id] && (
+                            <Typography 
+                              variant="caption" 
+                              sx={{ 
+                                color: '#4caf50', 
+                                fontSize: '0.75rem',
+                                display: 'block',
+                                mt: 1,
+                                textAlign: 'center'
+                              }}
+                            >
+                              {inviteSuccess[user.id]}
+                            </Typography>
+                          )}
+                          {inviteError[user.id] && (
+                            <Typography 
+                              variant="caption" 
+                              sx={{ 
+                                color: '#f44336', 
+                                fontSize: '0.75rem',
+                                display: 'block',
+                                mt: 1,
+                                textAlign: 'center'
+                              }}
+                            >
+                              {inviteError[user.id]}
+                            </Typography>
+                          )}
+                      </Box>
+                    </Card>
+                    </Box>
+                  ))
+                )}
+              </Box>
+            )}
+          </Box>
+        )}
+        {tab === 2 && currentUser && !currentUser.squadId && (
+          <Box sx={{ mt: 2 }}>
+            <Typography variant="h5" sx={{ color: '#ffb347', mb: 3 }}>Мои приглашения в отряд</Typography>
+            {invitesLoading ? (
+              <Loader />
+            ) : invitesError ? (
+              <Typography color="error">{invitesError}</Typography>
+            ) : invites.length === 0 ? (
+              <Typography sx={{ color: 'rgba(255,255,255,0.7)' }}>У вас нет приглашений в отряд</Typography>
+            ) : (
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                {invites.map(invite => (
+                  <Card key={invite.id} sx={{ p: 2, background: 'rgba(0,0,0,0.25)', borderRadius: 2, border: '1px solid rgba(255,179,71,0.18)', color: '#fff' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                      <Typography>
+                        <b>Пригласил: </b>
+                        <Link to={`/profile/${invite.inviter?.id}`} style={{ color: '#ffb347', textDecoration: 'none' }}>{invite.inviter?.username}</Link>
+                      </Typography>
+                      <Typography>
+                        <b>Отряд: </b>
+                        <Link to={`/squads/${invite.squad?.id}`} style={{ color: '#ffb347', textDecoration: 'none' }}>{invite.squad?.name}</Link>
+                      </Typography>
+                      <Typography sx={{ color: 'rgba(255,255,255,0.7)' }}>
+                        {new Date(invite.createdAt).toLocaleString()}
+                      </Typography>
+                    </Box>
+                    <Box sx={{ mt: 2 }}>
+                      {inviteAction[invite.id] === 'declined' ? (
+                        <Typography color="error">Приглашение отклонено</Typography>
+                      ) : inviteAction[invite.id] === 'accepted' ? (
+                        <Typography color="success.main">Вы вступили в отряд</Typography>
+                      ) : invite.status === 'declined' ? (
+                        <Typography color="error">Приглашение отклонено</Typography>
+                      ) : invite.status === 'accepted' ? (
+                        <Typography color="success.main">Вы уже вступили в этот отряд</Typography>
+                      ) : (
+                        <Box sx={{ display: 'flex', gap: 2 }}>
+                          <Button variant="contained" color="success" disabled={inviteAction[invite.id] === 'loading'} onClick={() => handleAcceptInvite(invite.id, invite.squad?.id)}>
+                            {inviteAction[invite.id] === 'loading' ? '...' : 'Принять'}
+                          </Button>
+                          <Button variant="outlined" color="error" disabled={inviteAction[invite.id] === 'loading'} onClick={() => handleDeclineInvite(invite.id)}>
+                            Отклонить
+                          </Button>
+                        </Box>
+                      )}
+                    </Box>
+                  </Card>
+                ))}
+              </Box>
+            )}
+          </Box>
+        )}
+      </Container>
+    </Box>
+  );
+};
+
+export default SquadPage;

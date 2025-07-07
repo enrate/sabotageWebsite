@@ -1,0 +1,14 @@
+module.exports = {
+  apps: [
+    {
+      name: 'arma-reforger-backend',
+      script: './server/index.js',
+      env: {
+        NODE_ENV: 'production',
+        REST_PORT: 5000,
+        SOCKET_PORT: 5001
+      },
+      watch: false
+    }
+  ]
+}; 
