@@ -61,4 +61,7 @@ db.Award = Award;
 db.UserAward = UserAward;
 db.SquadAward = SquadAward;
 
+db.PlayerSeasonStats = require('./PlayerSeasonStats.js')(sequelize);
+db.SquadSeasonStats = require('./SquadSeasonStats.js')(sequelize);
+
 module.exports = db; 

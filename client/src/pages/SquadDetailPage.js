@@ -1329,7 +1329,7 @@ const SquadDetailPage = () => {
                     </Tabs>
                   </Box>
                   {performanceTab === 0 && (
-                    <SquadStats stats={squadStats} performance={squad?.performance} />
+                    <SquadStats stats={squadStats} performance={squad?.performance} squadId={squad?.id} />
                   )}
                   {performanceTab === 1 && (
                     <PerformanceHistory performance={squad.performance} />

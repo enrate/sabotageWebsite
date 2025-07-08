@@ -1,4 +1,4 @@
-const { User, Squad, Season, Award } = require('../models');
+const { User, Squad, Season, Award, PlayerSeasonStats, SquadSeasonStats } = require('../models');
 
 // Топ игроков по elo
 exports.getTopPlayers = async (req, res) => {
@@ -83,4 +83,30 @@ exports.deleteSeason = async (req, res) => {
   if (!season) return res.status(404).json({ message: 'Сезон не найден' });
   await season.destroy();
   res.json({ message: 'Сезон удалён' });
+};
+
+// Получить сезонную статистику игрока
+exports.getPlayerSeasonStats = async (req, res) => {
+  try {
+    const { userId, seasonId } = req.query;
+    if (!userId || !seasonId) return res.status(400).json({ message: 'userId и seasonId обязательны' });
+    const stats = await PlayerSeasonStats.findOne({ where: { userId, seasonId } });
+    if (!stats) return res.status(404).json({ message: 'Нет данных по игроку за сезон' });
+    res.json(stats);
+  } catch (err) {
+    res.status(500).json({ message: 'Ошибка получения сезонной статистики игрока' });
+  }
+};
+
+// Получить сезонную статистику отряда
+exports.getSquadSeasonStats = async (req, res) => {
+  try {
+    const { squadId, seasonId } = req.query;
+    if (!squadId || !seasonId) return res.status(400).json({ message: 'squadId и seasonId обязательны' });
+    const stats = await SquadSeasonStats.findOne({ where: { squadId, seasonId } });
+    if (!stats) return res.status(404).json({ message: 'Нет данных по отряду за сезон' });
+    res.json(stats);
+  } catch (err) {
+    res.status(500).json({ message: 'Ошибка получения сезонной статистики отряда' });
+  }
 }; 

@@ -123,12 +123,14 @@ const rowStyle = {
   fontSize: 18,
 };
 
-const SquadStats = ({ stats, performance }) => {
+const SquadStats = ({ stats, performance, squadId }) => {
   const theme = useTheme();
   const [seasons, setSeasons] = useState([]);
   const [seasonIdx, setSeasonIdx] = useState(0);
   const [loadingSeasons, setLoadingSeasons] = useState(true);
   const [seasonsError, setSeasonsError] = useState(null);
+  const [seasonStats, setSeasonStats] = useState(null);
+  const [loadingStats, setLoadingStats] = useState(false);
 
   useEffect(() => {
     setLoadingSeasons(true);
@@ -142,16 +144,33 @@ const SquadStats = ({ stats, performance }) => {
       .finally(() => setLoadingSeasons(false));
   }, []);
 
-  // Найти performance по выбранному сезону
-  const selectedSeason = seasons[seasonIdx];
-  const seasonPerf = performance && selectedSeason ? performance.find(p => String(p.season) === String(selectedSeason.id) || String(p.season) === String(selectedSeason.name) || String(p.season) === String(seasonIdx+1)) : null;
-  const seasonStats = seasonPerf || stats;
+  // Загрузка сезонной статистики с бэка
+  useEffect(() => {
+    const selectedSeason = seasons[seasonIdx];
+    if (!selectedSeason || !squadId) {
+      setSeasonStats(null);
+      return;
+    }
+    setLoadingStats(true);
+    axios.get(`/api/seasons/squad-stats?squadId=${squadId}&seasonId=${selectedSeason.id}`)
+      .then(res => setSeasonStats(res.data))
+      .catch(() => setSeasonStats(null))
+      .finally(() => setLoadingStats(false));
+  }, [seasonIdx, seasons, squadId]);
 
-  if (!stats || typeof stats !== 'object' || Object.keys(stats).length === 0) {
+  const selectedSeason = seasons[seasonIdx];
+  // Если есть данные с бэка — используем их, иначе старый механизм
+  const seasonPerf = seasonStats || (performance && selectedSeason ? performance.find(p => String(p.season) === String(selectedSeason.id) || String(p.season) === String(selectedSeason.name) || String(p.season) === String(seasonIdx+1)) : null);
+
+  if (loadingStats) {
+    return <Box sx={{ textAlign: 'center', my: 4 }}><CircularProgress color="warning" /></Box>;
+  }
+
+  if (!seasonPerf) {
     return (
-        <Typography variant="h5" sx={{ color: '#ffb347', mb: 3, textAlign: 'center' }}>
-          Нет данных для отображения
-        </Typography>
+      <Typography variant="h5" sx={{ color: '#ffb347', mb: 3, textAlign: 'center' }}>
+        Нет данных для отображения
+      </Typography>
     );
   }
 

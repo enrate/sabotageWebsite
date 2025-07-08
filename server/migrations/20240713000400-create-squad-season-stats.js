@@ -1,0 +1,19 @@
+module.exports = {
+  up: async (queryInterface, Sequelize) => {
+    await queryInterface.createTable('squad_season_stats', {
+      id: { allowNull: false, autoIncrement: true, primaryKey: true, type: Sequelize.INTEGER },
+      squadId: { type: Sequelize.INTEGER, allowNull: false },
+      seasonId: { type: Sequelize.INTEGER, allowNull: false },
+      kills: { type: Sequelize.INTEGER, defaultValue: 0 },
+      deaths: { type: Sequelize.INTEGER, defaultValue: 0 },
+      elo: { type: Sequelize.INTEGER, defaultValue: 1000 },
+      matches: { type: Sequelize.INTEGER, defaultValue: 0 },
+      wins: { type: Sequelize.INTEGER, defaultValue: 0 },
+      losses: { type: Sequelize.INTEGER, defaultValue: 0 },
+      lastUpdated: { type: Sequelize.DATE, defaultValue: Sequelize.NOW }
+    });
+  },
+  down: async (queryInterface, Sequelize) => {
+    await queryInterface.dropTable('squad_season_stats');
+  }
+}; 

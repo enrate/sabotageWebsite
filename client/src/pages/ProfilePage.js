@@ -70,6 +70,8 @@ const ProfilePage = () => {
   const [seasonIdx, setSeasonIdx] = useState(0);
   const [statsTab, setStatsTab] = useState('common');
   const [userStats, setUserStats] = useState(null);
+  const [seasonalStats, setSeasonalStats] = useState(null);
+  const [loadingSeasonalStats, setLoadingSeasonalStats] = useState(false);
   
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -167,6 +169,18 @@ const ProfilePage = () => {
         setSeasonIdx(res.data.length ? res.data.length - 1 : 0);
       });
   }, []);
+
+  useEffect(() => {
+    if (!user || !user.id || seasons.length === 0) {
+      setSeasonalStats(null);
+      return;
+    }
+    setLoadingSeasonalStats(true);
+    axios.get(`/api/seasons/player-stats?userId=${user.id}&seasonId=${seasons[seasonIdx]?.id}`)
+      .then(res => setSeasonalStats(res.data))
+      .catch(() => setSeasonalStats(null))
+      .finally(() => setLoadingSeasonalStats(false));
+  }, [user?.id, seasons, seasonIdx]);
 
   // Функция проверки существующего приглашения
   const checkExistingInvite = async (squadId, userId) => {
@@ -565,14 +579,14 @@ const ProfilePage = () => {
                       <Grid item xs={12} sm={6} md={4}>
                         <Box sx={{ textAlign: 'center', p: 2 }}>
                           <TrendingUpIcon sx={{ color: '#ffb347', fontSize: 32, mb: 1 }} />
-                          <Typography sx={{ color: '#ffb347', fontWeight: 700 }}>Средний K/D</Typography>
+                          <Typography sx={{ color: '#ffb347', fontWeight: 700 }}>K/D</Typography>
                           <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{userStats && userStats.deaths > 0 ? (userStats.kills / userStats.deaths).toFixed(2) : userStats?.kills ?? '-'}</Typography>
                         </Box>
                       </Grid>
                       <Grid item xs={12} sm={6} md={4}>
                         <Box sx={{ textAlign: 'center', p: 2 }}>
                           <PercentIcon sx={{ color: '#ffb347', fontSize: 32, mb: 1 }} />
-                          <Typography sx={{ color: '#ffb347', fontWeight: 700 }}>Средний % побед</Typography>
+                          <Typography sx={{ color: '#ffb347', fontWeight: 700 }}>% побед</Typography>
                           <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{userStats?.winRate ?? '-'}</Typography>
                         </Box>
                       </Grid>
@@ -613,21 +627,20 @@ const ProfilePage = () => {
                         </Box>
                       )}
                       {/* Метрики за выбранный сезон */}
-                      {seasons.length > 0 && (
-                        (() => {
-                          const perf = user.performance?.find(p => String(p.season) === String(seasons[seasonIdx].id) || String(p.season) === String(seasons[seasonIdx].name));
-                          if (!perf) return <Typography sx={{ color: 'rgba(255,255,255,0.7)', textAlign: 'center' }}>Нет данных за этот сезон</Typography>;
-                          return (
-                            <Grid container spacing={2} sx={{ maxWidth: 600, mx: 'auto', mt: 1 }}>
-                              <Grid item xs={6} sm={4}><Box sx={{ textAlign: 'center' }}><Typography sx={{ color: '#ffb347', fontWeight: 700 }}>Место</Typography><Typography variant="h5" sx={{ color: '#ffb347', fontWeight: 700 }}>{perf.place ?? '-'}</Typography></Box></Grid>
-                              <Grid item xs={6} sm={4}><Box sx={{ textAlign: 'center' }}><Typography sx={{ color: '#fff', fontWeight: 700 }}>Очки</Typography><Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{perf.points ?? perf.elo ?? '-'}</Typography></Box></Grid>
-                              <Grid item xs={6} sm={4}><Box sx={{ textAlign: 'center' }}><Typography sx={{ color: '#fff', fontWeight: 700 }}>K/D</Typography><Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{perf.kills && perf.deaths ? (perf.deaths ? (perf.kills / perf.deaths).toFixed(2) : perf.kills) : perf.kd ?? '-'}</Typography></Box></Grid>
-                              <Grid item xs={6} sm={4}><Box sx={{ textAlign: 'center' }}><Typography sx={{ color: '#fff', fontWeight: 700 }}>Побед %</Typography><Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{perf.winrate ?? '-'}</Typography></Box></Grid>
-                              <Grid item xs={6} sm={4}><Box sx={{ textAlign: 'center' }}><Typography sx={{ color: '#fff', fontWeight: 700 }}>Матчи</Typography><Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{perf.matches ?? '-'}</Typography></Box></Grid>
-                            </Grid>
-                          );
-                        })()
-                      )}
+                      {loadingSeasonalStats ? (
+                        <Box sx={{ textAlign: 'center', my: 4 }}><LinearProgress color="warning" /></Box>
+                      ) : seasons.length > 0 && seasonalStats ? (
+                        <Grid container spacing={2} sx={{ maxWidth: 600, mx: 'auto', mt: 1 }}>
+                          <Grid item xs={6} sm={4}><Box sx={{ textAlign: 'center' }}><Typography sx={{ color: '#ffb347', fontWeight: 700 }}>Очки</Typography><Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{seasonalStats.elo ?? '-'}</Typography></Box></Grid>
+                          <Grid item xs={6} sm={4}><Box sx={{ textAlign: 'center' }}><Typography sx={{ color: '#fff', fontWeight: 700 }}>K/D</Typography><Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{seasonalStats.kills && seasonalStats.deaths ? (seasonalStats.deaths ? (seasonalStats.kills / seasonalStats.deaths).toFixed(2) : seasonalStats.kills) : seasonalStats.kd ?? '-'}</Typography></Box></Grid>
+                          <Grid item xs={6} sm={4}><Box sx={{ textAlign: 'center' }}><Typography sx={{ color: '#fff', fontWeight: 700 }}>Побед %</Typography><Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{seasonalStats.winrate ?? '-'}</Typography></Box></Grid>
+                          <Grid item xs={6} sm={4}><Box sx={{ textAlign: 'center' }}><Typography sx={{ color: '#fff', fontWeight: 700 }}>Матчи</Typography><Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{seasonalStats.matches ?? '-'}</Typography></Box></Grid>
+                          <Grid item xs={6} sm={4}><Box sx={{ textAlign: 'center' }}><Typography sx={{ color: '#fff', fontWeight: 700 }}>Убийства</Typography><Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{seasonalStats.kills ?? '-'}</Typography></Box></Grid>
+                          <Grid item xs={6} sm={4}><Box sx={{ textAlign: 'center' }}><Typography sx={{ color: '#fff', fontWeight: 700 }}>Смерти</Typography><Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{seasonalStats.deaths ?? '-'}</Typography></Box></Grid>
+                        </Grid>
+                      ) : seasons.length > 0 ? (
+                        <Typography sx={{ color: 'rgba(255,255,255,0.7)', textAlign: 'center' }}>Нет данных за этот сезон</Typography>
+                      ) : null}
                     </Box>
                   )}
                 </Box>
