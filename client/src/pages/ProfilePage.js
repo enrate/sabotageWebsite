@@ -142,21 +142,23 @@ const ProfilePage = () => {
     };
 
     loadProfileData();
-    // Загружаем статистику пользователя
+  }, [id, currentUser, user?.armaId]);
+
+  useEffect(() => {
+    if (!user || !user.armaId) {
+      setUserStats(null);
+      return;
+    }
     const fetchStats = async () => {
       try {
-        if (user && user.armaId) {
-          const res = await axios.get(`/api/users/stats/${user.armaId}`);
-          setUserStats(res.data);
-        } else {
-          setUserStats(null);
-        }
+        const res = await axios.get(`/api/users/stats/${user.armaId}`);
+        setUserStats(res.data);
       } catch {
         setUserStats(null);
       }
     };
     fetchStats();
-  }, [id, currentUser, user?.armaId]);
+  }, [user?.armaId]);
 
   useEffect(() => {
     axios.get('/api/seasons')
