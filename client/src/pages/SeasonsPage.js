@@ -47,9 +47,15 @@ const SeasonsPage = () => {
     const fetchData = async () => {
       try {
         const seasonId = season?.id;
+        if (!seasonId) {
+          setPlayers([]);
+          setSquads([]);
+          setLoading(false);
+          return;
+        }
         const [playersRes, squadsRes] = await Promise.all([
-          axios.get('/api/seasons/top-players', seasonId ? { params: { seasonId } } : {}),
-          axios.get('/api/seasons/top-squads', seasonId ? { params: { seasonId } } : {})
+          axios.get('/api/seasons/top-players', { params: { seasonId } }),
+          axios.get('/api/seasons/top-squads', { params: { seasonId } })
         ]);
         setPlayers(playersRes.data);
         setSquads(squadsRes.data);

@@ -572,7 +572,7 @@ const ProfilePage = () => {
                       <Grid item xs={12} sm={6} md={4}>
                         <Box sx={{ textAlign: 'center', p: 2 }}>
                           <GroupOffIcon sx={{ color: '#ffb347', fontSize: 32, mb: 1 }} />
-                          <Typography sx={{ color: '#ffb347', fontWeight: 700 }}>Тимкиллов всего</Typography>
+                          <Typography sx={{ color: '#ffb347', fontWeight: 700 }}>Тимкиллы всего</Typography>
                           <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{userStats?.teamKills ?? '-'}</Typography>
                         </Box>
                       </Grid>
@@ -663,7 +663,11 @@ const ProfilePage = () => {
                             <Box sx={{ textAlign: 'center', p: 2 }}>
                               <PercentIcon sx={{ color: '#ffb347', fontSize: 32, mb: 1 }} />
                               <Typography sx={{ color: '#ffb347', fontWeight: 700 }}>% побед</Typography>
-                              <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{seasonalStats.winrate ?? '-'}</Typography>
+                              <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>
+                                {(seasonalStats?.wins !== undefined && seasonalStats?.matches > 0)
+                                  ? ((seasonalStats.wins / seasonalStats.matches) * 100).toFixed(1)
+                                  : '-'}
+                              </Typography>
                             </Box>
                           </Grid>
                           <Grid item xs={12} sm={6} md={4}>
@@ -671,6 +675,13 @@ const ProfilePage = () => {
                               <SportsScoreIcon sx={{ color: '#ffb347', fontSize: 32, mb: 1 }} />
                               <Typography sx={{ color: '#ffb347', fontWeight: 700 }}>Матчей</Typography>
                               <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{seasonalStats.matches ?? '-'}</Typography>
+                            </Box>
+                          </Grid>
+                          <Grid item xs={12} sm={6} md={4}>
+                            <Box sx={{ textAlign: 'center', p: 2 }}>
+                              <GroupOffIcon sx={{ color: '#ffb347', fontSize: 32, mb: 1 }} />
+                              <Typography sx={{ color: '#ffb347', fontWeight: 700 }}>Тимкиллы</Typography>
+                              <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{seasonalStats?.teamkills ?? '-'}</Typography>
                             </Box>
                           </Grid>
                         </Grid>

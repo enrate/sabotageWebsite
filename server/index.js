@@ -76,11 +76,9 @@ app.post('/api/server/data', async (req, res) => {
     return res.status(401).json({ error: 'Unauthorized' });
   }
   try {
-    console.log(req.body);
     const { events } = req.body;
     if (Array.isArray(events)) {
       for (const event of events) {
-        console.log(event);
         if (event.name === 'logger_player_killed') {
           const killLog = await db.KillLog.create({
             friendlyFire: event.data.friendlyFire,
@@ -305,12 +303,43 @@ app.post('/api/server/data', async (req, res) => {
         }
       }
     } else if (req.body.Factions) {
-      console.log(req.body)
+
       // Обработка результатов игроков
       const winningFactionKey = getWinner(req.body.FactionResults);
       const sessionId = req.body.SessionId || String(Date.now());
       const timestamp = req.body.Timestamp ? new Date(req.body.Timestamp * 1000) : new Date();
       const playersResults = getAllPlayersResults(req.body, winningFactionKey);
+      // --- Новый блок: агрегируем kills/deaths/teamkills из KillLog с processed=false ---
+      const unprocessedLogs = await db.KillLog.findAll({ where: { processed: false } });
+      // Группируем по игроку
+      const killStatsByPlayer = {};
+      for (const log of unprocessedLogs) {
+        // Убийца
+        if (log.killerIdentity && !log.suicide && !log.friendlyFire) {
+          if (!killStatsByPlayer[log.killerIdentity]) killStatsByPlayer[log.killerIdentity] = { kills: 0, deaths: 0, teamkills: 0 };
+          killStatsByPlayer[log.killerIdentity].kills++;
+        }
+        // Смерть (жертва)
+        if (log.victimIdentity) {
+          if (!killStatsByPlayer[log.victimIdentity]) killStatsByPlayer[log.victimIdentity] = { kills: 0, deaths: 0, teamkills: 0 };
+          killStatsByPlayer[log.victimIdentity].deaths++;
+        }
+        // Тимкилл
+        if (log.friendlyFire && log.killerIdentity) {
+          if (!killStatsByPlayer[log.killerIdentity]) killStatsByPlayer[log.killerIdentity] = { kills: 0, deaths: 0, teamkills: 0 };
+          killStatsByPlayer[log.killerIdentity].teamkills++;
+        }
+      }
+      // --- Вставляем статистику в playerResults ---
+      if (playersResults && Array.isArray(playersResults)) {
+        for (const player of playersResults) {
+          const stats = killStatsByPlayer[player.playerIdentity] || { kills: 0, deaths: 0, teamkills: 0 };
+          player.kills = stats.kills;
+          player.deaths = stats.deaths;
+          player.teamkills = stats.teamkills;
+        }
+      }
+      // --- После расчёта эло ---
       if (playersResults && Array.isArray(playersResults)) {
         for (const player of playersResults) {
           await db.PlayerResult.create({
@@ -403,7 +432,18 @@ app.post('/api/server/data', async (req, res) => {
         for (const armaId of armaIds) {
           const stats = playerStats.find(s => s.armaId === armaId);
           if (!stats) continue;
-          const isWin = playersResults.find(p => p.playerIdentity === armaId)?.result === 'win';
+          const playerResult = playersResults.find(p => p.playerIdentity === armaId);
+          if (!playerResult || (playerResult.result !== 'win' && playerResult.result !== 'lose')) continue;
+          const isWin = playerResult.result === 'win';
+          // Получаем статистику за матч (kills, deaths, teamkills)
+          // Для этого нужно, чтобы playersResults содержал эти данные, либо получить их из KillLog за матч
+          // Здесь предполагаем, что playerResult содержит kills, deaths, teamkills за матч
+          const kills = playerResult.kills || 0;
+          const deaths = playerResult.deaths || 0;
+          const teamkills = playerResult.teamkills || 0;
+          // Новый score с учётом всех параметров
+          let score = (isWin ? 1 : 0) + (kills * 0.04) - (deaths * 0.02) - (teamkills * 0.1);
+          score = Math.max(0, Math.min(1, score));
           // Среднее эло соперников
           const opponents = isWin ? losers : winners;
           if (!opponents.length) continue;
@@ -412,28 +452,51 @@ app.post('/api/server/data', async (req, res) => {
             return sum + (s ? s.elo : 1000);
           }, 0) / opponents.length;
           const expected = 1 / (1 + Math.pow(10, ((avgOpponentElo - stats.elo) / 400)));
-          const score = isWin ? 1 : 0;
           const newElo = Math.round(stats.elo + K * (score - expected));
-          console.log('Обновляю эло игрока:', armaId, 'userId:', stats.userId, 'старое:', stats.elo, 'новое:', newElo);
+          console.log('Обновляю эло игрока:', armaId, 'userId:', stats.userId, 'старое:', stats.elo, 'новое:', newElo, 'score:', score);
           await stats.update({ elo: newElo, lastUpdated: new Date() });
+          // --- Обновление maxElo в user_stats ---
+          if (stats.userId) {
+            const userStats = await db.UserStats.findOne({ where: { userId: stats.userId } });
+            if (userStats && (userStats.maxElo === null || newElo > userStats.maxElo)) {
+              await userStats.update({ maxElo: newElo });
+            }
+          }
         }
         // Для отрядов
         for (const squadId of [...new Set(squadIds)]) {
           const squad = squadStats.find(sq => sq.squadId === squadId);
           if (!squad) continue;
-          // Победили ли участники этого отряда?
           const squadUsers = users.filter(u => u.squadId === squadId);
-          const isWin = squadUsers.some(u => playersResults.find(p => p.playerIdentity === u.armaId)?.result === 'win');
+          // Для отряда score — среднее по всем участникам
+          let squadScores = [];
+          for (const user of squadUsers) {
+            const playerResult = playersResults.find(p => p.playerIdentity === user.armaId);
+            if (!playerResult || (playerResult.result !== 'win' && playerResult.result !== 'lose')) continue;
+            const isWin = playerResult.result === 'win';
+            const kills = playerResult.kills || 0;
+            const deaths = playerResult.deaths || 0;
+            const teamkills = playerResult.teamkills || 0;
+            let score = (isWin ? 1 : 0) + (kills * 0.04) - (deaths * 0.02) - (teamkills * 0.1);
+            score = Math.max(0, Math.min(1, score));
+            squadScores.push(score);
+          }
+          if (!squadScores.length) continue;
+          const avgScore = squadScores.reduce((a, b) => a + b, 0) / squadScores.length;
+          // Соперники — другие отряды
           const opponents = users.filter(u => u.squadId && u.squadId !== squadId);
           if (!opponents.length) continue;
           const opponentSquadStats = squadStats.filter(sq => sq.squadId !== squadId);
           const avgOpponentElo = opponentSquadStats.length ? (opponentSquadStats.reduce((sum, s) => sum + (s.elo || 1000), 0) / opponentSquadStats.length) : 1000;
           const expected = 1 / (1 + Math.pow(10, ((avgOpponentElo - squad.elo) / 400)));
-          const score = isWin ? 1 : 0;
-          const newElo = Math.round(squad.elo + K * (score - expected));
-          console.log('Обновляю эло отряда:', squadId, 'старое:', squad.elo, 'новое:', newElo);
+          const newElo = Math.round(squad.elo + K * (avgScore - expected));
+          console.log('Обновляю эло отряда:', squadId, 'старое:', squad.elo, 'новое:', newElo, 'score:', avgScore);
           await squad.update({ elo: newElo, lastUpdated: new Date() });
         }
+      }
+      // --- Помечаем логи как обработанные ---
+      if (unprocessedLogs.length) {
+        await db.KillLog.update({ processed: true }, { where: { id: unprocessedLogs.map(l => l.id) } });
       }
     }
     res.status(200).json({ message: 'Данные получены и обработаны' });

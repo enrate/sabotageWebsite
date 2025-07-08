@@ -15,10 +15,26 @@ exports.getUserById = async (req, res) => {
     // Добавляем статистику
     let stats = null;
     if (user.armaId) {
-      const UserStats = require('../models').UserStats;
+      const { UserStats, PlayerSeasonStats } = require('../models');
       const foundStats = await UserStats.findOne({ where: { armaId: user.armaId } });
+      // Агрегируем сезонную статистику
+      const seasonStats = await PlayerSeasonStats.findAll({ where: { armaId: user.armaId } });
+      const totalGames = seasonStats.reduce((sum, s) => sum + (s.matches || 0), 0);
+      const totalWins = seasonStats.reduce((sum, s) => sum + (s.wins || 0), 0);
+      const totalLosses = seasonStats.reduce((sum, s) => sum + (s.losses || 0), 0);
+      const maxElo = foundStats?.maxElo ?? 0;
+      const winRate = totalGames > 0 ? ((totalWins / totalGames) * 100).toFixed(1) : null;
       if (foundStats) {
-        stats = { kills: foundStats.kills, deaths: foundStats.deaths };
+        stats = {
+          kills: foundStats.kills,
+          deaths: foundStats.deaths,
+          teamkills: foundStats.teamkills,
+          totalGames,
+          wins: totalWins,
+          losses: totalLosses,
+          winRate,
+          maxElo
+        };
       }
     }
     res.json({ ...user.toJSON(), verified, stats });

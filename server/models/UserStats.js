@@ -24,6 +24,10 @@ module.exports = (sequelize) => {
       type: DataTypes.INTEGER,
       defaultValue: 0
     },
+    maxElo: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0
+    },
     lastUpdated: {
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW
