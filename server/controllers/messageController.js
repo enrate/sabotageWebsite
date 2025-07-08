@@ -74,10 +74,9 @@ exports.sendMessage = async (req, res) => {
         { model: User, as: 'receiver', attributes: ['id', 'username', 'avatar'] }
       ]
     });
-    // --- SOCKET.IO: отправить событие всем клиентам ---
-    const io = getIO();
-    console.log('[SOCKET] emit new_message to ALL');
-    io.emit('new_message', fullMessage);
+    // --- Публикация события в Redis ---
+    console.log('[REDIS] publish new_message', fullMessage);
+    await redis.publish('new_message', JSON.stringify(fullMessage));
     // --- Создать уведомление для получателя ---
     await Notification.create({
       userId: receiverId,
