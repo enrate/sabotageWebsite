@@ -211,6 +211,9 @@ const SettingsPage = () => {
         position: 'relative',
         overflow: 'hidden',
       }}>
+        {/* Уведомления */}
+        {success && <Alert severity="success" sx={{ width: '100%', mb: 2 }}>{success}</Alert>}
+        {error && <Alert severity="error" sx={{ width: '100%', mb: 2 }}>{error}</Alert>}
         {/* Аватар, имя, email */}
         <Box sx={{ textAlign: 'center', mb: 3 }}>
           <Box sx={{ position: 'relative', display: 'inline-block', mb: 2 }}>
@@ -275,6 +278,8 @@ const SettingsPage = () => {
                 '&.Mui-focused': { color: '#ffb347' }
               }
             }}
+            disabled={!!form.armaId}
+            helperText="Внимание: изменить Arma ID после сохранения будет невозможно!"
           />
           <TextField
             fullWidth

@@ -243,7 +243,7 @@ const Navbar = ({ onOpenAuthModal, notifications = [], onNotificationClick, mark
                 }
               }}
             >
-              Сезоны
+              Статистика
             </Button>
 
             <Button

@@ -81,13 +81,40 @@ app.post('/api/server/data', async (req, res) => {
       for (const event of events) {
         console.log(event);
         if (event.name === 'logger_player_killed') {
-            await db.KillLog.create({
-              friendlyFire: !!event.data.friendlyFire,
-              suicide: !!event.data.suicide,
-              killerIdentity: event.data.killerIdentity || null,
-              victimIdentity: event.data.victimIdentity || null,
-              timestamp: event.data.timestamp ? new Date(event.data.timestamp * 1000) : new Date(),
-            });
+          const killLog = await db.KillLog.create({
+            friendlyFire: !!event.data.friendlyFire,
+            suicide: !!event.data.suicide,
+            killerIdentity: event.data.killerIdentity || null,
+            victimIdentity: event.data.victimIdentity || null,
+            timestamp: event.data.timestamp ? new Date(event.data.timestamp * 1000) : new Date(),
+          });
+
+          // --- Обновление кэша статистики ---
+          const { killerIdentity, victimIdentity } = event.data;
+          // Обновить статистику убийцы
+          if (killerIdentity) {
+            const killerUser = await db.User.findOne({ where: { armaId: killerIdentity } });
+            if (killerUser) {
+              const [stats, created] = await db.UserStats.findOrCreate({
+                where: { armaId: killerIdentity },
+                defaults: { userId: killerUser.id, armaId: killerIdentity, kills: 0, deaths: 0 }
+              });
+              await stats.increment('kills');
+              await stats.update({ lastUpdated: new Date() });
+            }
+          }
+          // Обновить статистику жертвы
+          if (victimIdentity) {
+            const victimUser = await db.User.findOne({ where: { armaId: victimIdentity } });
+            if (victimUser) {
+              const [stats, created] = await db.UserStats.findOrCreate({
+                where: { armaId: victimIdentity },
+                defaults: { userId: victimUser.id, armaId: victimIdentity, kills: 0, deaths: 0 }
+              });
+              await stats.increment('deaths');
+              await stats.update({ lastUpdated: new Date() });
+            }
+          }
         }
       }
     } else if (req.body.Factions) {

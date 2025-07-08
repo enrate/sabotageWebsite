@@ -87,4 +87,47 @@ exports.getLookingForSquadUsers = async (req, res) => {
   } catch (err) {
     res.status(500).json({ message: 'Ошибка получения пользователей' });
   }
+};
+
+exports.getSquadTagByPlayerIdentity = async (req, res) => {
+  try {
+    const { playerIdentity } = req.params;
+    // Найти пользователя по armaId
+    const user = await require('../models').User.findOne({ where: { armaId: playerIdentity } });
+    if (!user) {
+      return res.status(404).json({ error: 'Пользователь с таким armaId не найден' });
+    }
+    if (!user.squadId) {
+      return res.status(404).json({ error: 'У пользователя нет отряда' });
+    }
+    // Найти отряд по squadId
+    const squad = await require('../models').Squad.findByPk(user.squadId);
+    if (!squad || !squad.tag) {
+      return res.status(404).json({ error: 'У отряда нет тега' });
+    }
+    res.status(200).json({ status: 'success', detail: { squad_prefix: squad.tag } });
+  } catch (error) {
+    console.error('Ошибка обработки:', error);
+    res.status(500).json({ error: 'Внутренняя ошибка сервера' });
+  }
+};
+
+exports.getUserStats = async (req, res) => {
+  try {
+    const { armaId } = req.params;
+    const stats = await require('../models').UserStats.findOne({ where: { armaId } });
+    if (!stats) {
+      return res.status(404).json({ kills: '-', deaths: '-', teamKills: '-', totalGames: '-', winRate: '-', maxElo: '-' });
+    }
+    res.json({
+      kills: stats.kills,
+      deaths: stats.deaths,
+      teamKills: stats.teamKills ?? '-',
+      totalGames: stats.totalGames ?? '-',
+      winRate: stats.winRate ?? '-',
+      maxElo: stats.maxElo ?? '-'
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Ошибка получения статистики' });
+  }
 }; 

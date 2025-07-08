@@ -7,6 +7,7 @@ const SquadList = ({ squads, onSquadClick }) => {
       {squads.map(squad => (
         <div key={squad.id} className="squad-card" onClick={() => onSquadClick && onSquadClick(squad)}>
           <h3>{squad.name}</h3>
+          {squad.tag && <div className="squad-tag" style={{ color: '#888', fontSize: 14, marginBottom: 4 }}>Тег: {squad.tag}</div>}
           <p>Лидер: {squad.leader?.username || 'Неизвестно'}</p>
           <p>Участников: {squad.members?.length || 0}</p>
         </div>

@@ -69,6 +69,7 @@ const ProfilePage = () => {
   const [seasons, setSeasons] = useState([]);
   const [seasonIdx, setSeasonIdx] = useState(0);
   const [statsTab, setStatsTab] = useState('common');
+  const [userStats, setUserStats] = useState(null);
   
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -141,7 +142,21 @@ const ProfilePage = () => {
     };
 
     loadProfileData();
-  }, [id, currentUser]);
+    // Загружаем статистику пользователя
+    const fetchStats = async () => {
+      try {
+        if (user && user.armaId) {
+          const res = await axios.get(`/api/users/stats/${user.armaId}`);
+          setUserStats(res.data);
+        } else {
+          setUserStats(null);
+        }
+      } catch {
+        setUserStats(null);
+      }
+    };
+    fetchStats();
+  }, [id, currentUser, user?.armaId]);
 
   useEffect(() => {
     axios.get('/api/seasons')
@@ -209,19 +224,19 @@ const ProfilePage = () => {
 
 
   // Моковые данные статистики (замените на реальные данные)
-  const userStats = {
-    totalGames: 156,
-    wins: 89,
-    losses: 67,
-    winRate: 57.1,
-    totalKills: 1920,
-    totalDeaths: 1356,
-    totalTeamKills: 23,
-    kdRatio: 1.41,
-    bestSeason: 'Сезон 5',
-    bestPlace: 2,
-    totalPoints: 2847
-  };
+  // const userStats = {
+  //   totalGames: 156,
+  //   wins: 89,
+  //   losses: 67,
+  //   winRate: 57.1,
+  //   totalKills: 1920,
+  //   totalDeaths: 1356,
+  //   totalTeamKills: 23,
+  //   kdRatio: 1.41,
+  //   bestSeason: 'Сезон 5',
+  //   bestPlace: 2,
+  //   totalPoints: 2847
+  // };
 
   const handleTabChange = (event, newValue) => {
     setTab(newValue);
@@ -521,49 +536,49 @@ const ProfilePage = () => {
                         <Box sx={{ textAlign: 'center', p: 2 }}>
                           <TrendingUpIcon sx={{ color: '#ffb347', fontSize: 32, mb: 1 }} />
                           <Typography sx={{ color: '#ffb347', fontWeight: 700 }}>Максимальный рейтинг</Typography>
-                          <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{userStats.maxElo ?? '-'}</Typography>
+                          <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{userStats?.maxElo ?? '-'}</Typography>
                         </Box>
                       </Grid>
                       <Grid item xs={12} sm={6} md={4}>
                         <Box sx={{ textAlign: 'center', p: 2 }}>
                           <SportsKabaddiIcon sx={{ color: '#ffb347', fontSize: 32, mb: 1 }} />
                           <Typography sx={{ color: '#ffb347', fontWeight: 700 }}>Убийств всего</Typography>
-                          <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{userStats.totalKills ?? '-'}</Typography>
+                          <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{userStats?.kills ?? '-'}</Typography>
                         </Box>
                       </Grid>
                       <Grid item xs={12} sm={6} md={4}>
                         <Box sx={{ textAlign: 'center', p: 2 }}>
                           <GroupRemoveIcon sx={{ color: '#ffb347', fontSize: 32, mb: 1 }} />
                           <Typography sx={{ color: '#ffb347', fontWeight: 700 }}>Смертей всего</Typography>
-                          <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{userStats.totalDeaths ?? '-'}</Typography>
+                          <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{userStats?.deaths ?? '-'}</Typography>
                         </Box>
                       </Grid>
                       <Grid item xs={12} sm={6} md={4}>
                         <Box sx={{ textAlign: 'center', p: 2 }}>
                           <GroupOffIcon sx={{ color: '#ffb347', fontSize: 32, mb: 1 }} />
                           <Typography sx={{ color: '#ffb347', fontWeight: 700 }}>Тимкиллов всего</Typography>
-                          <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{userStats.totalTeamKills ?? '-'}</Typography>
+                          <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{userStats?.teamKills ?? '-'}</Typography>
                         </Box>
                       </Grid>
                       <Grid item xs={12} sm={6} md={4}>
                         <Box sx={{ textAlign: 'center', p: 2 }}>
                           <TrendingUpIcon sx={{ color: '#ffb347', fontSize: 32, mb: 1 }} />
                           <Typography sx={{ color: '#ffb347', fontWeight: 700 }}>Средний K/D</Typography>
-                          <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{userStats.kdRatio ?? '-'}</Typography>
+                          <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{userStats && userStats.deaths > 0 ? (userStats.kills / userStats.deaths).toFixed(2) : userStats?.kills ?? '-'}</Typography>
                         </Box>
                       </Grid>
                       <Grid item xs={12} sm={6} md={4}>
                         <Box sx={{ textAlign: 'center', p: 2 }}>
                           <PercentIcon sx={{ color: '#ffb347', fontSize: 32, mb: 1 }} />
                           <Typography sx={{ color: '#ffb347', fontWeight: 700 }}>Средний % побед</Typography>
-                          <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{userStats.winRate ?? '-'}</Typography>
+                          <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{userStats?.winRate ?? '-'}</Typography>
                         </Box>
                       </Grid>
                       <Grid item xs={12} sm={6} md={4}>
                         <Box sx={{ textAlign: 'center', p: 2 }}>
                           <SportsScoreIcon sx={{ color: '#ffb347', fontSize: 32, mb: 1 }} />
                           <Typography sx={{ color: '#ffb347', fontWeight: 700 }}>Матчей всего</Typography>
-                          <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{userStats.totalGames ?? '-'}</Typography>
+                          <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{userStats?.totalGames ?? '-'}</Typography>
                         </Box>
                       </Grid>
                     </Grid>
