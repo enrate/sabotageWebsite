@@ -142,7 +142,7 @@ const ProfilePage = () => {
     };
 
     loadProfileData();
-  }, [id, currentUser, user?.armaId]);
+  }, [id, currentUser]);
 
   useEffect(() => {
     if (!user || !user.armaId) {
