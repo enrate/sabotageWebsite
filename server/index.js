@@ -76,6 +76,7 @@ app.post('/api/server/data', async (req, res) => {
     return res.status(401).json({ error: 'Unauthorized' });
   }
   try {
+    console.log(req.body);
     const { events } = req.body;
     if (Array.isArray(events)) {
       for (const event of events) {
@@ -198,6 +199,64 @@ app.post('/api/server/data', async (req, res) => {
             sessionId,
             timestamp,
           });
+        }
+        // --- Расчёт и обновление эло ---
+        // 1. Получаем всех пользователей по armaId
+        const armaIds = playersResults.map(p => p.playerIdentity);
+        const users = await db.User.findAll({ where: { armaId: armaIds } });
+        // 2. Определяем текущий сезон
+        const now = new Date();
+        const currentSeason = await db.Season.findOne({
+          where: {
+            startDate: { [db.Sequelize.Op.lte]: now },
+            endDate: { [db.Sequelize.Op.gte]: now }
+          },
+          order: [['startDate', 'DESC']]
+        });
+        const seasonId = currentSeason ? currentSeason.id : null;
+        if (seasonId) {
+          // 3. Группируем по результату
+          const winners = users.filter(u => playersResults.find(p => p.playerIdentity === u.armaId)?.result === 'win');
+          const losers = users.filter(u => playersResults.find(p => p.playerIdentity === u.armaId)?.result === 'lose');
+          // 4. Получаем текущий эло игроков и отрядов
+          const playerStats = await db.PlayerSeasonStats.findAll({ where: { seasonId, armaId: armaIds } });
+          const squadIds = users.map(u => u.squadId).filter(Boolean);
+          const squadStats = squadIds.length ? await db.SquadSeasonStats.findAll({ where: { seasonId, squadId: squadIds } }) : [];
+          // 5. Классическая формула эло
+          const K = 32;
+          // Для игроков
+          for (const user of users) {
+            const stats = playerStats.find(s => s.armaId === user.armaId);
+            if (!stats) continue;
+            const isWin = playersResults.find(p => p.playerIdentity === user.armaId)?.result === 'win';
+            // Среднее эло соперников
+            const opponents = isWin ? losers : winners;
+            if (!opponents.length) continue;
+            const avgOpponentElo = opponents.reduce((sum, u) => {
+              const s = playerStats.find(ps => ps.armaId === u.armaId);
+              return sum + (s ? s.elo : 1000);
+            }, 0) / opponents.length;
+            const expected = 1 / (1 + Math.pow(10, ((avgOpponentElo - stats.elo) / 400)));
+            const score = isWin ? 1 : 0;
+            const newElo = Math.round(stats.elo + K * (score - expected));
+            await stats.update({ elo: newElo, lastUpdated: new Date() });
+          }
+          // Для отрядов
+          for (const squadId of [...new Set(squadIds)]) {
+            const squad = squadStats.find(sq => sq.squadId === squadId);
+            if (!squad) continue;
+            // Победили ли участники этого отряда?
+            const squadUsers = users.filter(u => u.squadId === squadId);
+            const isWin = squadUsers.some(u => playersResults.find(p => p.playerIdentity === u.armaId)?.result === 'win');
+            const opponents = users.filter(u => u.squadId && u.squadId !== squadId);
+            if (!opponents.length) continue;
+            const opponentSquadStats = squadStats.filter(sq => sq.squadId !== squadId);
+            const avgOpponentElo = opponentSquadStats.length ? (opponentSquadStats.reduce((sum, s) => sum + (s.elo || 1000), 0) / opponentSquadStats.length) : 1000;
+            const expected = 1 / (1 + Math.pow(10, ((avgOpponentElo - squad.elo) / 400)));
+            const score = isWin ? 1 : 0;
+            const newElo = Math.round(squad.elo + K * (score - expected));
+            await squad.update({ elo: newElo, lastUpdated: new Date() });
+          }
         }
       }
     }
