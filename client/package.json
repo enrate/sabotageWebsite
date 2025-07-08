@@ -22,7 +22,7 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build && npm run obfuscate",
-    "obfuscate": "for %f in (build\\static\\js\\*.js) do javascript-obfuscator build\\static\\js\\%f --output build\\static\\js\\%f --compact true --self-defending true --control-flow-flattening true",
+    "obfuscate": "node obfuscate-all.js",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "build-and-copy": "react-scripts build && xcopy /E /I /Y build ..\\server\\client_build"
