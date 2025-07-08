@@ -101,6 +101,15 @@ app.post('/api/server/data', async (req, res) => {
               });
               await stats.increment('kills');
               await stats.update({ lastUpdated: new Date() });
+              // --- squad_stats ---
+              if (killerUser.squadId) {
+                const [squadStats, squadCreated] = await db.SquadStats.findOrCreate({
+                  where: { squadId: killerUser.squadId },
+                  defaults: { squadId: killerUser.squadId, kills: 0, deaths: 0 }
+                });
+                await squadStats.increment('kills');
+                await squadStats.update({ lastUpdated: new Date() });
+              }
             }
           }
           // Обновить статистику жертвы
@@ -113,6 +122,15 @@ app.post('/api/server/data', async (req, res) => {
               });
               await stats.increment('deaths');
               await stats.update({ lastUpdated: new Date() });
+              // --- squad_stats ---
+              if (victimUser.squadId) {
+                const [squadStats, squadCreated] = await db.SquadStats.findOrCreate({
+                  where: { squadId: victimUser.squadId },
+                  defaults: { squadId: victimUser.squadId, kills: 0, deaths: 0 }
+                });
+                await squadStats.increment('deaths');
+                await squadStats.update({ lastUpdated: new Date() });
+              }
             }
           }
         }

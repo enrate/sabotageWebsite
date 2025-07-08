@@ -107,6 +107,7 @@ const SquadDetailPage = () => {
   const [manageError, setManageError] = useState(null);
   const [performanceScrollIndex, setPerformanceScrollIndex] = useState(0);
   const [performanceTab, setPerformanceTab] = useState(0);
+  const [squadStats, setSquadStats] = useState(null);
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -134,7 +135,7 @@ const SquadDetailPage = () => {
 
   // Пример дополнительных данных
   const squadInfo = squad ? [
-    { label: 'Тег', value: squad.tag || '—', link: squad.tag ? `/squads/${squad.tag}` : null },
+    { label: 'Тег', value: squad.tag || '—'},
     { label: 'Дата создания', value: squad.createdAt ? new Date(squad.createdAt).toLocaleDateString() : '—' },
     { label: 'Набор открыт?', value: squad.isJoinRequestOpen ? 'Да' : 'Нет' },
     { label: 'Участников', value: squad.members?.length || 0 },
@@ -164,6 +165,14 @@ const SquadDetailPage = () => {
         setLogoPreview(res.data.logo || '');
         setTouched(false);
         setLoading(false);
+
+        // Загрузка squad_stats
+        try {
+          const statsRes = await axios.get(`/api/squads/stats/${id}`);
+          setSquadStats(statsRes.data);
+        } catch {
+          setSquadStats(null);
+        }
 
         // Проверяем статус заявки пользователя
         if (currentUser && !res.data.members?.some(m => m.id === currentUser?.id) && res.data.leaderId !== currentUser?.id) {
@@ -1320,7 +1329,7 @@ const SquadDetailPage = () => {
                     </Tabs>
                   </Box>
                   {performanceTab === 0 && (
-                    <SquadStats stats={squad.stats} performance={squad.performance} />
+                    <SquadStats stats={squadStats} performance={squad?.performance} />
                   )}
                   {performanceTab === 1 && (
                     <PerformanceHistory performance={squad.performance} />

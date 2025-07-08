@@ -975,3 +975,17 @@ exports.getUserSquadInvites = async (req, res) => {
     res.status(500).json({ message: 'Ошибка получения приглашений' });
   }
 };
+
+exports.getSquadStats = async (req, res) => {
+  try {
+    const { squadId } = req.params;
+    const SquadStats = require('../models').SquadStats;
+    const stats = await SquadStats.findOne({ where: { squadId } });
+    if (!stats) {
+      return res.status(404).json({ kills: '-', deaths: '-' });
+    }
+    res.json({ kills: stats.kills, deaths: stats.deaths });
+  } catch (error) {
+    res.status(500).json({ error: 'Ошибка получения статистики отряда' });
+  }
+};

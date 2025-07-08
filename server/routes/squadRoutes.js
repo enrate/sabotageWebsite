@@ -25,6 +25,7 @@ router.get('/:id/join-request-status', protect, squadController.getUserJoinReque
 router.get('/:id/history', protect, squadController.getSquadHistory);
 router.get('/:id/warnings', squadController.getSquadWarningsPublic);
 router.post('/join-request/:requestId/handle', protect, squadController.handleJoinRequest);
+router.get('/stats/:squadId', require('../controllers/squadController').getSquadStats);
 
 // Новые маршруты для управления участниками
 router.post('/:squadId/members/:userId/promote', protect, squadController.promoteMember);
