@@ -89,12 +89,23 @@ app.post('/api/server/data', async (req, res) => {
             timestamp: event.data.timestamp ? new Date(event.data.timestamp * 1000) : new Date(),
           });
 
-          // --- Обновление кэша статистики ---
+          // --- Определяем текущий сезон ---
+          const now = new Date();
+          const currentSeason = await db.Season.findOne({
+            where: {
+              startDate: { [db.Sequelize.Op.lte]: now },
+              endDate: { [db.Sequelize.Op.gte]: now }
+            },
+            order: [['startDate', 'DESC']]
+          });
+          const seasonId = currentSeason ? currentSeason.id : null;
+
           const { killerIdentity, victimIdentity } = event.data;
           // Обновить статистику убийцы
           if (killerIdentity) {
             const killerUser = await db.User.findOne({ where: { armaId: killerIdentity } });
             if (killerUser) {
+              // --- Общая статистика ---
               const [stats, created] = await db.UserStats.findOrCreate({
                 where: { armaId: killerIdentity },
                 defaults: { userId: killerUser.id, armaId: killerIdentity, kills: 0, deaths: 0 }
@@ -110,12 +121,31 @@ app.post('/api/server/data', async (req, res) => {
                 await squadStats.increment('kills');
                 await squadStats.update({ lastUpdated: new Date() });
               }
+              // --- player_season_stats ---
+              if (seasonId) {
+                const [seasonStats, seasonCreated] = await db.PlayerSeasonStats.findOrCreate({
+                  where: { userId: killerUser.id, armaId: killerIdentity, seasonId },
+                  defaults: { userId: killerUser.id, armaId: killerIdentity, seasonId, kills: 0, deaths: 0 }
+                });
+                await seasonStats.increment('kills');
+                await seasonStats.update({ lastUpdated: new Date() });
+                // --- squad_season_stats ---
+                if (killerUser.squadId) {
+                  const [squadSeasonStats, squadSeasonCreated] = await db.SquadSeasonStats.findOrCreate({
+                    where: { squadId: killerUser.squadId, seasonId },
+                    defaults: { squadId: killerUser.squadId, seasonId, kills: 0, deaths: 0 }
+                  });
+                  await squadSeasonStats.increment('kills');
+                  await squadSeasonStats.update({ lastUpdated: new Date() });
+                }
+              }
             }
           }
           // Обновить статистику жертвы
           if (victimIdentity) {
             const victimUser = await db.User.findOne({ where: { armaId: victimIdentity } });
             if (victimUser) {
+              // --- Общая статистика ---
               const [stats, created] = await db.UserStats.findOrCreate({
                 where: { armaId: victimIdentity },
                 defaults: { userId: victimUser.id, armaId: victimIdentity, kills: 0, deaths: 0 }
@@ -130,6 +160,24 @@ app.post('/api/server/data', async (req, res) => {
                 });
                 await squadStats.increment('deaths');
                 await squadStats.update({ lastUpdated: new Date() });
+              }
+              // --- player_season_stats ---
+              if (seasonId) {
+                const [seasonStats, seasonCreated] = await db.PlayerSeasonStats.findOrCreate({
+                  where: { userId: victimUser.id, armaId: victimIdentity, seasonId },
+                  defaults: { userId: victimUser.id, armaId: victimIdentity, seasonId, kills: 0, deaths: 0 }
+                });
+                await seasonStats.increment('deaths');
+                await seasonStats.update({ lastUpdated: new Date() });
+                // --- squad_season_stats ---
+                if (victimUser.squadId) {
+                  const [squadSeasonStats, squadSeasonCreated] = await db.SquadSeasonStats.findOrCreate({
+                    where: { squadId: victimUser.squadId, seasonId },
+                    defaults: { squadId: victimUser.squadId, seasonId, kills: 0, deaths: 0 }
+                  });
+                  await squadSeasonStats.increment('deaths');
+                  await squadSeasonStats.update({ lastUpdated: new Date() });
+                }
               }
             }
           }
