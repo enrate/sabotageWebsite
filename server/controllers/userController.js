@@ -3,14 +3,25 @@ const { User } = require('../models');
 exports.getUserById = async (req, res) => {
   try {
     const user = await User.findByPk(req.params.id, {
-      attributes: ['id', 'username', 'avatar', 'role', 'description', 'email', 'squadId', 'createdAt', 'isLookingForSquad']
+      attributes: ['id', 'username', 'avatar', 'role', 'description', 'email', 'squadId', 'createdAt', 'isLookingForSquad', 'armaId']
     });
     if (!user) return res.status(404).json({ message: 'Пользователь не найден' });
     // Скрывать email, если не свой профиль и не админ
     if (!req.user || (req.user.id !== user.id && req.user.role !== 'admin')) {
       user.email = undefined;
     }
-    res.json(user);
+    // Добавляем статус верификации
+    const verified = !!user.armaId;
+    // Добавляем статистику
+    let stats = null;
+    if (user.armaId) {
+      const UserStats = require('../models').UserStats;
+      const foundStats = await UserStats.findOne({ where: { armaId: user.armaId } });
+      if (foundStats) {
+        stats = { kills: foundStats.kills, deaths: foundStats.deaths };
+      }
+    }
+    res.json({ ...user.toJSON(), verified, stats });
   } catch (err) {
     res.status(500).json({ message: 'Ошибка получения пользователя' });
   }

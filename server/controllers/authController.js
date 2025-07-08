@@ -102,9 +102,9 @@ exports.getUser = async (req, res) => {
         squadRole = roleRecord ? roleRecord.role : null;
       }
     }
-    const userData = user.toJSON();
-    userData.squadRole = squadRole;
-    res.json(userData);
+    // Возвращаем только основные поля пользователя (без armaId, stats, verified)
+    const { id, username, email, role, squadId, avatar, description, isLookingForSquad, createdAt } = user;
+    res.json({ id, username, email, role, squadId, avatar, description, isLookingForSquad, createdAt, squadRole });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Ошибка сервера' });
