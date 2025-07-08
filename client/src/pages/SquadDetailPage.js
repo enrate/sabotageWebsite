@@ -836,7 +836,7 @@ const SquadDetailPage = () => {
                     iconPosition="start"
                   />
                   <Tab 
-                    label="Производительность" 
+                    label="Статистика" 
                     value="performance"
                     icon={<TrophyIcon />}
                     iconPosition="start"

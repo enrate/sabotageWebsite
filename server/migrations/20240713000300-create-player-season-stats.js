@@ -7,6 +7,7 @@ module.exports = {
       seasonId: { type: Sequelize.INTEGER, allowNull: false },
       kills: { type: Sequelize.INTEGER, defaultValue: 0 },
       deaths: { type: Sequelize.INTEGER, defaultValue: 0 },
+      teamkills: { type: Sequelize.INTEGER, defaultValue: 0 },
       elo: { type: Sequelize.INTEGER, defaultValue: 1000 },
       matches: { type: Sequelize.INTEGER, defaultValue: 0 },
       wins: { type: Sequelize.INTEGER, defaultValue: 0 },

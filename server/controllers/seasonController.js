@@ -3,6 +3,34 @@ const { User, Squad, Season, Award, PlayerSeasonStats, SquadSeasonStats } = requ
 // Топ игроков по elo
 exports.getTopPlayers = async (req, res) => {
   try {
+    const { seasonId } = req.query;
+    if (seasonId) {
+      // Топ игроков по сезону
+      const stats = await PlayerSeasonStats.findAll({
+        where: { seasonId },
+        order: [['elo', 'DESC']],
+        limit: 20
+      });
+      // Получаем пользователей для отображения username/avatar
+      const userIds = stats.map(s => s.userId).filter(Boolean);
+      const users = userIds.length ? await User.findAll({ where: { id: userIds } }) : [];
+      const result = stats.map(s => {
+        const user = users.find(u => u.id === s.userId) || {};
+        return {
+          id: s.userId,
+          username: user.username || s.armaId,
+          avatar: user.avatar || '',
+          elo: s.elo,
+          kills: s.kills,
+          deaths: s.deaths,
+          teamkills: s.teamkills,
+          winrate: s.matches ? Math.round((s.wins / s.matches) * 100) : 0,
+          matches: s.matches
+        };
+      });
+      return res.json(result);
+    }
+    // Старое поведение (общая статистика)
     const players = await User.findAll({
       where: { role: ['user', 'admin', 'member', 'deputy'] },
       order: [['elo', 'DESC']],
@@ -18,8 +46,35 @@ exports.getTopPlayers = async (req, res) => {
 // Топ отрядов по elo (из stats)
 exports.getTopSquads = async (req, res) => {
   try {
+    const { seasonId } = req.query;
+    if (seasonId) {
+      // Топ отрядов по сезону
+      const stats = await SquadSeasonStats.findAll({
+        where: { seasonId },
+        order: [['elo', 'DESC']],
+        limit: 20
+      });
+      // Получаем отряды для отображения name/logo
+      const squadIds = stats.map(s => s.squadId).filter(Boolean);
+      const squads = squadIds.length ? await Squad.findAll({ where: { id: squadIds } }) : [];
+      const result = stats.map(s => {
+        const squad = squads.find(q => q.id === s.squadId) || {};
+        return {
+          id: s.squadId,
+          name: squad.name || `Отряд #${s.squadId}`,
+          avatar: squad.logo || '',
+          elo: s.elo,
+          kills: s.kills,
+          deaths: s.deaths,
+          teamkills: s.teamkills,
+          winrate: s.matches ? Math.round((s.wins / s.matches) * 100) : 0,
+          matches: s.matches
+        };
+      });
+      return res.json(result);
+    }
+    // Старое поведение (общая статистика)
     const squads = await Squad.findAll();
-    // Парсим stats и сортируем по elo
     const enriched = squads.map(sq => {
       const stats = sq.stats ? (typeof sq.stats === 'string' ? JSON.parse(sq.stats) : sq.stats) : {};
       return {

@@ -46,9 +46,10 @@ const SeasonsPage = () => {
     setError(null);
     const fetchData = async () => {
       try {
+        const seasonId = season?.id;
         const [playersRes, squadsRes] = await Promise.all([
-          axios.get('/api/seasons/top-players'),
-          axios.get('/api/seasons/top-squads')
+          axios.get('/api/seasons/top-players', seasonId ? { params: { seasonId } } : {}),
+          axios.get('/api/seasons/top-squads', seasonId ? { params: { seasonId } } : {})
         ]);
         setPlayers(playersRes.data);
         setSquads(squadsRes.data);
@@ -59,7 +60,7 @@ const SeasonsPage = () => {
       }
     };
     fetchData();
-  }, []);
+  }, [season]);
 
   const handlePrev = () => setSeasonIdx(idx => Math.max(0, idx - 1));
   const handleNext = () => setSeasonIdx(idx => Math.min(seasons.length - 1, idx + 1));

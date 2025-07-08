@@ -25,6 +25,10 @@ module.exports = {
         type: Sequelize.INTEGER,
         defaultValue: 0
       },
+      teamkills: {
+        type: Sequelize.INTEGER,
+        defaultValue: 0
+      },
       lastUpdated: {
         type: Sequelize.DATE,
         defaultValue: Sequelize.NOW

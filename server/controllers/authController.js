@@ -29,7 +29,8 @@ exports.register = async (req, res) => {
         role: user.role,
         squadId: user.squadId,
         avatar: user.avatar,
-        description: user.description
+        description: user.description,
+        armaId: user.armaId
       }
     });
   } catch (err) {
@@ -74,7 +75,8 @@ exports.login = async (req, res) => {
         role: user.role,
         squadId: user.squadId,
         avatar: user.avatar,
-        description: user.description
+        description: user.description,
+        armaId: user.armaId
       }
     });
   } catch (err) {
@@ -103,8 +105,8 @@ exports.getUser = async (req, res) => {
       }
     }
     // Возвращаем только основные поля пользователя (без armaId, stats, verified)
-    const { id, username, email, role, squadId, avatar, description, isLookingForSquad, createdAt } = user;
-    res.json({ id, username, email, role, squadId, avatar, description, isLookingForSquad, createdAt, squadRole });
+    const { id, username, email, role, squadId, avatar, description, isLookingForSquad, createdAt, armaId } = user;
+    res.json({ id, username, email, role, squadId, avatar, description, isLookingForSquad, createdAt, squadRole, armaId });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Ошибка сервера' });

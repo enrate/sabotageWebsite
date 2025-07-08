@@ -7,6 +7,7 @@ module.exports = (sequelize) => {
     seasonId: { type: DataTypes.INTEGER, allowNull: false },
     kills: { type: DataTypes.INTEGER, defaultValue: 0 },
     deaths: { type: DataTypes.INTEGER, defaultValue: 0 },
+    teamkills: { type: DataTypes.INTEGER, defaultValue: 0 },
     elo: { type: DataTypes.INTEGER, defaultValue: 1000 },
     matches: { type: DataTypes.INTEGER, defaultValue: 0 },
     wins: { type: DataTypes.INTEGER, defaultValue: 0 },

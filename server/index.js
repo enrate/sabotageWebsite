@@ -83,8 +83,8 @@ app.post('/api/server/data', async (req, res) => {
         console.log(event);
         if (event.name === 'logger_player_killed') {
           const killLog = await db.KillLog.create({
-            friendlyFire: !!event.data.friendlyFire,
-            suicide: !!event.data.suicide,
+            friendlyFire: event.data.friendlyFire,
+            suicide: event.data.suicide,
             killerIdentity: event.data.killerIdentity || null,
             victimIdentity: event.data.victimIdentity || null,
             timestamp: event.data.timestamp ? new Date(event.data.timestamp * 1000) : new Date(),
@@ -102,6 +102,126 @@ app.post('/api/server/data', async (req, res) => {
           const seasonId = currentSeason ? currentSeason.id : null;
 
           const { killerIdentity, victimIdentity } = event.data;
+          const isSuicide = !!event.data.suicide;
+          const isFriendlyFire = !!event.data.friendlyFire;
+
+          // --- Тимкилл ---
+          if (isFriendlyFire && killerIdentity) {
+            const killerUser = await db.User.findOne({ where: { armaId: killerIdentity } });
+            if (killerUser) {
+              // Общая статистика
+              const [stats] = await db.UserStats.findOrCreate({
+                where: { armaId: killerIdentity },
+                defaults: { userId: killerUser.id, armaId: killerIdentity, kills: 0, deaths: 0, teamkills: 0 }
+              });
+              await stats.increment('teamkills');
+              await stats.update({ lastUpdated: new Date() });
+              // squad_stats
+              if (killerUser.squadId) {
+                const [squadStats] = await db.SquadStats.findOrCreate({
+                  where: { squadId: killerUser.squadId },
+                  defaults: { squadId: killerUser.squadId, kills: 0, deaths: 0, teamkills: 0 }
+                });
+                await squadStats.increment('teamkills');
+                await squadStats.update({ lastUpdated: new Date() });
+              }
+              // player_season_stats
+              if (seasonId) {
+                const [seasonStats] = await db.PlayerSeasonStats.findOrCreate({
+                  where: { userId: killerUser.id, armaId: killerIdentity, seasonId },
+                  defaults: { userId: killerUser.id, armaId: killerIdentity, seasonId, kills: 0, deaths: 0, teamkills: 0 }
+                });
+                await seasonStats.increment('teamkills');
+                await seasonStats.update({ lastUpdated: new Date() });
+                // squad_season_stats
+                if (killerUser.squadId) {
+                  const [squadSeasonStats] = await db.SquadSeasonStats.findOrCreate({
+                    where: { squadId: killerUser.squadId, seasonId },
+                    defaults: { squadId: killerUser.squadId, seasonId, kills: 0, deaths: 0, teamkills: 0 }
+                  });
+                  await squadSeasonStats.increment('teamkills');
+                  await squadSeasonStats.update({ lastUpdated: new Date() });
+                }
+              }
+            }
+            // Жертве засчитываем только смерть
+            if (victimIdentity) {
+              const victimUser = await db.User.findOne({ where: { armaId: victimIdentity } });
+              if (victimUser) {
+                const [stats] = await db.UserStats.findOrCreate({
+                  where: { armaId: victimIdentity },
+                  defaults: { userId: victimUser.id, armaId: victimIdentity, kills: 0, deaths: 0, teamkills: 0 }
+                });
+                await stats.increment('deaths');
+                await stats.update({ lastUpdated: new Date() });
+                if (victimUser.squadId) {
+                  const [squadStats] = await db.SquadStats.findOrCreate({
+                    where: { squadId: victimUser.squadId },
+                    defaults: { squadId: victimUser.squadId, kills: 0, deaths: 0, teamkills: 0 }
+                  });
+                  await squadStats.increment('deaths');
+                  await squadStats.update({ lastUpdated: new Date() });
+                }
+                if (seasonId) {
+                  const [seasonStats] = await db.PlayerSeasonStats.findOrCreate({
+                    where: { userId: victimUser.id, armaId: victimIdentity, seasonId },
+                    defaults: { userId: victimUser.id, armaId: victimIdentity, seasonId, kills: 0, deaths: 0, teamkills: 0 }
+                  });
+                  await seasonStats.increment('deaths');
+                  await seasonStats.update({ lastUpdated: new Date() });
+                  if (victimUser.squadId) {
+                    const [squadSeasonStats] = await db.SquadSeasonStats.findOrCreate({
+                      where: { squadId: victimUser.squadId, seasonId },
+                      defaults: { squadId: victimUser.squadId, seasonId, kills: 0, deaths: 0, teamkills: 0 }
+                    });
+                    await squadSeasonStats.increment('deaths');
+                    await squadSeasonStats.update({ lastUpdated: new Date() });
+                  }
+                }
+              }
+            }
+            continue; // Не засчитываем убийство
+          }
+
+          // --- Суицид ---
+          if (isSuicide && victimIdentity) {
+            const victimUser = await db.User.findOne({ where: { armaId: victimIdentity } });
+            if (victimUser) {
+              const [stats] = await db.UserStats.findOrCreate({
+                where: { armaId: victimIdentity },
+                defaults: { userId: victimUser.id, armaId: victimIdentity, kills: 0, deaths: 0, teamkills: 0 }
+              });
+              await stats.increment('deaths');
+              await stats.update({ lastUpdated: new Date() });
+              if (victimUser.squadId) {
+                const [squadStats] = await db.SquadStats.findOrCreate({
+                  where: { squadId: victimUser.squadId },
+                  defaults: { squadId: victimUser.squadId, kills: 0, deaths: 0, teamkills: 0 }
+                });
+                await squadStats.increment('deaths');
+                await squadStats.update({ lastUpdated: new Date() });
+              }
+              if (seasonId) {
+                const [seasonStats] = await db.PlayerSeasonStats.findOrCreate({
+                  where: { userId: victimUser.id, armaId: victimIdentity, seasonId },
+                  defaults: { userId: victimUser.id, armaId: victimIdentity, seasonId, kills: 0, deaths: 0, teamkills: 0 }
+                });
+                await seasonStats.increment('deaths');
+                await seasonStats.update({ lastUpdated: new Date() });
+                if (victimUser.squadId) {
+                  const [squadSeasonStats] = await db.SquadSeasonStats.findOrCreate({
+                    where: { squadId: victimUser.squadId, seasonId },
+                    defaults: { squadId: victimUser.squadId, seasonId, kills: 0, deaths: 0, teamkills: 0 }
+                  });
+                  await squadSeasonStats.increment('deaths');
+                  await squadSeasonStats.update({ lastUpdated: new Date() });
+                }
+              }
+            }
+            continue; // Не засчитываем убийство
+          }
+
+          // --- Обычное убийство ---
           // Обновить статистику убийцы
           if (killerIdentity) {
             const killerUser = await db.User.findOne({ where: { armaId: killerIdentity } });
@@ -200,6 +320,44 @@ app.post('/api/server/data', async (req, res) => {
             timestamp,
           });
         }
+        // --- Обновление win/loss/matches для игроков и отрядов ---
+        if (seasonId) {
+          // Игроки
+          for (const player of playersResults) {
+            const user = users.find(u => u.armaId === player.playerIdentity);
+            if (!user) continue;
+            const [stats] = await db.PlayerSeasonStats.findOrCreate({
+              where: { userId: user.id, armaId: player.playerIdentity, seasonId },
+              defaults: { userId: user.id, armaId: player.playerIdentity, seasonId, kills: 0, deaths: 0, matches: 0, wins: 0, losses: 0 }
+            });
+            await stats.increment('matches');
+            if (player.result === 'win') await stats.increment('wins');
+            if (player.result === 'lose') await stats.increment('losses');
+            await stats.update({ lastUpdated: new Date() });
+          }
+          // Отряды
+          // Группируем пользователей по squadId
+          const squadMap = {};
+          for (const user of users) {
+            if (user.squadId) {
+              if (!squadMap[user.squadId]) squadMap[user.squadId] = [];
+              squadMap[user.squadId].push(user.armaId);
+            }
+          }
+          for (const squadId of Object.keys(squadMap)) {
+            const squadPlayers = squadMap[squadId];
+            // Если хотя бы один игрок отряда победил — победа всему отряду
+            const isWin = squadPlayers.some(aid => playersResults.find(p => p.playerIdentity === aid)?.result === 'win');
+            const [squadStats] = await db.SquadSeasonStats.findOrCreate({
+              where: { squadId, seasonId },
+              defaults: { squadId, seasonId, kills: 0, deaths: 0, matches: 0, wins: 0, losses: 0 }
+            });
+            await squadStats.increment('matches');
+            if (isWin) await squadStats.increment('wins');
+            else await squadStats.increment('losses');
+            await squadStats.update({ lastUpdated: new Date() });
+          }
+        }
         // --- Расчёт и обновление эло ---
         // 1. Получаем всех пользователей по armaId
         const armaIds = playersResults.map(p => p.playerIdentity);
@@ -216,29 +374,47 @@ app.post('/api/server/data', async (req, res) => {
         const seasonId = currentSeason ? currentSeason.id : null;
         if (seasonId) {
           // 3. Группируем по результату
-          const winners = users.filter(u => playersResults.find(p => p.playerIdentity === u.armaId)?.result === 'win');
-          const losers = users.filter(u => playersResults.find(p => p.playerIdentity === u.armaId)?.result === 'lose');
+          const winners = armaIds.filter(aid => playersResults.find(p => p.playerIdentity === aid)?.result === 'win');
+          const losers = armaIds.filter(aid => playersResults.find(p => p.playerIdentity === aid)?.result === 'lose');
           // 4. Получаем текущий эло игроков и отрядов
           const playerStats = await db.PlayerSeasonStats.findAll({ where: { seasonId, armaId: armaIds } });
-          const squadIds = users.map(u => u.squadId).filter(Boolean);
-          const squadStats = squadIds.length ? await db.SquadSeasonStats.findAll({ where: { seasonId, squadId: squadIds } }) : [];
+          // --- создаём записи, если их нет ---
+          for (const armaId of armaIds) {
+            let stats = playerStats.find(s => s.armaId === armaId);
+            if (!stats) {
+              const user = users.find(u => u.armaId === armaId);
+              stats = await db.PlayerSeasonStats.create({ userId: user ? user.id : null, armaId, seasonId, kills: 0, deaths: 0 });
+              playerStats.push(stats);
+            }
+          }
+          const squadIds = users.map(u => u?.squadId).filter(Boolean);
+          let squadStats = squadIds.length ? await db.SquadSeasonStats.findAll({ where: { seasonId, squadId: squadIds } }) : [];
+          // --- создаём записи для отрядов, если их нет ---
+          for (const squadId of squadIds) {
+            let squad = squadStats.find(sq => sq.squadId === squadId);
+            if (!squad) {
+              squad = await db.SquadSeasonStats.create({ squadId, seasonId, kills: 0, deaths: 0 });
+              squadStats.push(squad);
+            }
+          }
           // 5. Классическая формула эло
           const K = 32;
           // Для игроков
-          for (const user of users) {
-            const stats = playerStats.find(s => s.armaId === user.armaId);
+          for (const armaId of armaIds) {
+            const stats = playerStats.find(s => s.armaId === armaId);
             if (!stats) continue;
-            const isWin = playersResults.find(p => p.playerIdentity === user.armaId)?.result === 'win';
+            const isWin = playersResults.find(p => p.playerIdentity === armaId)?.result === 'win';
             // Среднее эло соперников
             const opponents = isWin ? losers : winners;
             if (!opponents.length) continue;
-            const avgOpponentElo = opponents.reduce((sum, u) => {
-              const s = playerStats.find(ps => ps.armaId === u.armaId);
+            const avgOpponentElo = opponents.reduce((sum, aid) => {
+              const s = playerStats.find(ps => ps.armaId === aid);
               return sum + (s ? s.elo : 1000);
             }, 0) / opponents.length;
             const expected = 1 / (1 + Math.pow(10, ((avgOpponentElo - stats.elo) / 400)));
             const score = isWin ? 1 : 0;
             const newElo = Math.round(stats.elo + K * (score - expected));
+            console.log('Обновляю эло игрока:', armaId, 'userId:', stats.userId, 'старое:', stats.elo, 'новое:', newElo);
             await stats.update({ elo: newElo, lastUpdated: new Date() });
           }
           // Для отрядов
@@ -255,6 +431,7 @@ app.post('/api/server/data', async (req, res) => {
             const expected = 1 / (1 + Math.pow(10, ((avgOpponentElo - squad.elo) / 400)));
             const score = isWin ? 1 : 0;
             const newElo = Math.round(squad.elo + K * (score - expected));
+            console.log('Обновляю эло отряда:', squadId, 'старое:', squad.elo, 'новое:', newElo);
             await squad.update({ elo: newElo, lastUpdated: new Date() });
           }
         }
