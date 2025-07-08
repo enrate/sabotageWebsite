@@ -146,7 +146,7 @@ const DirectMessages = () => {
   useEffect(() => {
     // Создаём сокет только один раз при монтировании
     if (!socketRef.current) {
-      socketRef.current = socketIO('http://localhost:5000', {
+      socketRef.current = socketIO('http://localhost:5001', {
         auth: { token: localStorage.getItem('token') },
         transports: ['websocket']
       });

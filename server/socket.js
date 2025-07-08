@@ -1,6 +1,8 @@
 // socket.js
 let io = null;
 const jwt = require('jsonwebtoken');
+const { createClient } = require('redis');
+let redisSub = null;
 
 function initSocket(server) {
   const { Server } = require('socket.io');
@@ -26,6 +28,14 @@ function initSocket(server) {
     socket.on('disconnect', () => {
       console.log('Socket disconnected:', socket.id);
     });
+  });
+  // Подписка на Redis канал
+  redisSub = createClient({ url: 'redis://localhost:6379' });
+  redisSub.connect();
+  redisSub.subscribe('messages_read', (message) => {
+    const data = JSON.parse(message);
+    io.emit('messages_read', data);
+    console.log('[SOCKET] emit messages_read from Redis', data);
   });
   return io;
 }

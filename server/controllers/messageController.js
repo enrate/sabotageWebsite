@@ -1,6 +1,9 @@
 const { Message, User, Notification } = require('../models');
 const { Op } = require('sequelize');
 const { getIO } = require('../socket');
+const { createClient } = require('redis');
+const redis = createClient({ url: 'redis://localhost:6379' });
+redis.connect();
 
 // Получить список диалогов (уникальные собеседники)
 exports.getDialogs = async (req, res) => {
@@ -117,11 +120,8 @@ exports.markAsRead = async (req, res) => {
       }
     });
     const messageIds = updatedMessages.map(m => m.id);
-    console.log('[SOCKET] markAsRead updated', updatedCount, 'messages for', { readerId: userId, senderId: otherId, messageIds });
-    // Реактивно уведомить отправителя через сокет
-    const io = getIO();
-    console.log('[SOCKET] emit messages_read', { readerId: userId, senderId: otherId, messageIds });
-    io.emit('messages_read', { readerId: userId, senderId: otherId, messageIds });
+    console.log('[REDIS] publish messages_read', { readerId: userId, senderId: otherId, messageIds });
+    await redis.publish('messages_read', JSON.stringify({ readerId: userId, senderId: otherId, messageIds }));
     res.json({ message: 'Сообщения помечены как прочитанные' });
   } catch (err) {
     res.status(500).json({ message: 'Ошибка при обновлении статуса' });
