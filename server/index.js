@@ -184,6 +184,7 @@ app.post('/api/server/data', async (req, res) => {
         }
       }
     } else if (req.body.Factions) {
+      console.log(req.body)
       // Обработка результатов игроков
       const winningFactionKey = getWinner(req.body.FactionResults);
       const sessionId = req.body.SessionId || String(Date.now());
