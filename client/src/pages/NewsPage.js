@@ -81,7 +81,7 @@ const NewsPage = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       setDeleteDialogOpen(false);
-      navigate('/news');
+      navigate('/');
     } catch (error) {
       alert('Ошибка при удалении новости');
     }
@@ -111,16 +111,6 @@ const NewsPage = () => {
     console.log('Return: single news', { id, news });
     return (
       <Container maxWidth="xl" sx={{ py: 4 }}>
-        {/* Breadcrumbs */}
-        <Breadcrumbs sx={{ mb: 3 }}>
-          <Link to="/" style={{ textDecoration: 'none', color: '#ffb347' }}>
-            Главная
-          </Link>
-          <Link to="/news" style={{ textDecoration: 'none', color: '#ffb347' }}>
-            Новости
-          </Link>
-          <Typography sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>{news.title}</Typography>
-        </Breadcrumbs>
 
         {/* Single News Article */}
         <Paper 
@@ -223,22 +213,6 @@ const NewsPage = () => {
           />
 
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 4 }}>
-            <Button
-              variant="outlined"
-              startIcon={<ArrowBackIcon />}
-              component={Link}
-              to="/news"
-              sx={{
-                color: '#ffb347',
-                borderColor: '#ffb347',
-                '&:hover': {
-                  borderColor: '#ffd580',
-                  bgcolor: 'rgba(255, 179, 71, 0.1)'
-                }
-              }}
-            >
-              К списку новостей
-            </Button>
 
             {currentUser?.role === 'admin' && (
               <Box sx={{ display: 'flex', gap: 1 }}>

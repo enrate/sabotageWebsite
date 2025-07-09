@@ -266,6 +266,8 @@ const ProfilePage = () => {
     if (!currentUser.squadId) return false;
     // Проверка: лидер или заместитель
     if (!currentUser.squadRole) return false;
+    // Проверка: верифицирован ли приглашаемый пользователь
+    if (!user.armaId) return false;
     return currentUser.squadRole === 'leader' || currentUser.squadRole === 'deputy';
   };
 
@@ -312,7 +314,7 @@ const ProfilePage = () => {
       }}>
         <Container maxWidth="xl" sx={{ py: 4 }}>
           {/* Баннер: напоминание про Arma ID */}
-          {user && !user.armaId && (
+          {currentUser && !currentUser.armaId && (
         <Box sx={{
           bgcolor: 'rgba(255, 179, 71, 0.15)',
           border: '1px solid #ffb347',
@@ -491,7 +493,7 @@ const ProfilePage = () => {
               minHeight: '400px',
               height: '100%',
               //width: '100%',
-              width: '1100px'
+              width: '1200px'
             }}
           >
             {/* Вкладки */}

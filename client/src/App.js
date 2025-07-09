@@ -7,7 +7,6 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import HomePage from './pages/HomePage';
 import NewsPage from './pages/NewsPage';
-import NewsListPage from './pages/NewsListPage';
 import SquadPage from './pages/SquadPage';
 import SquadDetailPage from './pages/SquadDetailPage';
 import AdminPage from './pages/AdminPage';
@@ -101,7 +100,6 @@ function App() {
             <main className="main-content">
               <Routes>
                 <Route path="/" element={<HomePage />} />
-                  <Route path="/news" element={<NewsListPage />} />
                 <Route path="/news/:id" element={<NewsPage />} />
                 <Route path="/squads" element={<SquadPage />} />
                 <Route path="/squads/:id" element={<SquadDetailPage />} />

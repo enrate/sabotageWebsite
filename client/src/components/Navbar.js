@@ -159,9 +159,9 @@ const Navbar = ({ onOpenAuthModal, notifications = [], onNotificationClick, mark
       }}
     >
       <Container maxWidth="xl">
-        <Toolbar sx={{ justifyContent: 'space-between', px: { xs: 1, md: 2 } }}>
+        <Toolbar sx={{ px: { xs: 1, md: 2 }, justifyContent: 'space-between' }}>
           {/* Brand */}
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
             <Box
               component="img"
               src="/logo.png"
@@ -197,8 +197,16 @@ const Navbar = ({ onOpenAuthModal, notifications = [], onNotificationClick, mark
             </Typography>
           </Box>
 
-          {/* Navigation Links */}
-          <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: 3 }}>
+          {/* Navigation Links - Centered */}
+          <Box sx={{ 
+            display: { xs: 'none', md: 'flex' }, 
+            alignItems: 'center', 
+            gap: 3,
+            justifyContent: 'center',
+            position: 'absolute',
+            left: '50%',
+            transform: 'translateX(-50%)'
+          }}>
             <Button
               component={Link}
               to="/"
@@ -340,7 +348,7 @@ const Navbar = ({ onOpenAuthModal, notifications = [], onNotificationClick, mark
           </Box>
 
           {/* User Menu / Login Button */}
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
             {currentUser ? (
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0 }}>
                 {/* Уведомления */}

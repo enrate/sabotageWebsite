@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useNavigate, Link } from 'react-router-dom';
 import ServerStatus from '../components/ServerStatus';
 import NewsPreview from '../components/NewsPreview';
 import Loader from '../components/Loader';
-import NewsListPage from './NewsListPage';
+
 import { useAuth } from '../context/AuthContext';
 import Snackbar from '@mui/material/Snackbar';
 import MuiAlert from '@mui/material/Alert';
@@ -26,7 +27,10 @@ import {
   YouTube as YouTubeIcon,
   Computer as ComputerIcon,
   Article as ArticleIcon,
-  OpenInNew as OpenInNewIcon
+  OpenInNew as OpenInNewIcon,
+  WarningAmber as WarningAmberIcon,
+  Schedule as ScheduleIcon,
+  Person as PersonIcon
 } from '@mui/icons-material';
 
 const TEST_SERVERS = [
@@ -48,6 +52,7 @@ const HomePage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { currentUser } = useAuth();
+  const navigate = useNavigate();
   const [showArmaIdSnackbar, setShowArmaIdSnackbar] = useState(false);
 
   useEffect(() => {
@@ -166,6 +171,36 @@ const HomePage = () => {
           pr: 0
         }}
       >
+        {/* Баннер: напоминание про Arma ID */}
+        {currentUser && !currentUser.armaId && (
+          <Box sx={{
+            bgcolor: 'rgba(255, 179, 71, 0.15)',
+            border: '1px solid #ffb347',
+            borderRadius: 2,
+            p: 2,
+            mb: 3,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2,
+            maxWidth: 700,
+            mx: 'auto',
+          }}>
+            <WarningAmberIcon sx={{ color: '#ffb347', fontSize: 32 }} />
+            <Box sx={{ flex: 1 }}>
+              <Typography sx={{ color: '#ffb347', fontWeight: 600, fontSize: '1.1rem' }}>
+                Для полноценного участия в проекте укажите свой Arma ID в настройках профиля.
+              </Typography>
+            </Box>
+            <Button
+              variant="contained"
+              size="small"
+              sx={{ bgcolor: '#ffb347', color: '#232526', fontWeight: 600, '&:hover': { bgcolor: '#ffd580' } }}
+              onClick={() => navigate('/settings')}
+            >
+              В настройки
+            </Button>
+          </Box>
+        )}
         <Grid container spacing={4}>
           {/* Левая панель — статус серверов */}
           <Grid item style={{width:340, maxWidth:340, flexShrink:0}} sx={{mt: 8}}>
@@ -206,7 +241,158 @@ const HomePage = () => {
           </Grid>
           {/* Центральная колонка — новости */}
           <Grid item xs style={{flex:1, display:'flex'}}>
-            <NewsListPage sx={{ width: '100%', flex: 1, maxWidth: 'none' }} />
+            <Box sx={{ width: '100%', flex: 1, maxWidth: 'none' }}>
+              {/* Заголовок */}
+              <Box sx={{ mb: 4, textAlign: 'center' }}>
+                <Typography 
+                  variant="h3" 
+                  component="h1" 
+                  sx={{ 
+                    color: '#ffb347', 
+                    fontWeight: 700, 
+                    mb: 2,
+                    textShadow: '0 2px 4px rgba(255, 179, 71, 0.3)'
+                  }}
+                >
+                  Новости сообщества
+                </Typography>
+              </Box>
+
+              {/* Список новостей */}
+              {news.length === 0 ? (
+                <Paper
+                  elevation={8}
+                  sx={{
+                    p: 4,
+                    textAlign: 'center',
+                    background: 'rgba(0, 0, 0, 0.3)',
+                    borderRadius: 3,
+                    backdropFilter: 'blur(10px)',
+                    border: '1px solid rgba(255, 179, 71, 0.2)'
+                  }}
+                >
+                  <ArticleIcon sx={{ fontSize: 64, color: 'rgba(255, 179, 71, 0.5)', mb: 2 }} />
+                  <Typography variant="h6" sx={{ color: 'rgba(255, 255, 255, 0.8)', mb: 1 }}>
+                    Пока нет новостей
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.6)' }}>
+                    Будьте первым, кто поделится новостью с сообществом
+                  </Typography>
+                </Paper>
+              ) : (
+                <Box sx={{ 
+                  display: 'flex', 
+                  flexDirection: 'column',
+                  gap: 3,
+                  width: '100%'
+                }}>
+                  {news.map((item) => (
+                    <Card
+                      key={item.id}
+                      elevation={8}
+                      sx={{
+                        height: '100%',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        background: 'rgba(0, 0, 0, 0.3)',
+                        borderRadius: 3,
+                        backdropFilter: 'blur(10px)',
+                        border: '1px solid rgba(255, 179, 71, 0.2)',
+                        transition: 'all 0.3s ease',
+                        '&:hover': {
+                          transform: 'translateY(-4px)',
+                          boxShadow: '0 10px 32px 0 rgba(255,179,71,0.22), 0 4px 16px rgba(0,0,0,0.18)',
+                          borderColor: '#ffd580'
+                        }
+                      }}
+                    >
+                      <CardContent sx={{ flexGrow: 1, p: 3 }}>
+                        {/* Заголовок */}
+                        <Link to={`/news/${item.id}`} style={{ textDecoration: 'none' }}>
+                          <Typography 
+                            variant="h6" 
+                            component="h2" 
+                            sx={{ 
+                              color: '#ffb347',
+                              fontWeight: 600,
+                              mb: 2,
+                              lineHeight: 1.3,
+                              minHeight: '3rem',
+                              display: '-webkit-box',
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: 'vertical',
+                              overflow: 'hidden',
+                              transition: 'color 0.2s',
+                              cursor: 'pointer',
+                              '&:hover': { color: '#ffd580' }
+                            }}
+                          >
+                            {item.title}
+                          </Typography>
+                        </Link>
+                        
+                        {/* Контент */}
+                        <Box 
+                          sx={{ 
+                            color: 'rgba(255, 255, 255, 0.8)',
+                            mb: 3,
+                            lineHeight: 1.6,
+                            minHeight: '4.8rem',
+                            display: '-webkit-box',
+                            WebkitLineClamp: 3,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden',
+                            '& img': { maxWidth: '100%', height: 'auto' },
+                            '& video': { maxWidth: '100%', height: 'auto' }
+                          }}
+                          dangerouslySetInnerHTML={{
+                            __html: item.content.length > 200 
+                              ? item.content.substring(0, 200) + '...' 
+                              : item.content
+                          }}
+                        />
+                        
+                        {/* Метаданные */}
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Chip 
+                              icon={<ScheduleIcon />} 
+                              label={new Date(item.createdAt).toLocaleDateString('ru-RU', {
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric'
+                              })}
+                              size="small"
+                              sx={{
+                                bgcolor: 'rgba(255, 179, 71, 0.1)',
+                                color: '#ffb347',
+                                border: '1px solid rgba(255, 179, 71, 0.3)',
+                                '& .MuiChip-icon': {
+                                  color: '#ffb347'
+                                }
+                              }}
+                            />
+                            <Chip 
+                              icon={<PersonIcon />} 
+                              label={item.author?.username || 'Неизвестно'}
+                              size="small"
+                              sx={{
+                                bgcolor: 'rgba(255, 255, 255, 0.1)',
+                                color: 'rgba(255, 255, 255, 0.8)',
+                                border: '1px solid rgba(255, 255, 255, 0.2)',
+                                '& .MuiChip-icon': {
+                                  color: 'rgba(255, 255, 255, 0.6)'
+                                }
+                              }}
+                            />
+                          </Box>
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </Box>
+              )}
+            </Box>
           </Grid>
           {/* Правая колонка — соц.баннеры */}
           <Grid item style={{width:340, maxWidth:340, flexShrink:0}} sx={{mt: 8}}>

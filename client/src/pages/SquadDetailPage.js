@@ -7,6 +7,7 @@ import Cropper from 'react-easy-crop';
 import getCroppedImg from '../utils/cropImage';
 import SquadStats from '../components/SquadStats';
 import PerformanceHistory from '../components/PerformanceHistory';
+import '../components/CreateSquadModal.css';
 import {
   Container,
   Typography,
@@ -920,7 +921,7 @@ const SquadDetailPage = () => {
                 {/* Кнопки действий */}
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                   {/* Кнопка вступить/отменить заявку */}
-                  {squad.isJoinRequestOpen && !isMember && !isLeader && (
+                  {squad.isJoinRequestOpen && !isMember && !isLeader && currentUser && currentUser.armaId && (
                     joinRequestStatus === 'pending' ? (
                       <Button
                         variant="contained"
@@ -1672,7 +1673,7 @@ const SquadDetailPage = () => {
             left: 0,
             width: '100vw',
             height: '100vh',
-            background: 'rgba(30,30,30,0.75)',
+            background: 'rgba(0,0,0,0.2)',
             zIndex: 1000,
             display: 'flex',
             alignItems: 'center',
@@ -1688,7 +1689,7 @@ const SquadDetailPage = () => {
         >
           <div
             style={{
-              background: 'rgba(35, 37, 38, 0.8)',
+              background: 'rgba(0,0,0,0.4)',
               borderRadius: 16,
               boxShadow: '0 6px 24px 0 rgba(255,179,71,0.16), 0 2px 10px rgba(0,0,0,0.14)',
               border: '2px solid #ffb347',
@@ -1817,122 +1818,298 @@ const SquadDetailPage = () => {
 
       {/* Модальное окно кроппера */}
       {showCropper && (
-        <Dialog
-          open={showCropper}
-          onClose={handleCropCancel}
-          maxWidth="md"
-          fullWidth
-        >
-          <DialogTitle>Обрезка изображения</DialogTitle>
-          <DialogContent>
-            <Box sx={{ position: 'relative', height: 400 }}>
+        <div className="modal-overlay" style={{ zIndex: 1000 }}>
+          <Box sx={{
+            background: 'rgba(0,0,0,0.3)',
+            borderRadius: 3,
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255, 179, 71, 0.2)',
+            boxShadow: '0 6px 32px 0 rgba(255,179,71,0.18), 0 2px 12px rgba(0,0,0,0.18)',
+            px: { xs: 2, sm: 5 },
+            py: { xs: 3, sm: 5 },
+            maxWidth: 600,
+            minWidth: 400,
+            mx: 'auto',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            position: 'relative',
+            overflow: 'hidden',
+            color: '#fff'
+          }}>
+            <Button
+              onClick={handleCropCancel}
+              sx={{
+                position: 'absolute',
+                top: 16,
+                right: 16,
+                minWidth: 'auto',
+                p: 1,
+                color: '#ffb347',
+                '&:hover': {
+                  bgcolor: 'rgba(255, 179, 71, 0.1)'
+                }
+              }}
+            >
+              &times;
+            </Button>
+            <Typography variant="h5" sx={{ color: '#ffb347', fontWeight: 700, mb: 3, textAlign: 'center' }}>
+              Обрезка логотипа отряда
+            </Typography>
+            <Box sx={{ position: 'relative', height: 400, mb: 3, width: '100%' }}>
               <Cropper
                 image={cropSrc}
                 crop={crop}
                 zoom={zoom}
                 aspect={1}
+                cropShape="round"
                 onCropChange={setCrop}
                 onZoomChange={setZoom}
                 onCropComplete={onCropComplete}
               />
             </Box>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCropCancel}>Отмена</Button>
-            <Button onClick={handleCropSave} variant="contained">
-              Сохранить
-            </Button>
-          </DialogActions>
-        </Dialog>
+            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', width: '100%' }}>
+              <Button 
+                variant="outlined" 
+                color="secondary" 
+                onClick={handleCropCancel}
+                sx={{ 
+                  borderColor: '#ffb347', 
+                  color: '#ffb347', 
+                  '&:hover': { 
+                    borderColor: '#ffd580', 
+                    color: '#ffd580' 
+                  } 
+                }}
+              >
+                Отмена
+              </Button>
+              <Button 
+                variant="contained" 
+                color="primary" 
+                onClick={handleCropSave}
+                sx={{ 
+                  bgcolor: '#ffb347', 
+                  color: '#232526', 
+                  '&:hover': { 
+                    bgcolor: '#ffd580' 
+                  } 
+                }}
+              >
+                Обрезать
+              </Button>
+            </Box>
+          </Box>
+        </div>
       )}
 
       {/* Модальное окно управления участником */}
-      <Dialog open={manageMemberDialog} onClose={closeManageDialog} maxWidth="sm" fullWidth>
-        <DialogTitle>
-          Управление участником: {selectedMember?.username}
-        </DialogTitle>
-        <DialogContent>
-          {manageError && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {manageError}
-            </Alert>
-          )}
-          
-          <Box sx={{ mt: 2 }}>
-            <Typography variant="body1" sx={{ mb: 2, color: '#fff' }}>
-              Выберите действие для участника <strong>{selectedMember?.username}</strong>:
-            </Typography>
+      {manageMemberDialog && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            background: 'rgba(0,0,0,0.2)',
+            zIndex: 1000,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
+            animation: 'fadeIn 0.2s',
+          }}
+          onClick={() => {
+            setManageMemberDialog(false);
+            setSelectedMember(null);
+          }}
+        >
+          <div
+            style={{
+              background: 'rgba(0,0,0,0.4)',
+              borderRadius: 16,
+              boxShadow: '0 6px 24px 0 rgba(255,179,71,0.16), 0 2px 10px rgba(0,0,0,0.14)',
+              border: '2px solid #ffb347',
+              padding: '32px 24px 24px 24px',
+              minWidth: 320,
+              maxWidth: '90vw',
+              color: '#fff',
+              position: 'relative',
+              overflow: 'hidden',
+              animation: 'slideDown 0.3s',
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            <h2 style={{ 
+              fontSize: '1.3rem', 
+              marginBottom: '16px', 
+              color: '#ffb347',
+              textAlign: 'center'
+            }}>
+              Управление участником: {selectedMember?.username}
+            </h2>
             
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {manageError && (
+              <div style={{
+                background: 'rgba(244, 67, 54, 0.1)',
+                border: '1px solid #f44336',
+                borderRadius: 8,
+                padding: '12px',
+                marginBottom: '16px',
+                color: '#f44336'
+              }}>
+                {manageError}
+              </div>
+            )}
+            
+            <div style={{ 
+              display: 'flex', 
+              flexDirection: 'column',
+              gap: '12px',
+              marginBottom: '24px'
+            }}>
               {/* Повысить до заместителя (только для лидера) */}
               {isLeader && selectedMember?.squadRole !== 'deputy' && (
-                <Button
-                  variant="outlined"
-                  fullWidth
+                <button
+                  type="button"
                   onClick={handlePromoteMember}
                   disabled={manageLoading}
-                  startIcon={<AddIcon />}
-                  sx={{
+                  style={{
+                    background: 'none',
+                    border: '2px solid #4caf50',
                     color: '#4caf50',
-                    borderColor: '#4caf50',
-                    '&:hover': {
-                      borderColor: '#4caf50',
-                      bgcolor: 'rgba(76, 175, 80, 0.1)'
+                    borderRadius: 8,
+                    padding: '12px 16px',
+                    fontWeight: 600,
+                    fontSize: 16,
+                    cursor: manageLoading ? 'not-allowed' : 'pointer',
+                    transition: 'background 0.2s',
+                    opacity: manageLoading ? 0.6 : 1
+                  }}
+                  onMouseEnter={e => {
+                    if (!manageLoading) {
+                      e.target.style.background = 'rgba(76, 175, 80, 0.1)';
+                    }
+                  }}
+                  onMouseLeave={e => {
+                    if (!manageLoading) {
+                      e.target.style.background = 'none';
                     }
                   }}
                 >
                   {manageLoading ? 'Повышение...' : 'Повысить до заместителя'}
-                </Button>
+                </button>
               )}
               
               {/* Понизить до участника (только для лидера) */}
               {isLeader && selectedMember?.squadRole === 'deputy' && (
-                <Button
-                  variant="outlined"
-                  fullWidth
+                <button
+                  type="button"
                   onClick={handleDemoteMember}
                   disabled={manageLoading}
-                  startIcon={<CancelIcon />}
-                  sx={{
+                  style={{
+                    background: 'none',
+                    border: '2px solid #ff9800',
                     color: '#ff9800',
-                    borderColor: '#ff9800',
-                    '&:hover': {
-                      borderColor: '#ff9800',
-                      bgcolor: 'rgba(255, 152, 0, 0.1)'
+                    borderRadius: 8,
+                    padding: '12px 16px',
+                    fontWeight: 600,
+                    fontSize: 16,
+                    cursor: manageLoading ? 'not-allowed' : 'pointer',
+                    transition: 'background 0.2s',
+                    opacity: manageLoading ? 0.6 : 1
+                  }}
+                  onMouseEnter={e => {
+                    if (!manageLoading) {
+                      e.target.style.background = 'rgba(255, 152, 0, 0.1)';
+                    }
+                  }}
+                  onMouseLeave={e => {
+                    if (!manageLoading) {
+                      e.target.style.background = 'none';
                     }
                   }}
                 >
                   {manageLoading ? 'Понижение...' : 'Понизить до участника'}
-                </Button>
+                </button>
               )}
               
               {/* Исключить из отряда (для лидера и заместителя) */}
-              <Button
-                variant="outlined"
-                fullWidth
+              <button
+                type="button"
                 onClick={handleKickMember}
                 disabled={manageLoading}
-                startIcon={<DeleteIcon />}
-                sx={{
+                style={{
+                  background: 'none',
+                  border: '2px solid #f44336',
                   color: '#f44336',
-                  borderColor: '#f44336',
-                  '&:hover': {
-                    borderColor: '#f44336',
-                    bgcolor: 'rgba(244, 67, 54, 0.1)'
+                  borderRadius: 8,
+                  padding: '12px 16px',
+                  fontWeight: 600,
+                  fontSize: 16,
+                  cursor: manageLoading ? 'not-allowed' : 'pointer',
+                  transition: 'background 0.2s',
+                  opacity: manageLoading ? 0.6 : 1
+                }}
+                onMouseEnter={e => {
+                  if (!manageLoading) {
+                    e.target.style.background = 'rgba(244, 67, 54, 0.1)';
+                  }
+                }}
+                onMouseLeave={e => {
+                  if (!manageLoading) {
+                    e.target.style.background = 'none';
                   }
                 }}
               >
                 {manageLoading ? 'Исключение...' : 'Исключить из отряда'}
-              </Button>
-            </Box>
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeManageDialog} disabled={manageLoading}>
-            Отмена
-          </Button>
-        </DialogActions>
-      </Dialog>
+              </button>
+            </div>
+            
+            <div style={{ 
+              display: 'flex', 
+              gap: '12px',
+              justifyContent: 'center'
+            }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setManageMemberDialog(false);
+                  setSelectedMember(null);
+                }}
+                disabled={manageLoading}
+                style={{
+                  background: 'none',
+                  border: '2px solid #ffb347',
+                  color: '#ffb347',
+                  borderRadius: 8,
+                  padding: '10px 20px',
+                  fontWeight: 600,
+                  fontSize: 16,
+                  cursor: manageLoading ? 'not-allowed' : 'pointer',
+                  transition: 'background 0.2s',
+                  minWidth: '100px',
+                  opacity: manageLoading ? 0.6 : 1
+                }}
+                onMouseEnter={e => {
+                  if (!manageLoading) {
+                    e.target.style.background = 'rgba(255, 179, 71, 0.1)';
+                  }
+                }}
+                onMouseLeave={e => {
+                  if (!manageLoading) {
+                    e.target.style.background = 'none';
+                  }
+                }}
+              >
+                Отмена
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </Box>
   );
 };

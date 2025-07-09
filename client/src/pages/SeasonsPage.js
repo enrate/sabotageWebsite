@@ -3,8 +3,9 @@ import { Box, Typography, Tabs, Tab, Paper, Avatar, Button, Table, TableBody, Ta
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import PersonIcon from '@mui/icons-material/Person';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import axios from 'axios';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const columns = [
@@ -33,6 +34,7 @@ const SeasonsPage = () => {
   const [userSquadData, setUserSquadData] = useState(null);
   const [userDataLoading, setUserDataLoading] = useState(false);
   const { currentUser } = useAuth();
+  const navigate = useNavigate();
   const season = seasons[seasonIdx] || {};
 
   // Функция для проверки, является ли строка профилем текущего пользователя
@@ -224,9 +226,40 @@ const SeasonsPage = () => {
         mx: 'auto', 
         py: 6 
       }}>
+        {/* Баннер: напоминание про Arma ID */}
+        {currentUser && !currentUser.armaId && (
+          <Box sx={{
+            bgcolor: 'rgba(255, 179, 71, 0.15)',
+            border: '1px solid #ffb347',
+            borderRadius: 2,
+            p: 2,
+            mb: 3,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2,
+            maxWidth: 700,
+            mx: 'auto',
+          }}>
+            <WarningAmberIcon sx={{ color: '#ffb347', fontSize: 32 }} />
+            <Box sx={{ flex: 1 }}>
+              <Typography sx={{ color: '#ffb347', fontWeight: 600, fontSize: '1.1rem' }}>
+                Для полноценного участия в проекте укажите свой Arma ID в настройках профиля.
+              </Typography>
+            </Box>
+            <Button
+              variant="contained"
+              size="small"
+              sx={{ bgcolor: '#ffb347', color: '#232526', fontWeight: 600, '&:hover': { bgcolor: '#ffd580' } }}
+              onClick={() => navigate('/settings')}
+            >
+              В настройки
+            </Button>
+          </Box>
+        )}
         <Typography variant="h4" sx={{ color: '#ffb347', fontWeight: 700, mb: 3, textAlign: 'center' }}>
           Сезоны
         </Typography>
+        
       {/* Карусель сезонов */}
       {seasonsLoading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 120 }}>

@@ -393,6 +393,10 @@ exports.updateSquad = async (req, res) => {
 exports.createJoinRequest = async (req, res) => {
   const squadId = req.params.id;
   try {
+    // Проверка: не верифицирован ли пользователь
+    if (!req.user.armaId) {
+      return res.status(400).json({ message: 'Для подачи заявки в отряд необходимо указать Arma ID в настройках профиля' });
+    }
     // Проверка: не состоит ли уже пользователь в отряде
     if (req.user.squadId) {
       return res.status(400).json({ message: 'Вы уже состоите в каком-либо отряде' });
@@ -844,6 +848,11 @@ exports.inviteToSquad = async (req, res) => {
     const invitedUser = await User.findByPk(userId);
     if (!invitedUser) return res.status(404).json({ message: 'Пользователь не найден' });
     if (invitedUser.squadId) return res.status(400).json({ message: 'Пользователь уже состоит в отряде' });
+    
+    // Проверка: верифицирован ли приглашаемый пользователь
+    if (!invitedUser.armaId) {
+      return res.status(400).json({ message: 'Нельзя пригласить не верифицированного пользователя. Попросите его указать Arma ID в настройках профиля' });
+    }
 
     // Проверка: нет ли уже активного приглашения
     const existingInvite = await SquadInvite.findOne({
@@ -903,6 +912,11 @@ exports.acceptSquadInvite = async (req, res) => {
     // Проверка: пользователь не состоит в отряде
     const user = await User.findByPk(userId);
     if (user.squadId) return res.status(400).json({ message: 'Вы уже состоите в отряде' });
+    
+    // Проверка: верифицирован ли пользователь
+    if (!user.armaId) {
+      return res.status(400).json({ message: 'Для вступления в отряд необходимо указать Arma ID в настройках профиля' });
+    }
 
     // Обновить статус приглашения
     invite.status = 'accepted';

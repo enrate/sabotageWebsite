@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import Loader from '../components/Loader';
 import Cropper from 'react-easy-crop';
 import getCroppedImg from '../utils/cropImage';
+import '../components/CreateSquadModal.css';
 import {
   Container,
   Typography,
@@ -381,47 +382,91 @@ const SettingsPage = () => {
       </Box>
 
       {/* Диалог кроппера */}
-      <Dialog 
-        open={showCropper} 
-        onClose={handleCropCancel}
-        maxWidth="md"
-        fullWidth
-      >
-        <DialogTitle sx={{ color: '#ffb347' }}>
-          Обрезка аватара
-        </DialogTitle>
-        <DialogContent>
-          <Box sx={{ position: 'relative', height: 400 }}>
-            <Cropper
-              image={cropSrc}
-              crop={crop}
-              zoom={zoom}
-              aspect={1}
-              onCropChange={setCrop}
-              onZoomChange={setZoom}
-              onCropComplete={onCropComplete}
-            />
+      {showCropper && (
+        <div className="modal-overlay" style={{ zIndex: 1000 }}>
+          <Box sx={{
+            background: 'rgba(0,0,0,0.3)',
+            borderRadius: 3,
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255, 179, 71, 0.2)',
+            boxShadow: '0 6px 32px 0 rgba(255,179,71,0.18), 0 2px 12px rgba(0,0,0,0.18)',
+            px: { xs: 2, sm: 5 },
+            py: { xs: 3, sm: 5 },
+            maxWidth: 600,
+            minWidth: 400,
+            mx: 'auto',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            position: 'relative',
+            overflow: 'hidden',
+            color: '#fff'
+          }}>
+            <Button
+              onClick={handleCropCancel}
+              sx={{
+                position: 'absolute',
+                top: 16,
+                right: 16,
+                minWidth: 'auto',
+                p: 1,
+                color: '#ffb347',
+                '&:hover': {
+                  bgcolor: 'rgba(255, 179, 71, 0.1)'
+                }
+              }}
+            >
+              &times;
+            </Button>
+            <Typography variant="h5" sx={{ color: '#ffb347', fontWeight: 700, mb: 3, textAlign: 'center' }}>
+              Обрезка аватара
+            </Typography>
+            <Box sx={{ position: 'relative', height: 400, mb: 3, width: '100%' }}>
+              <Cropper
+                image={cropSrc}
+                crop={crop}
+                zoom={zoom}
+                aspect={1}
+                cropShape="round"
+                onCropChange={setCrop}
+                onZoomChange={setZoom}
+                onCropComplete={onCropComplete}
+              />
+            </Box>
+            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', width: '100%' }}>
+              <Button 
+                variant="outlined" 
+                color="secondary" 
+                onClick={handleCropCancel}
+                sx={{ 
+                  borderColor: '#ffb347', 
+                  color: '#ffb347', 
+                  '&:hover': { 
+                    borderColor: '#ffd580', 
+                    color: '#ffd580' 
+                  } 
+                }}
+              >
+                Отмена
+              </Button>
+              <Button 
+                variant="contained" 
+                color="primary" 
+                onClick={handleCropSave}
+                sx={{ 
+                  bgcolor: '#ffb347', 
+                  color: '#232526', 
+                  '&:hover': { 
+                    bgcolor: '#ffd580' 
+                  } 
+                }}
+              >
+                Обрезать
+              </Button>
+            </Box>
           </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCropCancel} sx={{ color: '#ffb347' }}>
-            Отмена
-          </Button>
-          <Button 
-            onClick={handleCropSave} 
-            variant="contained"
-            sx={{
-              bgcolor: '#ffb347',
-              color: '#232526',
-              '&:hover': {
-                bgcolor: '#ffd580'
-              }
-            }}
-          >
-            Обрезать
-          </Button>
-        </DialogActions>
-      </Dialog>
+        </div>
+      )}
         </Container>
       </Box>
     </Box>
