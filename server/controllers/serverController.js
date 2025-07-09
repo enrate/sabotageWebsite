@@ -20,7 +20,6 @@ function updateServerCache() {
     maxAttempts: 2,
     socketTimeout: 2000
   }).then((state) => {
-    console.log(state)
     cachedServerData = [{
       id: 1,
       name: 'Sabotage / Quick TvT',
