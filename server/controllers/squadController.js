@@ -97,6 +97,17 @@ exports.createSquad = async (req, res) => {
       role: 'member' // Лидер по умолчанию имеет роль member в squad_roles
     });
     
+    // Отклоняем все приглашения в отряд для пользователя
+    await SquadInvite.update(
+      { status: 'declined' },
+      { where: { userId: req.user.id, status: 'pending' } }
+    );
+    // Аннулируем все заявки пользователя в другие отряды
+    await JoinRequest.update(
+      { status: 'rejected' },
+      { where: { userId: req.user.id, status: 'pending' } }
+    );
+
     const squadWithMembers = await Squad.findByPk(newSquad.id, {
       include: [
         { model: User, as: 'leader', attributes: ['id', 'username'] },
@@ -156,6 +167,17 @@ exports.joinSquad = async (req, res) => {
       }
     });
     
+    // Отклоняем все приглашения в отряд для пользователя
+    await SquadInvite.update(
+      { status: 'declined' },
+      { where: { userId: req.user.id, status: 'pending' } }
+    );
+    // Аннулируем все заявки пользователя в другие отряды
+    await JoinRequest.update(
+      { status: 'rejected' },
+      { where: { userId: req.user.id, status: 'pending' } }
+    );
+
     res.json({ message: 'Вы успешно вступили в отряд' });
   } catch (err) {
     console.error(err);

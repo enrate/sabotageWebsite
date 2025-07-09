@@ -61,6 +61,13 @@ const Navbar = ({ onOpenAuthModal, notifications = [], onNotificationClick, mark
   };
 
   const isActive = (path) => {
+    if (path === '/squads') {
+      // Если пользователь на странице своего отряда, не подсвечивать 'Отряды'
+      if (currentUser?.squadId && location.pathname === `/squads/${currentUser.squadId}`) {
+        return false;
+      }
+      return location.pathname === '/squads' || location.pathname.startsWith('/squads/');
+    }
     return location.pathname === path;
   };
 
@@ -272,6 +279,35 @@ const Navbar = ({ onOpenAuthModal, notifications = [], onNotificationClick, mark
             >
               Отряды
             </Button>
+            {/* Вкладка 'Мой отряд' */}
+            {currentUser?.squadId && (
+              <Button
+                component={Link}
+                to={`/squads/${currentUser.squadId}`}
+                startIcon={<SquadIcon />}
+                sx={{
+                  color: location.pathname === `/squads/${currentUser.squadId}` ? '#ffb347' : '#fff',
+                  textTransform: 'none',
+                  fontSize: '1.1rem',
+                  position: 'relative',
+                  '&::after': {
+                    content: '""',
+                    display: location.pathname === `/squads/${currentUser.squadId}` ? 'block' : 'none',
+                    width: '100%',
+                    height: 2,
+                    background: '#ffb347',
+                    position: 'absolute',
+                    left: 0,
+                    bottom: -2
+                  },
+                  '&:hover': {
+                    color: '#ffb347'
+                  }
+                }}
+              >
+                Мой отряд
+              </Button>
+            )}
 
             {currentUser?.role === 'admin' && (
               <Button
@@ -306,24 +342,16 @@ const Navbar = ({ onOpenAuthModal, notifications = [], onNotificationClick, mark
           {/* User Menu / Login Button */}
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             {currentUser ? (
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Typography
-                  variant="body2"
-                  sx={{
-                    color: '#ffd580',
-                    mr: 2,
-                    display: { xs: 'none', sm: 'block' },
-                    textShadow: '0 1px 4px rgba(255,213,128,0.08)'
-                  }}
-                >
-                  {currentUser.username}
-                </Typography>
-                {/* Notification Icon */}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0 }}>
+                {/* Уведомления */}
                 <IconButton
                   sx={{
                     color: '#ffb347',
-                    mr: 1,
-                    position: 'relative',
+                    p: 1.5,
+                    borderRadius: '50%',
+                    '&:hover': {
+                      bgcolor: 'rgba(255, 179, 71, 0.1)'
+                    }
                   }}
                   aria-label="notifications"
                   onClick={handleNotifClick}
@@ -333,17 +361,14 @@ const Navbar = ({ onOpenAuthModal, notifications = [], onNotificationClick, mark
                   </Badge>
                 </IconButton>
                 
+                {/* Аватар */}
                 <IconButton
                   onClick={handleProfileClick}
                   sx={{
-                    backgroundColor: '#222',
-                    borderRadius: '50%',
                     p: 1,
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.10)',
-                    transition: 'background 0.13s cubic-bezier(0.4,0,0.2,1), box-shadow 0.13s cubic-bezier(0.4,0,0.2,1)',
+                    borderRadius: '50%',
                     '&:hover': {
-                      backgroundColor: '#23242a',
-                      boxShadow: '0 4px 24px rgba(0,0,0,0.18)'
+                      bgcolor: 'rgba(255, 179, 71, 0.1)'
                     }
                   }}
                 >
@@ -352,7 +377,7 @@ const Navbar = ({ onOpenAuthModal, notifications = [], onNotificationClick, mark
                     sx={{ 
                       width: 32, 
                       height: 32, 
-                      bgcolor: currentUser.avatar ? 'transparent' : '#333',
+                      bgcolor: currentUser.avatar ? 'transparent' : '#ffb347',
                     }}
                   >
                     {!currentUser.avatar && <PersonIcon />}
@@ -366,33 +391,111 @@ const Navbar = ({ onOpenAuthModal, notifications = [], onNotificationClick, mark
                   disableScrollLock
                   PaperProps={{
                     sx: {
-                      backgroundColor: '#23242a',
-                      borderRadius: 2,
-                      boxShadow: '0 4px 24px rgba(0,0,0,0.18)',
-                      border: '1px solid #292a2f',
-                      mt: 1
+                      minWidth: 200,
+                      bgcolor: 'rgba(0, 0, 0, 0.9)',
+                      color: '#fff',
+                      borderRadius: 3,
+                      boxShadow: '0 6px 24px 0 rgba(255,179,71,0.16), 0 2px 10px rgba(0,0,0,0.14)',
+                      border: '2px solid #ffb347',
+                      backdropFilter: 'blur(10px)',
+                      mt: 0.5,
+                      overflow: 'hidden'
                     }
                   }}
-                  transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-                  anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+                  transformOrigin={{ horizontal: 'center', vertical: 'top' }}
+                  anchorOrigin={{ horizontal: 'center', vertical: 'bottom' }}
                 >
-                  <MenuItem onClick={() => handleMenuClick(`/profile/${currentUser.id}`)}>
-                    <PersonIcon sx={{ mr: 1 }} />
-                    Профиль
-                  </MenuItem>
-                  <MenuItem onClick={() => handleMenuClick('/messages')}>
-                    <MailIcon sx={{ mr: 1 }} />
-                    Сообщения
-                  </MenuItem>
-                  <MenuItem onClick={() => handleMenuClick('/settings')}>
-                    <SettingsIcon sx={{ mr: 1 }} />
-                    Настройки
-                  </MenuItem>
-                  <Divider sx={{ my: 1 }} />
-                  <MenuItem onClick={handleLogout} sx={{ color: '#ff4d4f' }}>
-                    <LogoutIcon sx={{ mr: 1 }} />
-                    Выйти
-                  </MenuItem>
+                  {/* Заголовок */}
+                  <Box sx={{ 
+                    p: 2, 
+                    borderBottom: '1px solid rgba(255, 179, 71, 0.2)',
+                    bgcolor: 'rgba(255, 179, 71, 0.05)'
+                  }}>
+                    <Typography variant="h6" sx={{ color: '#ffb347', fontWeight: 600, textAlign: 'center' }}>
+                      Меню
+                    </Typography>
+                  </Box>
+                  
+                  {/* Содержимое */}
+                  <Box sx={{ p: 1 }}>
+                    <Box 
+                      onClick={() => handleMenuClick(`/profile/${currentUser.id}`)}
+                      sx={{
+                        p: 2,
+                        cursor: 'pointer',
+                        borderRadius: 1,
+                        '&:hover': {
+                          bgcolor: 'rgba(255, 179, 71, 0.1)'
+                        }
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <PersonIcon sx={{ mr: 2, color: '#ffb347' }} />
+                        <Typography sx={{ color: '#fff', fontWeight: 500 }}>
+                          Профиль
+                        </Typography>
+                      </Box>
+                    </Box>
+                    
+                    <Box 
+                      onClick={() => handleMenuClick('/messages')}
+                      sx={{
+                        p: 2,
+                        cursor: 'pointer',
+                        borderRadius: 1,
+                        '&:hover': {
+                          bgcolor: 'rgba(255, 179, 71, 0.1)'
+                        }
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <MailIcon sx={{ mr: 2, color: '#ffb347' }} />
+                        <Typography sx={{ color: '#fff', fontWeight: 500 }}>
+                          Сообщения
+                        </Typography>
+                      </Box>
+                    </Box>
+                    
+                    <Box 
+                      onClick={() => handleMenuClick('/settings')}
+                      sx={{
+                        p: 2,
+                        cursor: 'pointer',
+                        borderRadius: 1,
+                        '&:hover': {
+                          bgcolor: 'rgba(255, 179, 71, 0.1)'
+                        }
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <SettingsIcon sx={{ mr: 2, color: '#ffb347' }} />
+                        <Typography sx={{ color: '#fff', fontWeight: 500 }}>
+                          Настройки
+                        </Typography>
+                      </Box>
+                    </Box>
+                    
+                    <Divider sx={{ my: 1, bgcolor: 'rgba(255, 179, 71, 0.2)' }} />
+                    
+                    <Box 
+                      onClick={handleLogout}
+                      sx={{
+                        p: 2,
+                        cursor: 'pointer',
+                        borderRadius: 1,
+                        '&:hover': {
+                          bgcolor: 'rgba(244, 67, 54, 0.1)'
+                        }
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <LogoutIcon sx={{ mr: 2, color: '#f44336' }} />
+                        <Typography sx={{ color: '#f44336', fontWeight: 500 }}>
+                          Выйти
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Box>
                 </Menu>
 
                 <Menu
@@ -400,32 +503,110 @@ const Navbar = ({ onOpenAuthModal, notifications = [], onNotificationClick, mark
                   open={notifOpen}
                   onClose={handleNotifClose}
                   disableScrollLock
-                  PaperProps={{ sx: { minWidth: 260, bgcolor: '#23242a', color: '#fff' } }}
-                  anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                  transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                  PaperProps={{ 
+                    sx: { 
+                      minWidth: 320,
+                      maxWidth: 400,
+                      bgcolor: 'rgba(0, 0, 0, 0.9)',
+                      color: '#fff',
+                      borderRadius: 3,
+                      boxShadow: '0 6px 24px 0 rgba(255,179,71,0.16), 0 2px 10px rgba(0,0,0,0.14)',
+                      border: '2px solid #ffb347',
+                      backdropFilter: 'blur(10px)',
+                      mt: 0.5,
+                      overflow: 'hidden'
+                    } 
+                  }}
+                  anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+                  transformOrigin={{ vertical: 'top', horizontal: 'center' }}
                 >
-                  {notifications.length === 0 ? (
-                    <MenuItem disabled>Нет новых уведомлений</MenuItem>
-                  ) : <>
-                    <MenuItem onClick={markAllNotificationsRead} sx={{ color: '#ffb347', fontWeight: 600 }}>Пометить все как прочитанные</MenuItem>
-                    {notifications.map((notif) => (
-                      notif.type === 'squad_invite' && notif.data?.inviteId ? (
-                        <MenuItem key={notif.id} onClick={() => handleNotifItemClick(notif)} style={{ whiteSpace: 'normal', alignItems: 'flex-start', flexDirection: 'column' }}>
-                          <div style={{ marginBottom: 6 }}>
-                            <b>Приглашение в отряд</b>
-                            <br />
-                            {notif.data.squadName ? `Отряд: ${notif.data.squadName}` : `ID отряда: ${notif.data.squadId}`}
-                            <br />
-                            {notif.data.inviterUsername ? `Пригласил: ${notif.data.inviterUsername}` : ''}
-                          </div>
-                        </MenuItem>
-                      ) : (
-                        <MenuItem key={notif.id} onClick={() => handleNotifItemClick(notif)}>
-                          {notif.message || 'Вам поступило приглашение в отряд'}
-                        </MenuItem>
-                      )
-                    ))}
-                  </>}
+                  {/* Заголовок */}
+                  <Box sx={{ 
+                    p: 2, 
+                    borderBottom: '1px solid rgba(255, 179, 71, 0.2)',
+                    bgcolor: 'rgba(255, 179, 71, 0.05)'
+                  }}>
+                    <Typography variant="h6" sx={{ color: '#ffb347', fontWeight: 600, textAlign: 'center' }}>
+                      Уведомления
+                    </Typography>
+                  </Box>
+                  
+                  {/* Содержимое */}
+                  <Box sx={{ maxHeight: 400, overflow: 'auto' }}>
+                    {notifications.length === 0 ? (
+                      <Box sx={{ p: 3, textAlign: 'center' }}>
+                        <Typography sx={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.9rem' }}>
+                          Нет новых уведомлений
+                        </Typography>
+                      </Box>
+                    ) : (
+                      <>
+                        <Box sx={{ p: 1.5, borderBottom: '1px solid rgba(255, 179, 71, 0.1)' }}>
+                          <Button
+                            onClick={markAllNotificationsRead}
+                            sx={{ 
+                              color: '#ffb347', 
+                              fontWeight: 600,
+                              fontSize: '0.85rem',
+                              textTransform: 'none',
+                              p: 1,
+                              '&:hover': {
+                                bgcolor: 'rgba(255, 179, 71, 0.1)'
+                              }
+                            }}
+                            fullWidth
+                          >
+                            Пометить все как прочитанные
+                          </Button>
+                        </Box>
+                        {notifications.map((notif, index) => (
+                          <Box key={notif.id}>
+                            {notif.type === 'squad_invite' && notif.data?.inviteId ? (
+                              <Box 
+                                onClick={() => handleNotifItemClick(notif)}
+                                sx={{
+                                  p: 2,
+                                  cursor: 'pointer',
+                                  borderBottom: index < notifications.length - 1 ? '1px solid rgba(255, 179, 71, 0.1)' : 'none',
+                                  '&:hover': {
+                                    bgcolor: 'rgba(255, 179, 71, 0.1)'
+                                  }
+                                }}
+                              >
+                                <Typography sx={{ color: '#ffb347', fontWeight: 600, mb: 1, fontSize: '0.9rem' }}>
+                                  Приглашение в отряд
+                                </Typography>
+                                <Typography sx={{ color: '#fff', fontSize: '0.85rem', mb: 0.5 }}>
+                                  {notif.data.squadName ? `Отряд: ${notif.data.squadName}` : `ID отряда: ${notif.data.squadId}`}
+                                </Typography>
+                                {notif.data.inviterUsername && (
+                                  <Typography sx={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.8rem' }}>
+                                    Пригласил: {notif.data.inviterUsername}
+                                  </Typography>
+                                )}
+                              </Box>
+                            ) : (
+                              <Box 
+                                onClick={() => handleNotifItemClick(notif)}
+                                sx={{
+                                  p: 2,
+                                  cursor: 'pointer',
+                                  borderBottom: index < notifications.length - 1 ? '1px solid rgba(255, 179, 71, 0.1)' : 'none',
+                                  '&:hover': {
+                                    bgcolor: 'rgba(255, 179, 71, 0.1)'
+                                  }
+                                }}
+                              >
+                                <Typography sx={{ color: '#fff', fontSize: '0.9rem' }}>
+                                  {notif.message || 'Вам поступило приглашение в отряд'}
+                                </Typography>
+                              </Box>
+                            )}
+                          </Box>
+                        ))}
+                      </>
+                    )}
+                  </Box>
                 </Menu>
               </Box>
             ) : (

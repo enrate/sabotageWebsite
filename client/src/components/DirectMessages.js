@@ -468,9 +468,9 @@ const DirectMessages = () => {
                             {/* Галочка прочтения/доставки */}
                             {isOwn && (
                               msg.isRead ? (
-                                <DoneAllIcon sx={{ fontSize: 16, color: '#4caf50', ml: 0.5, verticalAlign: 'middle' }} />
+                                <span style={{ color: '#4caf50', fontWeight: 600, marginLeft: 6, verticalAlign: 'middle' }}>прочитано</span>
                               ) : (
-                                <DoneAllIcon sx={{ fontSize: 16, color: '#bdbdbd', ml: 0.5, verticalAlign: 'middle' }} />
+                                <span style={{ color: '#bdbdbd', fontWeight: 600, marginLeft: 6, verticalAlign: 'middle' }}>доставлено</span>
                               )
                             )}
                           </Typography>

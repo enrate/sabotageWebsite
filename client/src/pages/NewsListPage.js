@@ -90,9 +90,9 @@ const NewsListPage = ({ sx }) => {
   }
 
   return (
-    <Box sx={{ width: '100%', p: 0, m: 0, maxWidth: '100%', ...sx }}>
+    <Box sx={{ width: '100%', ...sx }}>
       {/* Заголовок */}
-      <Box sx={{ textAlign: 'center', mb: 4 }}>
+      <Box sx={{ mb: 4, textAlign: 'center' }}>
         <Typography 
           variant="h3" 
           component="h1" 
@@ -104,15 +104,6 @@ const NewsListPage = ({ sx }) => {
           }}
         >
           Новости сообщества
-        </Typography>
-        <Typography 
-          variant="h6" 
-          sx={{ 
-            color: 'rgba(255, 255, 255, 0.8)',
-            fontWeight: 400
-          }}
-        >
-          Будьте в курсе последних событий и обновлений
         </Typography>
       </Box>
 
@@ -169,23 +160,28 @@ const NewsListPage = ({ sx }) => {
               >
                 <CardContent sx={{ flexGrow: 1, p: 3 }}>
                   {/* Заголовок */}
-                  <Typography 
-                    variant="h6" 
-                    component="h2" 
-                    sx={{ 
-                      color: '#ffb347',
-                      fontWeight: 600,
-                      mb: 2,
-                      lineHeight: 1.3,
-                      minHeight: '3rem',
-                      display: '-webkit-box',
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: 'vertical',
-                      overflow: 'hidden'
-                    }}
-                  >
-                    {item.title}
-                  </Typography>
+                  <Link to={`/news/${item.id}`} style={{ textDecoration: 'none' }}>
+                    <Typography 
+                      variant="h6" 
+                      component="h2" 
+                      sx={{ 
+                        color: '#ffb347',
+                        fontWeight: 600,
+                        mb: 2,
+                        lineHeight: 1.3,
+                        minHeight: '3rem',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                        transition: 'color 0.2s',
+                        cursor: 'pointer',
+                        '&:hover': { color: '#ffd580' }
+                      }}
+                    >
+                      {item.title}
+                    </Typography>
+                  </Link>
                   
                   {/* Контент */}
                   <Box 
@@ -293,28 +289,6 @@ const NewsListPage = ({ sx }) => {
             </Box>
           ))}
         </Box>
-      )}
-
-      {/* Плавающая кнопка для админа */}
-      {currentUser?.role === 'admin' && (
-        <Tooltip title="Добавить новость" placement="left">
-          <Fab 
-            sx={{ 
-              position: 'fixed', 
-              bottom: 16, 
-              right: 16,
-              bgcolor: '#ffb347',
-              color: '#000',
-              '&:hover': {
-                bgcolor: '#ffd580'
-              }
-            }}
-            component={Link}
-            to="/admin/news/create"
-          >
-            <AddIcon />
-          </Fab>
-        </Tooltip>
       )}
     </Box>
   );

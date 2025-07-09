@@ -4,6 +4,9 @@ import ServerStatus from '../components/ServerStatus';
 import NewsPreview from '../components/NewsPreview';
 import Loader from '../components/Loader';
 import NewsListPage from './NewsListPage';
+import { useAuth } from '../context/AuthContext';
+import Snackbar from '@mui/material/Snackbar';
+import MuiAlert from '@mui/material/Alert';
 import {
   Container,
   Grid,
@@ -44,6 +47,8 @@ const HomePage = () => {
   
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const { currentUser } = useAuth();
+  const [showArmaIdSnackbar, setShowArmaIdSnackbar] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -65,6 +70,12 @@ const HomePage = () => {
     
     fetchData();
   }, []);
+
+  useEffect(() => {
+    if (currentUser && !currentUser.armaId) {
+      setShowArmaIdSnackbar(true);
+    }
+  }, [currentUser]);
 
   const SocialBanner = ({ icon: Icon, title, description, link, color, bgColor }) => (
     <Card
@@ -151,79 +162,85 @@ const HomePage = () => {
           position: 'relative', 
           zIndex: 1,
           py: 5,
-          px: 3
+          pl: 0,
+          pr: 0
         }}
       >
         <Grid container spacing={4}>
-          {/* Левая панель с баннерами и статусами серверов */}
-          <Grid item xs={12} md={4} lg={3}>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-              {/* Социальные баннеры */}
-              <Box>
-                <SocialBanner
-                  icon={ChatIcon}
-                  title="Наш Discord"
-                  description="Присоединяйтесь к сообществу"
-                  link="https://discord.gg/your-server"
-                  color="#5865f2"
-                  bgColor="linear-gradient(135deg, #5865f2 0%, #4752c4 100%)"
-                />
-                
-                <SocialBanner
-                  icon={YouTubeIcon}
-                  title="Наш YouTube"
-                  description="Смотрите наши видео"
-                  link="https://youtube.com/@your-channel"
-                  color="#ff0000"
-                  bgColor="linear-gradient(135deg, #ff0000 0%, #cc0000 100%)"
-                />
+          {/* Левая панель — статус серверов */}
+          <Grid item style={{width:340, maxWidth:340, flexShrink:0}} sx={{mt: 8}}>
+            <Paper
+              elevation={8}
+              sx={{
+                p: 3,
+                background: 'rgba(0, 0, 0, 0.3)',
+                borderRadius: 3,
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255, 255, 255, 0.1)'
+              }}
+            >
+              <Box sx={{ textAlign: 'center', mb: 3 }}>
+                <ComputerIcon sx={{ fontSize: 32, color: '#ffb347', mb: 1 }} />
+                <Typography 
+                  variant="h6" 
+                  sx={{ 
+                    color: '#ffb347', 
+                    fontWeight: 600 
+                  }}
+                >
+                  Статус серверов
+                </Typography>
               </Box>
-
-              {/* Статусы серверов */}
-              <Paper
-                elevation={8}
-                sx={{
-                  p: 3,
-                  background: 'rgba(0, 0, 0, 0.3)',
-                  borderRadius: 3,
-                  backdropFilter: 'blur(10px)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)'
-                }}
-              >
-                <Box sx={{ textAlign: 'center', mb: 3 }}>
-                  <ComputerIcon sx={{ fontSize: 32, color: '#ffb347', mb: 1 }} />
-                  <Typography 
-                    variant="h6" 
-                    sx={{ 
-                      color: '#ffb347', 
-                      fontWeight: 600 
-                    }}
-                  >
-                    Статус серверов
-                  </Typography>
+              {loading ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
+                  <Loader />
                 </Box>
-                
-                {loading ? (
-                  <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
-                    <Loader />
-                  </Box>
-                ) : (
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                    {(servers.length ? servers : TEST_SERVERS).map(server => (
-                      <ServerStatus key={server.id} server={server} />
-                    ))}
-                  </Box>
-                )}
-              </Paper>
-            </Box>
+              ) : (
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                  {(servers.length ? servers : TEST_SERVERS).map(server => (
+                    <ServerStatus key={server.id} server={server} />
+                  ))}
+                </Box>
+              )}
+            </Paper>
           </Grid>
-
-          {/* Основная часть с новостями */}
-          <Grid item xs={12} md={8} lg={9}>
-            <NewsListPage sx={{ maxWidth: 900, ml: 'auto' }} />
+          {/* Центральная колонка — новости */}
+          <Grid item xs style={{flex:1, display:'flex'}}>
+            <NewsListPage sx={{ width: '100%', flex: 1, maxWidth: 'none' }} />
+          </Grid>
+          {/* Правая колонка — соц.баннеры */}
+          <Grid item style={{width:340, maxWidth:340, flexShrink:0}} sx={{mt: 8}}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              <SocialBanner
+                icon={ChatIcon}
+                title="Наш Discord"
+                description="Присоединяйтесь к сообществу"
+                link="https://discord.gg/TjFyzhN7QG"
+                color="#5865f2"
+                bgColor="linear-gradient(135deg, #5865f2 0%, #4752c4 100%)"
+              />
+              <SocialBanner
+                icon={YouTubeIcon}
+                title="Наш YouTube"
+                description="Смотрите наши видео"
+                link="https://www.youtube.com/@sbtgenrate"
+                color="#ff0000"
+                bgColor="linear-gradient(135deg, #ff0000 0%, #cc0000 100%)"
+              />
+            </Box>
           </Grid>
         </Grid>
       </Container>
+      <Snackbar
+        open={showArmaIdSnackbar}
+        autoHideDuration={7000}
+        onClose={() => setShowArmaIdSnackbar(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <MuiAlert onClose={() => setShowArmaIdSnackbar(false)} severity="warning" sx={{ width: '100%' }}>
+          Не забудьте указать свой Arma ID в настройках профиля для верификации!
+        </MuiAlert>
+      </Snackbar>
     </Box>
   );
 };

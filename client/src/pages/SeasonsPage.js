@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Box, Typography, Tabs, Tab, Paper, Avatar, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, CircularProgress, Alert, Card, CardContent } from '@mui/material';
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
+import PersonIcon from '@mui/icons-material/Person';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const columns = [
   { label: 'Место', key: 'place', align: 'center' },
@@ -27,7 +29,107 @@ const SeasonsPage = () => {
   const [error, setError] = useState(null);
   const [seasonsLoading, setSeasonsLoading] = useState(true);
   const [seasonsError, setSeasonsError] = useState(null);
+  const [userData, setUserData] = useState(null);
+  const [userSquadData, setUserSquadData] = useState(null);
+  const [userDataLoading, setUserDataLoading] = useState(false);
+  const { currentUser } = useAuth();
   const season = seasons[seasonIdx] || {};
+
+  // Функция для проверки, является ли строка профилем текущего пользователя
+  const isCurrentUser = (row) => {
+    return currentUser && row.id === currentUser.id;
+  };
+
+  // Функция для проверки, является ли строка отрядом текущего пользователя
+  const isCurrentUserSquad = (row) => {
+    return currentUser && currentUser.squadId && row.id === currentUser.squadId;
+  };
+
+  // Функция для загрузки данных пользователя и его отряда
+  const loadUserData = async (seasonId) => {
+    if (!currentUser || !seasonId) {
+      setUserData(null);
+      setUserSquadData(null);
+      return;
+    }
+
+    setUserDataLoading(true);
+    try {
+      // Загружаем данные пользователя
+      const userRes = await axios.get(`/api/seasons/player-stats`, { 
+        params: { 
+          seasonId,
+          userId: currentUser.id 
+        } 
+      });
+      
+      if (userRes.data) {
+        // Обогащаем данные пользователя
+        const userData = {
+          id: currentUser.id,
+          username: currentUser.username,
+          avatar: currentUser.avatar,
+          elo: userRes.data.elo || 0,
+          kills: userRes.data.kills || 0,
+          deaths: userRes.data.deaths || 0,
+          teamkills: userRes.data.teamkills || 0,
+          winrate: userRes.data.matches ? Math.round((userRes.data.wins / userRes.data.matches) * 100) : 0,
+          matches: userRes.data.matches || 0
+        };
+        setUserData(userData);
+      } else {
+        setUserData(null);
+      }
+
+      // Загружаем данные отряда пользователя
+      if (currentUser.squadId) {
+        const squadRes = await axios.get(`/api/seasons/squad-stats`, { 
+          params: { 
+            seasonId,
+            squadId: currentUser.squadId 
+          } 
+        });
+        
+        if (squadRes.data) {
+          // Загружаем информацию об отряде
+          let squadInfo = { name: `Отряд #${currentUser.squadId}`, logo: '' };
+          try {
+            const squadInfoRes = await axios.get(`/api/squads/${currentUser.squadId}`);
+            squadInfo = {
+              name: squadInfoRes.data.name,
+              logo: squadInfoRes.data.logo || ''
+            };
+          } catch (err) {
+            console.error('Ошибка загрузки информации об отряде:', err);
+          }
+          
+          // Обогащаем данные отряда
+          const squadData = {
+            id: currentUser.squadId,
+            name: squadInfo.name,
+            avatar: squadInfo.logo,
+            elo: squadRes.data.elo || 0,
+            kills: squadRes.data.kills || 0,
+            deaths: squadRes.data.deaths || 0,
+            teamkills: squadRes.data.teamkills || 0,
+            winrate: squadRes.data.matches ? Math.round((squadRes.data.wins / squadRes.data.matches) * 100) : 0,
+            matches: squadRes.data.matches || 0
+          };
+          setUserSquadData(squadData);
+        } else {
+          setUserSquadData(null);
+        }
+      } else {
+        setUserSquadData(null);
+      }
+    } catch (err) {
+      console.error('Ошибка загрузки данных пользователя:', err);
+      setUserData(null);
+      setUserSquadData(null);
+    } finally {
+      setUserDataLoading(false);
+    }
+  };
 
   useEffect(() => {
     setSeasonsLoading(true);
@@ -59,6 +161,9 @@ const SeasonsPage = () => {
         ]);
         setPlayers(playersRes.data);
         setSquads(squadsRes.data);
+        
+        // Загружаем данные пользователя и его отряда
+        await loadUserData(seasonId);
       } catch (e) {
         setError('Ошибка загрузки топа');
       } finally {
@@ -66,19 +171,62 @@ const SeasonsPage = () => {
       }
     };
     fetchData();
-  }, [season]);
+  }, [season, currentUser]);
 
   const handlePrev = () => setSeasonIdx(idx => Math.max(0, idx - 1));
   const handleNext = () => setSeasonIdx(idx => Math.min(seasons.length - 1, idx + 1));
 
-  const data = tab === 0 ? players : squads;
+  // Функция для формирования данных с пользователем в начале
+  const getDisplayData = () => {
+    if (tab === 0) {
+      // Для игроков
+      const userInTop = players.some(p => p.id === currentUser?.id);
+      if (userData && !userInTop) {
+        return [userData, ...players];
+      }
+      return players;
+    } else {
+      // Для отрядов
+      const squadInTop = squads.some(s => s.id === currentUser?.squadId);
+      if (userSquadData && !squadInTop) {
+        return [userSquadData, ...squads];
+      }
+      return squads;
+    }
+  };
+
+  const data = getDisplayData();
   const nameLabel = tab === 0 ? 'Игрок' : 'Название отряда';
 
   return (
-    <Box sx={{ maxWidth: 1100, mx: 'auto', py: 6 }}>
-      <Typography variant="h4" sx={{ color: '#ffb347', fontWeight: 700, mb: 3, textAlign: 'center' }}>
-        Сезоны
-      </Typography>
+    <Box 
+      sx={{ 
+        minHeight: '100vh',
+        width: '100%',
+        color: '#fff',
+        position: 'relative',
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.4)',
+          zIndex: 0
+        }
+      }}
+    >
+      <Box sx={{ 
+        position: 'relative', 
+        zIndex: 1,
+        maxWidth: 1100, 
+        mx: 'auto', 
+        py: 6 
+      }}>
+        <Typography variant="h4" sx={{ color: '#ffb347', fontWeight: 700, mb: 3, textAlign: 'center' }}>
+          Сезоны
+        </Typography>
       {/* Карусель сезонов */}
       {seasonsLoading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 120 }}>
@@ -130,12 +278,10 @@ const SeasonsPage = () => {
           overflow: 'hidden',
           position: 'relative',
           width: '100%',
-          maxWidth: 1200,
-          minWidth: 1200,
           mx: 'auto'
         }}
       >
-        <CardContent sx={{ p: 3 }}>
+        <CardContent sx={{ p: 3, display: 'flex', justifyContent: 'center' }}>
           {loading ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }}>
               <CircularProgress color="warning" />
@@ -143,63 +289,120 @@ const SeasonsPage = () => {
           ) : error ? (
             <Alert severity="error">{error}</Alert>
           ) : (
-            <TableContainer>
+            <TableContainer sx={{ width: '100%', minWidth: 1100, mx: 'auto' }}>
               <Table>
                 <TableHead>
                   <TableRow>
                     {columns.map(col => (
-                      <TableCell key={col.key} align={col.align} sx={{ color: '#ffb347', fontWeight: 700, fontSize: '1rem', background: 'transparent' }}>
+                      <TableCell key={col.key} align="left" sx={{ color: '#ffb347', fontWeight: 700, fontSize: '1rem', background: 'transparent' }}>
                         {col.key === 'name' ? nameLabel : col.label}
                       </TableCell>
                     ))}
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {data.map((row, idx) => (
-                    <TableRow
-                      key={row.id}
-                      sx={{
-                        '& td': { borderBottom: '1px solid #444' }
-                      }}
-                    >
-                      <TableCell align="center" sx={{ fontWeight: 700 }}>{idx + 1}</TableCell>
-                      <TableCell align="left" sx={{ borderBottom: 'none' }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Avatar src={row.avatar} sx={{ width: 32, height: 32, bgcolor: '#ffb347', color: '#23242a', fontWeight: 700, mr: 1 }}>{row.username ? row.username[0] : row.name[0]}</Avatar>
-                          {tab === 0 ? (
-                            <Typography
-                              component={Link}
-                              to={`/profile/${row.id}`}
-                              sx={{ color: '#ffb347', fontWeight: 600, textDecoration: 'none', cursor: 'pointer', borderBottom: 'none', '&:hover, &:focus': { color: '#ffd580', textDecoration: 'none', borderBottom: 'none' } }}
+                  {data.map((row, idx) => {
+                    const isUserRow = tab === 0 && isCurrentUser(row);
+                    const isUserSquadRow = tab === 1 && isCurrentUserSquad(row);
+                    const showSeparator = (isUserRow && idx === 0) || (isUserSquadRow && idx === 0);
+                    
+                    return (
+                      <React.Fragment key={row.id}>
+                        {showSeparator && (
+                          <TableRow>
+                            <TableCell 
+                              colSpan={columns.length} 
+                              sx={{ 
+                                borderBottom: '2px solid #ffb347',
+                                py: 1,
+                                textAlign: 'center'
+                              }}
                             >
-                              {row.username}
-                            </Typography>
-                          ) : (
-                            <Typography
-                              component={Link}
-                              to={`/squads/${row.id}`}
-                              sx={{ color: '#ffb347', fontWeight: 600, textDecoration: 'none', cursor: 'pointer', borderBottom: 'none', '&:hover, &:focus': { color: '#ffd580', textDecoration: 'none', borderBottom: 'none' } }}
-                            >
-                              {row.name}
-                            </Typography>
-                          )}
-                        </Box>
-                      </TableCell>
-                      <TableCell align="right">{row.elo}</TableCell>
-                      <TableCell align="right">{row.kills && row.deaths ? (row.deaths ? (row.kills / row.deaths).toFixed(2) : row.kills) : row.kd || '-'}</TableCell>
-                      <TableCell align="right">{row.kills}</TableCell>
-                      <TableCell align="right">{row.deaths}</TableCell>
-                      <TableCell align="right">{row.teamkills}</TableCell>
-                      <TableCell align="right">{row.winrate}%</TableCell>
-                      <TableCell align="right">{row.matches}</TableCell>
-                    </TableRow>
-                  ))}
+                              <Typography 
+                                variant="body2" 
+                                sx={{ 
+                                  color: '#ffb347', 
+                                  fontWeight: 600,
+                                  fontSize: '0.9rem'
+                                }}
+                              >
+                                {tab === 0 ? 'Ваш результат' : 'Ваш отряд'}
+                              </Typography>
+                            </TableCell>
+                          </TableRow>
+                        )}
+                        <TableRow
+                          sx={{
+                            '& td': { borderBottom: '1px solid #444' },
+                            ...(isUserRow ? {
+                              bgcolor: 'rgba(255, 179, 71, 0.1)',
+                              '&:hover': {
+                                bgcolor: 'rgba(255, 179, 71, 0.15)'
+                              }
+                            } : {}),
+                            ...(isUserSquadRow ? {
+                              bgcolor: 'rgba(255, 179, 71, 0.1)',
+                              '&:hover': {
+                                bgcolor: 'rgba(255, 179, 71, 0.15)'
+                              }
+                            } : {})
+                          }}
+                        >
+                          <TableCell align="left" sx={{ fontWeight: 700 }}>
+                            {showSeparator ? '—' : idx + 1}
+                          </TableCell>
+                          <TableCell align="left" sx={{ borderBottom: 'none' }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <Avatar 
+                                src={row.avatar} 
+                                sx={{ 
+                                  width: 32, 
+                                  height: 32, 
+                                  bgcolor: row.avatar ? 'transparent' : '#ffb347', 
+                                  color: '#23242a', 
+                                  fontWeight: 700, 
+                                  mr: 1 
+                                }}
+                              >
+                                {!row.avatar && <PersonIcon sx={{ fontSize: 20 }} />}
+                              </Avatar>
+                              {tab === 0 ? (
+                                <Typography
+                                  component={Link}
+                                  to={`/profile/${row.id}`}
+                                  sx={{ color: '#ffb347', fontWeight: 600, textDecoration: 'none', cursor: 'pointer', borderBottom: 'none', '&:hover, &:focus': { color: '#ffd580', textDecoration: 'none', borderBottom: 'none' } }}
+                                >
+                                  {row.username}
+                                </Typography>
+                              ) : (
+                                <Typography
+                                  component={Link}
+                                  to={`/squads/${row.id}`}
+                                  sx={{ color: '#ffb347', fontWeight: 600, textDecoration: 'none', cursor: 'pointer', borderBottom: 'none', '&:hover, &:focus': { color: '#ffd580', textDecoration: 'none', borderBottom: 'none' } }}
+                                >
+                                  {row.name}
+                                </Typography>
+                              )}
+                            </Box>
+                          </TableCell>
+                          <TableCell align="left">{row.elo}</TableCell>
+                          <TableCell align="left">{row.kills && row.deaths ? (row.deaths ? (row.kills / row.deaths).toFixed(2) : row.kills) : row.kd || '-'}</TableCell>
+                          <TableCell align="left">{row.kills}</TableCell>
+                          <TableCell align="left">{row.deaths}</TableCell>
+                          <TableCell align="left">{row.teamkills}</TableCell>
+                          <TableCell align="left">{row.winrate}%</TableCell>
+                          <TableCell align="left">{row.matches}</TableCell>
+                        </TableRow>
+                      </React.Fragment>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </TableContainer>
           )}
         </CardContent>
       </Card>
+      </Box>
     </Box>
   );
 };

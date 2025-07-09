@@ -343,9 +343,6 @@ const NewsPage = () => {
         <Typography variant="h3" component="h1" gutterBottom>
           Новости сообщества
         </Typography>
-        <Typography variant="subtitle1" color="text.secondary">
-          Будьте в курсе последних событий и обновлений
-        </Typography>
       </Box>
 
       {/* News List */}

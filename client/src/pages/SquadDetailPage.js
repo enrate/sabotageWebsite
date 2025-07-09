@@ -32,7 +32,9 @@ import {
   Alert,
   CircularProgress,
   useTheme,
-  useMediaQuery
+  useMediaQuery,
+  FormControlLabel,
+  Switch
 } from '@mui/material';
 import {
   ArrowBack as ArrowBackIcon,
@@ -108,6 +110,7 @@ const SquadDetailPage = () => {
   const [performanceScrollIndex, setPerformanceScrollIndex] = useState(0);
   const [performanceTab, setPerformanceTab] = useState(0);
   const [squadStats, setSquadStats] = useState(null);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -479,6 +482,8 @@ const SquadDetailPage = () => {
       await axios.delete(`/api/squads/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
+      setShowDeleteModal(false);
+      setDeleteConfirmText('');
       navigate('/squads');
     } catch (err) {
       console.error('Ошибка удаления отряда:', err);
@@ -775,7 +780,7 @@ const SquadDetailPage = () => {
       >
         <Grid container spacing={4}>
           {/* Левая панель с вкладками и информацией */}
-          <Grid item xs={12} md={3} lg={2}>
+          <Grid item style={{width: 320, maxWidth: 320, flexShrink: 0}}>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
               {/* Вкладки */}
               <Paper
@@ -980,8 +985,10 @@ const SquadDetailPage = () => {
                       sx={{
                         bgcolor: '#b91c1c',
                         color: '#fff',
+                        boxShadow: 'none',
                         '&:hover': {
-                          bgcolor: '#a01818'
+                          bgcolor: '#a01818',
+                          boxShadow: 'none'
                         }
                       }}
                     >
@@ -1017,8 +1024,10 @@ const SquadDetailPage = () => {
                 sx={{
                   bgcolor: '#4f8cff',
                   color: '#fff',
+                  boxShadow: 'none',
                   '&:hover': {
-                    bgcolor: '#3b7ae8'
+                    bgcolor: '#3b7ae8',
+                    boxShadow: 'none'
                   }
                 }}
               >
@@ -1028,7 +1037,7 @@ const SquadDetailPage = () => {
           </Grid>
 
           {/* Основной контент */}
-          <Grid item xs={12} md={6} lg={7}>
+          <Grid item xs style={{flex: 1, minWidth: 0}}>
             <Paper
               elevation={8}
               sx={{
@@ -1037,12 +1046,13 @@ const SquadDetailPage = () => {
                 borderRadius: 3,
                 backdropFilter: 'blur(10px)',
                 border: '1px solid rgba(255, 179, 71, 0.2)',
-                minHeight: 600
+                minHeight: 600,
+                width: '100%'
               }}
             >
               {/* Вкладка "Об отряде" */}
               {tab === 'about' && (
-                <Box>
+                <Box sx={{ minWidth: 800, maxWidth: 1100, mx: 'auto' }}>
                   {/* Логотип и название */}
                   <Box sx={{ textAlign: 'center', mb: 4 }}>
                     <Avatar
@@ -1077,21 +1087,17 @@ const SquadDetailPage = () => {
                     Участники
                   </Typography>
                   {Array.isArray(squad.members) && squad.members.length > 0 ? (
-                    <List>
-                      {getSortedMembers.map((member, idx) => {
-                        // Вычисляем количество дней со дня вступления
-                        const joinDate = member.joinDate ? new Date(member.joinDate) : null;
-                        const daysInSquad = joinDate ? Math.floor((new Date() - joinDate) / (1000 * 60 * 60 * 24)) : null;
-                        
-                        return (
-                          <ListItem
-                            key={member.id || idx}
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', width: '100%', gap: 3 }}>
+                      {getSortedMembers.map((member, idx) => (
+                        <Box key={member.id || idx} sx={{ width: { xs: '100%', sm: '48.5%' }, boxSizing: 'border-box', p: 1.5 }}>
+                          <Box
                             sx={{
                               bgcolor: 'rgba(0, 0, 0, 0.2)',
                               borderRadius: 2,
-                              mb: 1,
                               border: '1px solid rgba(255, 179, 71, 0.2)',
                               cursor: member.id ? 'pointer' : 'default',
+                              p: 2,
+                              width: '100%',
                               '&:hover': member.id ? {
                                 bgcolor: 'rgba(255, 179, 71, 0.1)',
                                 borderColor: '#ffb347'
@@ -1099,7 +1105,7 @@ const SquadDetailPage = () => {
                             }}
                             onClick={() => member.id && navigate(`/profile/${member.id}`)}
                           >
-                            <ListItemAvatar>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                               <Avatar
                                 src={member.avatar}
                                 sx={{
@@ -1111,14 +1117,10 @@ const SquadDetailPage = () => {
                                 {!member.avatar && <PersonIcon sx={{ fontSize: 32 }} />}
                                 {member.avatar && (member.username?.charAt(0)?.toUpperCase() || 'U')}
                               </Avatar>
-                            </ListItemAvatar>
-                            <ListItemText
-                              primary={
+                              <Box sx={{ flex: 1 }}>
                                 <Typography sx={{ color: '#ffb347', fontWeight: 600 }}>
                                   {member.username || member.name || '—'}
                                 </Typography>
-                              }
-                              secondary={
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
                                   <Chip
                                     label={member.squadRole === 'deputy' ? 'Заместитель' : member.squadRole === 'member' ? 'Участник' : member.squadRole === 'leader' ? 'Лидер' : 'Участник'}
@@ -1129,47 +1131,51 @@ const SquadDetailPage = () => {
                                       fontSize: '0.75rem'
                                     }}
                                   />
-                                  {daysInSquad !== null && (
-                                    <Chip
-                                      label={`${daysInSquad} ${daysInSquad === 1 ? 'день в отряде' : daysInSquad < 5 ? 'дня в отряде' : 'дней в отряде'}`}
-                                      size="small"
-                                      sx={{
-                                        bgcolor: 'rgba(79, 140, 255, 0.1)',
-                                        color: '#4f8cff',
-                                        fontSize: '0.75rem'
-                                      }}
-                                    />
-                                  )}
+                                  {(() => {
+                                    const joinDate = member.joinDate ? new Date(member.joinDate) : null;
+                                    const daysInSquad = joinDate ? Math.floor((new Date() - joinDate) / (1000 * 60 * 60 * 24)) : null;
+                                    return daysInSquad !== null && (
+                                      <Chip
+                                        label={`${daysInSquad} ${daysInSquad === 1 ? 'день в отряде' : daysInSquad < 5 ? 'дня в отряде' : 'дней в отряде'}`}
+                                        size="small"
+                                        sx={{
+                                          bgcolor: 'rgba(79, 140, 255, 0.1)',
+                                          color: '#4f8cff',
+                                          fontSize: '0.75rem'
+                                        }}
+                                      />
+                                    );
+                                  })()}
                                 </Box>
-                              }
-                            />
-                            {/* Кнопка управления для лидера и заместителя */}
-                            {((isLeader && member.id !== currentUser?.id) || 
-                              (isDeputyInSquad && member.id !== currentUser?.id && member.squadRole === 'member')) && (
-                              <Button
-                                variant="outlined"
-                                size="small"
-                                startIcon={<ManageAccountsIcon />}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleManageMember(member);
-                                }}
-                                sx={{
-                                  color: '#ffb347',
-                                  borderColor: '#ffb347',
-                                  '&:hover': {
+                              </Box>
+                              {/* Кнопка управления для лидера и заместителя */}
+                              {((isLeader && member.id !== currentUser?.id) || 
+                                (isDeputyInSquad && member.id !== currentUser?.id && member.squadRole === 'member')) && (
+                                <Button
+                                  variant="outlined"
+                                  size="small"
+                                  startIcon={<ManageAccountsIcon />}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleManageMember(member);
+                                  }}
+                                  sx={{
+                                    color: '#ffb347',
                                     borderColor: '#ffb347',
-                                    bgcolor: 'rgba(255, 179, 71, 0.1)'
-                                  }
-                                }}
-                              >
-                                Управлять
-                              </Button>
-                            )}
-                          </ListItem>
-                        );
-                      })}
-                    </List>
+                                    '&:hover': {
+                                      borderColor: '#ffb347',
+                                      bgcolor: 'rgba(255, 179, 71, 0.1)'
+                                    }
+                                  }}
+                                >
+                                  Управлять
+                                </Button>
+                              )}
+                            </Box>
+                          </Box>
+                        </Box>
+                      ))}
+                    </Box>
                   ) : (
                     <Typography sx={{ color: 'rgba(255, 255, 255, 0.5)', textAlign: 'center' }}>
                       Нет участников
@@ -1325,7 +1331,7 @@ const SquadDetailPage = () => {
                       }}
                     >
                       <Tab label="Статистика отряда" />
-                      <Tab label="История производительности" />
+                      <Tab label="Результаты сезонов" />
                     </Tabs>
                   </Box>
                   {performanceTab === 0 && (
@@ -1339,9 +1345,9 @@ const SquadDetailPage = () => {
 
               {/* Вкладка "Управление" */}
               {tab === 'manage' && (isLeader || isDeputyInSquad) && (
-                <Box>
+                <Box sx={{ minWidth: 800, maxWidth: 1100, mx: 'auto' }}>
                   {/* Заявки на вступление */}
-                  <Typography variant="h4" sx={{ color: '#4f8cff', mb: 3 }}>
+                  <Typography variant="h4" sx={{ color: '#ffb347', mb: 3 }}>
                     Заявки на вступление
                   </Typography>
                   {requestsLoading ? (
@@ -1511,21 +1517,20 @@ const SquadDetailPage = () => {
                         </Box>
 
                         {/* Набор в отряд */}
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                          <input
-                            type="checkbox"
-                            name="isJoinRequestOpen"
-                            checked={form.isJoinRequestOpen}
-                            onChange={e => {
-                              setForm(f => ({ ...f, isJoinRequestOpen: e.target.checked }));
-                              setTouched(true);
-                            }}
-                            style={{ width: '20px', height: '20px' }}
-                          />
-                          <Typography variant="body1" sx={{ color: '#fff' }}>
-                            Открыт набор в отряд
-                          </Typography>
-                        </Box>
+                        <FormControlLabel
+                          control={
+                            <Switch
+                              checked={form.isJoinRequestOpen}
+                              onChange={e => {
+                                setForm(f => ({ ...f, isJoinRequestOpen: e.target.checked }));
+                                setTouched(true);
+                              }}
+                              name="isJoinRequestOpen"
+                              sx={{ '& .MuiSwitch-thumb': { bgcolor: '#ffb347' } }}
+                            />
+                          }
+                          label={<Typography variant="body1" sx={{ color: '#fff' }}>Открыт набор в отряд</Typography>}
+                        />
 
                         {/* Описание */}
                         <Box>
@@ -1583,22 +1588,6 @@ const SquadDetailPage = () => {
                             }}
                           >
                             {saving ? 'Сохранение...' : 'Сохранить'}
-                          </Button>
-                          <Button
-                            variant="outlined"
-                            onClick={handleCancel}
-                            disabled={saving}
-                            startIcon={<CancelIcon />}
-                            sx={{
-                              borderColor: 'rgba(255, 179, 71, 0.5)',
-                              color: '#ffb347',
-                              '&:hover': {
-                                borderColor: '#ffb347',
-                                bgcolor: 'rgba(255, 179, 71, 0.1)'
-                              }
-                            }}
-                          >
-                            Отмена
                           </Button>
                         </Box>
                       </Box>
@@ -1675,20 +1664,156 @@ const SquadDetailPage = () => {
       </Dialog>
 
       {/* Модальное окно подтверждения удаления отряда */}
-      <Dialog open={showDeleteModal} onClose={() => setShowDeleteModal(false)}>
-        <DialogTitle>Подтверждение удаления</DialogTitle>
-        <DialogContent>
-          <Typography>
-            Вы уверены, что хотите распустить отряд "{squad.name}"? Это действие нельзя отменить.
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setShowDeleteModal(false)}>Отмена</Button>
-          <Button onClick={handleDeleteSquad} variant="contained" color="error">
-            Распустить
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {showDeleteModal && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            background: 'rgba(30,30,30,0.75)',
+            zIndex: 1000,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
+            animation: 'fadeIn 0.2s',
+          }}
+          onClick={() => {
+            setShowDeleteModal(false);
+            setDeleteConfirmText('');
+          }}
+        >
+          <div
+            style={{
+              background: 'rgba(35, 37, 38, 0.8)',
+              borderRadius: 16,
+              boxShadow: '0 6px 24px 0 rgba(255,179,71,0.16), 0 2px 10px rgba(0,0,0,0.14)',
+              border: '2px solid #ffb347',
+              padding: '32px 24px 24px 24px',
+              minWidth: 320,
+              maxWidth: '90vw',
+              color: '#fff',
+              position: 'relative',
+              overflow: 'hidden',
+              animation: 'slideDown 0.3s',
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            <h2 style={{ 
+              fontSize: '1.3rem', 
+              marginBottom: '16px', 
+              color: '#ffb347',
+              textAlign: 'center'
+            }}>
+              Подтверждение удаления
+            </h2>
+            <Typography style={{ 
+              color: '#fff', 
+              marginBottom: '16px',
+              textAlign: 'center',
+              lineHeight: 1.5
+            }}>
+              Вы уверены, что хотите распустить отряд "{squad.name}"? Это действие нельзя отменить.
+            </Typography>
+            <Typography style={{ 
+              color: '#fff', 
+              marginBottom: '8px',
+              fontSize: '0.9rem'
+            }}>
+              Для подтверждения введите название отряда:
+            </Typography>
+            <input
+              type="text"
+              placeholder={`Введите "${squad.name}"`}
+              value={deleteConfirmText || ''}
+              onChange={(e) => setDeleteConfirmText(e.target.value)}
+              style={{
+                width: '100%',
+                marginBottom: '24px',
+                borderRadius: 8,
+                border: '1.5px solid #ffb347',
+                padding: '8px 12px',
+                background: '#232526',
+                color: '#fff',
+                fontSize: 16,
+                outline: 'none'
+              }}
+            />
+            <div style={{ 
+              display: 'flex', 
+              gap: '12px',
+              justifyContent: 'center'
+            }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setDeleteConfirmText('');
+                }}
+                style={{
+                  background: 'none',
+                  border: '2px solid #ffb347',
+                  color: '#ffb347',
+                  borderRadius: 8,
+                  padding: '10px 20px',
+                  fontWeight: 600,
+                  fontSize: 16,
+                  cursor: 'pointer',
+                  transition: 'background 0.2s',
+                  minWidth: '100px'
+                }}
+                onMouseEnter={e => e.target.style.background = 'rgba(255, 179, 71, 0.1)'}
+                onMouseLeave={e => e.target.style.background = 'none'}
+              >
+                Отмена
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteSquad}
+                disabled={deleteConfirmText !== squad.name}
+                style={{
+                  background: deleteConfirmText === squad.name ? '#f44336' : '#666',
+                  border: 'none',
+                  color: '#fff',
+                  borderRadius: 8,
+                  padding: '10px 20px',
+                  fontWeight: 700,
+                  fontSize: 16,
+                  cursor: deleteConfirmText === squad.name ? 'pointer' : 'not-allowed',
+                  transition: 'background 0.2s',
+                  minWidth: '100px',
+                  opacity: deleteConfirmText === squad.name ? 1 : 0.6
+                }}
+                onMouseEnter={e => {
+                  if (deleteConfirmText === squad.name) {
+                    e.target.style.background = '#d32f2f';
+                  }
+                }}
+                onMouseLeave={e => {
+                  if (deleteConfirmText === squad.name) {
+                    e.target.style.background = '#f44336';
+                  }
+                }}
+              >
+                Распустить
+              </button>
+            </div>
+          </div>
+          <style>{`
+            @keyframes fadeIn {
+              from { opacity: 0; }
+              to { opacity: 1; }
+            }
+            @keyframes slideDown {
+              from { transform: translateY(-40px); opacity: 0; }
+              to { transform: translateY(0); opacity: 1; }
+            }
+          `}</style>
+        </div>
+      )}
 
       {/* Модальное окно кроппера */}
       {showCropper && (

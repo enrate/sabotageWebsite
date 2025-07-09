@@ -194,8 +194,30 @@ const SettingsPage = () => {
   );
 
   return (
-    <Container maxWidth="sm" sx={{ py: 5 }}>
-      <Box sx={{
+    <Box 
+      sx={{ 
+        minHeight: '100vh',
+        width: '100%',
+        color: '#fff',
+        position: 'relative',
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.4)',
+          zIndex: 0
+        }
+      }}
+    >
+      <Box sx={{ 
+        position: 'relative', 
+        zIndex: 1 
+      }}>
+        <Container maxWidth="sm" sx={{ py: 5 }}>
+          <Box sx={{
         background: 'rgba(0,0,0,0.3)',
         borderRadius: 3,
         backdropFilter: 'blur(10px)',
@@ -271,16 +293,42 @@ const SettingsPage = () => {
                 color: '#fff',
                 '& fieldset': { borderColor: 'rgba(255, 179, 71, 0.3)' },
                 '&:hover fieldset': { borderColor: '#ffb347' },
-                '&.Mui-focused fieldset': { borderColor: '#ffb347' }
+                '&.Mui-focused fieldset': { borderColor: '#ffb347' },
+                '&.Mui-disabled': { color: '#fff !important' }
+              },
+              '& .MuiOutlinedInput-root.Mui-disabled .MuiOutlinedInput-notchedOutline': {
+                borderColor: 'rgba(255, 179, 71, 0.3) !important'
               },
               '& .MuiInputLabel-root': {
                 color: 'rgba(255, 255, 255, 0.7)',
-                '&.Mui-focused': { color: '#ffb347' }
-              }
+                '&.Mui-focused': { color: '#ffb347' },
+                '&.Mui-disabled': { color: 'rgba(255, 255, 255, 0.7)' }
+              },
+              '& .MuiOutlinedInput-input.Mui-disabled': { color: '#fff !important', WebkitTextFillColor: '#fff !important' },
+              '& .MuiInputBase-input.Mui-disabled': { color: '#fff !important', WebkitTextFillColor: '#fff !important' },
+              '& .MuiInputLabel-root.Mui-disabled': { color: '#fff !important' },
+              '& .MuiFormHelperText-root': { color: '#fff !important' },
             }}
             disabled={!!form.armaId}
             helperText="Внимание: изменить Arma ID после сохранения будет невозможно!"
           />
+          {!currentUser?.armaId && (
+            <Box sx={{
+              bgcolor: 'rgba(255, 179, 71, 0.15)',
+              border: '1px solid #ffb347',
+              borderRadius: 2,
+              p: 1.5,
+              mb: 2,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1.5
+            }}>
+              <SecurityIcon sx={{ color: '#ffb347', fontSize: 22 }} />
+              <Typography sx={{ color: '#ffb347', fontWeight: 500, fontSize: '1rem' }}>
+                Укажите свой Arma ID для верификации и доступа ко всем функциям сайта.
+              </Typography>
+            </Box>
+          )}
           <TextField
             fullWidth
             label="Описание"
@@ -304,10 +352,23 @@ const SettingsPage = () => {
             }}
           />
           <FormControlLabel
-            control={<Switch checked={form.isLookingForSquad} onChange={handleFormChange} name="isLookingForSquad" sx={{ '& .MuiSwitch-thumb': { bgcolor: '#ffb347' } }} />}
+            control={
+              <Switch
+                checked={form.isLookingForSquad}
+                onChange={handleFormChange}
+                name="isLookingForSquad"
+                sx={{ '& .MuiSwitch-thumb': { bgcolor: '#ffb347' } }}
+                disabled={!currentUser?.verified}
+              />
+            }
             label={<Typography sx={{ color: '#fff' }}>Ищу отряд</Typography>}
-            sx={{ mb: 3 }}
+            sx={{ mb: 1 }}
           />
+          {!currentUser?.verified && (
+            <Typography variant="caption" sx={{ color: '#ffb347', mb: 2, display: 'block' }}>
+              Для активации функции необходимо пройти верификацию (указать Arma ID)
+            </Typography>
+          )}
           <Box sx={{ display: 'flex', gap: 2, mt: 2, justifyContent: 'flex-end' }}>
             <Button variant="contained" color="primary" type="submit" startIcon={saving ? <CircularProgress size={18} /> : <SaveIcon />} disabled={saving} sx={{ bgcolor: '#ffb347', color: '#232526', '&:hover': { bgcolor: '#ffd580' } }}>
               Сохранить
@@ -361,7 +422,9 @@ const SettingsPage = () => {
           </Button>
         </DialogActions>
       </Dialog>
-    </Container>
+        </Container>
+      </Box>
+    </Box>
   );
 };
 

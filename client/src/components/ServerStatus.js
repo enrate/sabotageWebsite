@@ -17,13 +17,10 @@ import {
 
 const ServerStatus = ({ server }) => {
   const isOnline = server.status === 'online';
-  
-  // Расчет процента онлайна (предполагаем максимальную вместимость 50 игроков)
-  const maxPlayers = 50;
+
+  const maxPlayers = 128;
   const onlinePercentage = isOnline ? (server.players / maxPlayers) * 100 : 0;
   
-  // Отладочная информация
-  console.log('Server data:', server);
   
   return (
     <Card
@@ -73,17 +70,25 @@ const ServerStatus = ({ server }) => {
           >
             <ComputerIcon sx={{ fontSize: 18 }} />
           </Avatar>
-          <Typography
-            variant="h6"
-            sx={{
-              color: '#ffb347',
-              fontWeight: 600,
-              fontSize: '1rem',
-              lineHeight: 1.2
-            }}
-          >
-            {server.name}
-          </Typography>
+          <Box>
+            <Typography
+              variant="h6"
+              sx={{
+                color: '#ffb347',
+                fontWeight: 600,
+                fontSize: '1rem',
+                lineHeight: 1.2
+              }}
+            >
+              {server.name}
+            </Typography>
+            <Typography
+              variant="caption"
+              sx={{ color: '#fff', opacity: 0.7, fontSize: '0.75rem', mt: 0.2, display: 'block' }}
+            >
+              {server.host || '83.136.235.40'}:{'2001'}
+            </Typography>
+          </Box>
         </Box>
         
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
@@ -122,7 +127,7 @@ const ServerStatus = ({ server }) => {
                 fontSize: '0.85rem'
               }}
             >
-              Сценарий:
+              Карта:
             </Typography>
             <Typography
               variant="body2"
@@ -137,7 +142,7 @@ const ServerStatus = ({ server }) => {
                 whiteSpace: 'nowrap'
               }}
             >
-              {server.scenario || 'Не указан'}
+              {server.map || 'Не указан'}
             </Typography>
           </Box>
           

@@ -80,6 +80,8 @@ const SquadPage = () => {
   const [inviteAction, setInviteAction] = useState({}); // { [inviteId]: 'accepted'|'declined'|null }
   const navigate = useNavigate();
   const location = useLocation();
+  const [search, setSearch] = useState('');
+  const [searchPlayer, setSearchPlayer] = useState('');
   
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -260,8 +262,48 @@ const SquadPage = () => {
             Отряды сообщества
           </Typography>
         </Box>
-        {/* Tabs */}
-        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 4 }}>
+        {/* Tabs + Кнопка создания отряда */}
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            position: 'relative',
+            mb: 4
+          }}
+        >
+          {/* Кнопка создания отряда слева */}
+          {currentUser && !currentUser.squadId && (
+            <Button
+              variant="contained"
+              size="large"
+              startIcon={<AddIcon />}
+              onClick={() => setShowCreateModal(true)}
+              sx={{
+                bgcolor: '#ffb347',
+                color: '#232526',
+                px: 4,
+                py: 1.5,
+                fontSize: '1.1rem',
+                fontWeight: 600,
+                borderRadius: 3,
+                position: 'absolute',
+                left: 0,
+                '&:hover': {
+                  bgcolor: '#ffd580',
+                  transform: 'translateY(-2px)',
+                  boxShadow: '0 8px 25px rgba(255, 179, 71, 0.3)'
+                },
+                transition: 'all 0.3s ease',
+                '@media (max-width: 900px)': {
+                  position: 'static',
+                  mb: 2
+                }
+              }}
+            >
+              Создать отряд
+            </Button>
+          )}
           <Tabs value={tab} onChange={(_, v) => setTab(v)}>
             <Tab label="Отряды" />
             <Tab label="В поиске отряда" />
@@ -270,34 +312,26 @@ const SquadPage = () => {
         </Box>
         {tab === 0 && (
           <>
-            {/* Кнопка создания отряда */}
-            {currentUser && !currentUser.squadId && (
-              <Box sx={{ display: 'flex', justifyContent: 'center', mb: 4 }}>
-                <Button
-                  variant="contained"
-                  size="large"
-                  startIcon={<AddIcon />}
-                  onClick={() => setShowCreateModal(true)}
-                  sx={{
-                    bgcolor: '#ffb347',
-                    color: '#232526',
-                    px: 4,
-                    py: 1.5,
-                    fontSize: '1.1rem',
-                    fontWeight: 600,
-                    borderRadius: 3,
-                    '&:hover': {
-                      bgcolor: '#ffd580',
-                      transform: 'translateY(-2px)',
-                      boxShadow: '0 8px 25px rgba(255, 179, 71, 0.3)'
-                    },
-                    transition: 'all 0.3s ease'
-                  }}
-                >
-                  Создать отряд
-                </Button>
-              </Box>
-            )}
+            {/* Поиск отряда */}
+            <Box sx={{ display: 'flex', justifyContent: 'center', mb: 4 }}>
+              <input
+                type="text"
+                placeholder="Поиск отряда..."
+                value={search || ''}
+                onChange={e => setSearch(e.target.value)}
+                style={{
+                  width: '100%',
+                  maxWidth: 400,
+                  padding: '12px',
+                  borderRadius: '4px',
+                  border: '1px solid rgba(255, 179, 71, 0.3)',
+                  background: 'rgba(0, 0, 0, 0.3)',
+                  color: '#fff',
+                  fontSize: '1rem',
+                  outline: 'none'
+                }}
+              />
+            </Box>
             {/* Список отрядов */}
             {loading ? (
               <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
@@ -310,7 +344,9 @@ const SquadPage = () => {
                 gap: 3,
                 width: '100%'
               }}>
-                {(squads.length ? squads : TEST_SQUADS).map((squad) => (
+                {(squads.length ? squads : TEST_SQUADS)
+                  .filter(squad => !search || squad.name.toLowerCase().includes(search.toLowerCase()))
+                  .map((squad) => (
                   <Box key={squad._id || squad.id} sx={{ 
                     flex: '1 1 calc(50% - 12px)',
                     minWidth: '300px'
@@ -458,13 +494,37 @@ const SquadPage = () => {
         )}
         {tab === 1 && (
           <Box>
+            {/* Поиск игроков */}
+            <Box sx={{ display: 'flex', justifyContent: 'center', mb: 4 }}>
+              <input
+                type="text"
+                placeholder="Поиск игрока..."
+                value={searchPlayer}
+                onChange={e => setSearchPlayer(e.target.value)}
+                style={{
+                  width: '100%',
+                  maxWidth: 400,
+                  padding: '12px',
+                  borderRadius: '4px',
+                  border: '1px solid rgba(255, 179, 71, 0.3)',
+                  background: 'rgba(0, 0, 0, 0.3)',
+                  color: '#fff',
+                  fontSize: '1rem',
+                  outline: 'none'
+                }}
+              />
+            </Box>
             {loadingUsers ? (
               <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
                 <Loader />
               </Box>
             ) : (
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, width: '100%' }}>
-                {lookingUsers.length === 0 ? (
+                {lookingUsers.filter(user =>
+                  !searchPlayer ||
+                  (user.username && user.username.toLowerCase().includes(searchPlayer.toLowerCase())) ||
+                  (user.description && user.description.toLowerCase().includes(searchPlayer.toLowerCase()))
+                ).length === 0 ? (
                   <Box sx={{ 
                     textAlign: 'center', 
                     py: 8,
@@ -479,7 +539,11 @@ const SquadPage = () => {
                     </Typography>
                   </Box>
                 ) : (
-                  lookingUsers.map(user => (
+                  lookingUsers.filter(user =>
+                    !searchPlayer ||
+                    (user.username && user.username.toLowerCase().includes(searchPlayer.toLowerCase())) ||
+                    (user.description && user.description.toLowerCase().includes(searchPlayer.toLowerCase()))
+                  ).map(user => (
                     <Box key={user.id} sx={{ 
                       flex: '1 1 calc(33.333% - 16px)',
                       minWidth: '320px',

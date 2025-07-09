@@ -37,7 +37,8 @@ import {
   Star as StarIcon,
   EmojiEvents as TrophyIcon,
   Mail as MailIcon,
-  Warning as WarningIcon
+  Warning as WarningIcon,
+  WarningAmber as WarningAmberIcon
 } from '@mui/icons-material';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
@@ -287,7 +288,59 @@ const ProfilePage = () => {
   };
 
   return (
-    <Container maxWidth="xl" sx={{ py: 4 }}>
+    <Box 
+      sx={{ 
+        minHeight: '100vh',
+        width: '100%',
+        color: '#fff',
+        position: 'relative',
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.4)',
+          zIndex: 0
+        }
+      }}
+    >
+      <Box sx={{ 
+        position: 'relative', 
+        zIndex: 1 
+      }}>
+        <Container maxWidth="xl" sx={{ py: 4 }}>
+          {/* Баннер: напоминание про Arma ID */}
+          {user && !user.armaId && (
+        <Box sx={{
+          bgcolor: 'rgba(255, 179, 71, 0.15)',
+          border: '1px solid #ffb347',
+          borderRadius: 2,
+          p: 2,
+          mb: 3,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 2,
+          maxWidth: 700,
+          mx: 'auto',
+        }}>
+          <WarningAmberIcon sx={{ color: '#ffb347', fontSize: 32 }} />
+          <Box sx={{ flex: 1 }}>
+            <Typography sx={{ color: '#ffb347', fontWeight: 600, fontSize: '1.1rem' }}>
+              Для полноценного участия в проекте укажите свой Arma ID в настройках профиля.
+            </Typography>
+          </Box>
+          <Button
+            variant="contained"
+            size="small"
+            sx={{ bgcolor: '#ffb347', color: '#232526', fontWeight: 600, '&:hover': { bgcolor: '#ffd580' } }}
+            onClick={() => navigate('/settings')}
+          >
+            В настройки
+          </Button>
+        </Box>
+      )}
       <Grid container spacing={3} alignItems="stretch">
         {/* Левая панель с информацией о пользователе */}
         <Grid item xs={12} md={3} lg={2}>
@@ -333,13 +386,16 @@ const ProfilePage = () => {
               {/* Информация о пользователе: верификация, отряд/статус, дни */}
               <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1, color: 'rgba(255,255,255,0.85)', fontSize: '1rem', fontWeight: 500 }}>
                 <Divider sx={{ width: '100%', bgcolor: 'rgba(255,179,71,0.5)', my: 1 }} />
-                {/* Статус верификации */}
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <span style={{ color: user.armaId ? '#4caf50' : '#f44336', fontWeight: 600 }}>
-                    {user.armaId ? 'Верифицирован' : 'Не верифицирован'}
-                  </span>
-                </Box>
-                <Divider sx={{ width: '100%', bgcolor: 'rgba(255,179,71,0.5)', my: 1 }} />
+                {!user.armaId && (
+                  <>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <span style={{ color: '#f44336', fontWeight: 600 }}>
+                        Не верифицирован
+                      </span>
+                    </Box>
+                    <Divider sx={{ width: '100%', bgcolor: 'rgba(255,179,71,0.5)', my: 1 }} />
+                  </>
+                )}
                 {/* Статус поиска отряда или отряд */}
                 {squad ? (
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'center' }}>
@@ -696,7 +752,9 @@ const ProfilePage = () => {
           </Paper>
         </Grid>
       </Grid>
-    </Container>
+        </Container>
+      </Box>
+    </Box>
   );
 };
 
