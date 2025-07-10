@@ -470,7 +470,7 @@ app.post('/api/server/data', async (req, res) => {
         // --- Логируем для диагностики ---
         console.log('playerStats:', playerStats.map(s => ({ armaId: s.armaId, elo: s.elo, userId: s.userId })));
         // 5. Классическая формула эло
-        const K = 32;
+        const K = 64; // увеличено влияние победы/поражения
         // Для игроков
         for (const armaId of armaIds) {
           const stats = playerStats.find(s => s.armaId === armaId);
@@ -502,7 +502,7 @@ app.post('/api/server/data', async (req, res) => {
           }, 0) / opponents.length;
 
           // Новый score с учётом всех параметров
-          score += (kills * 0.04) - (deaths * 0.02) - (teamkills * 0.1);
+          score += (kills * 0.1) - (deaths * 0.02) - (teamkills * 0.1); // увеличено влияние убийств
           score = Math.max(0, Math.min(1, score));
 
           const expected = 1 / (1 + Math.pow(10, ((avgOpponentElo - stats.elo) / 400)));
