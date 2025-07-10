@@ -9,7 +9,7 @@ module.exports = {
       },
       userId: {
         type: Sequelize.INTEGER,
-        allowNull: false,
+        allowNull: true,
         unique: true
       },
       armaId: {

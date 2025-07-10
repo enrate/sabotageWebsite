@@ -4,7 +4,7 @@ module.exports = (sequelize) => {
   const UserStats = sequelize.define('UserStats', {
     userId: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true,
       unique: true
     },
     armaId: {
