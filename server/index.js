@@ -303,14 +303,16 @@ app.post('/api/server/data', async (req, res) => {
         }
       }
     } else if (req.body.Factions) {
-
+      console.log('=== Начало обработки Factions ===');
       // Обработка результатов игроков
       const winningFactionKey = getWinner(req.body.FactionResults);
       const sessionId = req.body.SessionId || String(Date.now());
       const timestamp = req.body.Timestamp ? new Date(req.body.Timestamp * 1000) : new Date();
       const playersResults = getAllPlayersResults(req.body, winningFactionKey);
+      console.log('playersResults:', playersResults);
       // --- Новый блок: агрегируем kills/deaths/teamkills из KillLog с processed=false ---
       const unprocessedLogs = await db.KillLog.findAll({ where: { processed: false } });
+      console.log('unprocessedLogs:', unprocessedLogs);
       // Группируем по игроку
       const killStatsByPlayer = {};
       for (const log of unprocessedLogs) {
@@ -361,6 +363,7 @@ app.post('/api/server/data', async (req, res) => {
           order: [['startDate', 'DESC']]
         });
         const seasonId = currentSeason ? currentSeason.id : null;
+        console.log('seasonId:', seasonId);
         // --- Обновление win/loss/matches для игроков и отрядов ---
         if (seasonId) {
           // Игроки
