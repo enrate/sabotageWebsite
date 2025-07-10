@@ -5,17 +5,16 @@ exports.getTopPlayers = async (req, res) => {
   try {
     const { seasonId } = req.query;
     if (seasonId) {
-      const { Op } = require('sequelize');
-      // Топ игроков по сезону (только с userId)
+      // Топ игроков по сезону
       const stats = await PlayerSeasonStats.findAll({
-        where: { seasonId, userId: { [Op.ne]: null } },
+        where: { seasonId, userId: { [require('sequelize').Op.ne]: null } },
         order: [['elo', 'DESC']],
         limit: 20
       });
       // Получаем пользователей для отображения username/avatar
       const userIds = stats.map(s => s.userId).filter(Boolean);
       const users = userIds.length ? await User.findAll({ where: { id: userIds } }) : [];
-      const result = stats.map((s, idx) => {
+      const result = stats.map(s => {
         const user = users.find(u => u.id === s.userId) || {};
         return {
           id: s.userId,
@@ -29,19 +28,7 @@ exports.getTopPlayers = async (req, res) => {
           matches: s.matches
         };
       });
-      // Определяем место пользователя, если передан userId
-      let myPlace = null;
-      if (req.query.userId) {
-        const allStats = await PlayerSeasonStats.findAll({
-          where: { seasonId, userId: { [Op.ne]: null } },
-          order: [['elo', 'DESC']]
-        });
-        const myIndex = allStats.findIndex(s => String(s.userId) === String(req.query.userId));
-        if (myIndex !== -1) {
-          myPlace = myIndex + 1;
-        }
-      }
-      return res.json({ top: result, myPlace });
+      return res.json(result);
     }
     // Старое поведение (общая статистика)
     const players = await User.findAll({
