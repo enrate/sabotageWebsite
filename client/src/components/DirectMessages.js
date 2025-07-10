@@ -465,13 +465,16 @@ const DirectMessages = () => {
                           <Typography variant="body2" sx={{ fontWeight: 500, fontSize: '1.08rem', mb: 0.5 }}>{msg.content}</Typography>
                           <Typography variant="caption" sx={{ color: isOwn ? 'rgba(35,37,38,0.5)' : 'rgba(255,255,255,0.5)', display: 'block', textAlign: isOwn ? 'right' : 'left', mt: 0.5 }}>
                             {new Date(msg.createdAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}
-                            {/* Галочка прочтения/доставки */}
-                            {isOwn && (
-                              msg.isRead ? (
-                                <span style={{ color: '#4caf50', fontWeight: 600, marginLeft: 6, verticalAlign: 'middle' }}>прочитано</span>
-                              ) : (
-                                <span style={{ color: '#bdbdbd', fontWeight: 600, marginLeft: 6, verticalAlign: 'middle' }}>доставлено</span>
-                              )
+                            {/* Галочка прочтения */}
+                            {isOwn && msg.isRead && (
+                              <DoneAllIcon 
+                                sx={{ 
+                                  color: '#fff', 
+                                  fontSize: 16, 
+                                  marginLeft: 6, 
+                                  verticalAlign: 'middle' 
+                                }} 
+                              />
                             )}
                           </Typography>
                         </Paper>
