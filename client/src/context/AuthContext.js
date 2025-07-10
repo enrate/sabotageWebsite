@@ -55,12 +55,16 @@ export function AuthProvider({ children }) {
     setCurrentUser(userData);
   };
 
+  // Вычисляем, верифицирован ли пользователь (есть ли armaId)
+  const verified = currentUser?.armaId ? true : false;
+
   const value = {
     currentUser,
     login,
     logout,
     updateUser,
-    loading
+    loading,
+    verified
   };
 
   return (

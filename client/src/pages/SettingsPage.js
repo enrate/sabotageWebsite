@@ -43,7 +43,7 @@ import {
 
 const SettingsPage = () => {
   const navigate = useNavigate();
-  const { currentUser, updateUser } = useAuth();
+  const { currentUser, updateUser, verified } = useAuth();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
@@ -359,13 +359,13 @@ const SettingsPage = () => {
                 onChange={handleFormChange}
                 name="isLookingForSquad"
                 sx={{ '& .MuiSwitch-thumb': { bgcolor: '#ffb347' } }}
-                disabled={!currentUser?.verified}
+                disabled={!verified}
               />
             }
             label={<Typography sx={{ color: '#fff' }}>Ищу отряд</Typography>}
             sx={{ mb: 1 }}
           />
-          {!currentUser?.verified && (
+          {!verified && (
             <Typography variant="caption" sx={{ color: '#ffb347', mb: 2, display: 'block' }}>
               Для активации функции необходимо пройти верификацию (указать Arma ID)
             </Typography>
