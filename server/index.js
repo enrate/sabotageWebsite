@@ -128,8 +128,8 @@ app.post('/api/server/data', async (req, res) => {
               // player_season_stats
               if (seasonId) {
                 const [seasonStats] = await db.PlayerSeasonStats.findOrCreate({
-                  where: { userId: killerUser.id, armaId: killerIdentity, seasonId },
-                  defaults: { userId: killerUser.id, armaId: killerIdentity, seasonId, kills: 0, deaths: 0, teamkills: 0 }
+                  where: { armaId: killerIdentity, seasonId },
+                  defaults: { userId: killerUser ? killerUser.id : null, armaId: killerIdentity, seasonId, kills: 0, deaths: 0, teamkills: 0 }
                 });
                 await seasonStats.increment('teamkills');
                 await seasonStats.update({ lastUpdated: new Date() });
@@ -164,8 +164,8 @@ app.post('/api/server/data', async (req, res) => {
                 }
                 if (seasonId) {
                   const [seasonStats] = await db.PlayerSeasonStats.findOrCreate({
-                    where: { userId: victimUser.id, armaId: victimIdentity, seasonId },
-                    defaults: { userId: victimUser.id, armaId: victimIdentity, seasonId, kills: 0, deaths: 0, teamkills: 0 }
+                    where: { armaId: victimIdentity, seasonId },
+                    defaults: { userId: victimUser ? victimUser.id : null, armaId: victimIdentity, seasonId, kills: 0, deaths: 0, teamkills: 0 }
                   });
                   await seasonStats.increment('deaths');
                   await seasonStats.update({ lastUpdated: new Date() });
@@ -203,8 +203,8 @@ app.post('/api/server/data', async (req, res) => {
               }
               if (seasonId) {
                 const [seasonStats] = await db.PlayerSeasonStats.findOrCreate({
-                  where: { userId: victimUser.id, armaId: victimIdentity, seasonId },
-                  defaults: { userId: victimUser.id, armaId: victimIdentity, seasonId, kills: 0, deaths: 0, teamkills: 0 }
+                  where: { armaId: victimIdentity, seasonId },
+                  defaults: { userId: victimUser ? victimUser.id : null, armaId: victimIdentity, seasonId, kills: 0, deaths: 0, teamkills: 0 }
                 });
                 await seasonStats.increment('deaths');
                 await seasonStats.update({ lastUpdated: new Date() });
@@ -245,8 +245,8 @@ app.post('/api/server/data', async (req, res) => {
               // --- player_season_stats ---
               if (seasonId) {
                 const [seasonStats, seasonCreated] = await db.PlayerSeasonStats.findOrCreate({
-                  where: { userId: killerUser.id, armaId: killerIdentity, seasonId },
-                  defaults: { userId: killerUser.id, armaId: killerIdentity, seasonId, kills: 0, deaths: 0 }
+                  where: { armaId: killerIdentity, seasonId },
+                  defaults: { userId: killerUser ? killerUser.id : null, armaId: killerIdentity, seasonId, kills: 0, deaths: 0 }
                 });
                 await seasonStats.increment('kills');
                 await seasonStats.update({ lastUpdated: new Date() });
@@ -285,8 +285,8 @@ app.post('/api/server/data', async (req, res) => {
               // --- player_season_stats ---
               if (seasonId) {
                 const [seasonStats, seasonCreated] = await db.PlayerSeasonStats.findOrCreate({
-                  where: { userId: victimUser.id, armaId: victimIdentity, seasonId },
-                  defaults: { userId: victimUser.id, armaId: victimIdentity, seasonId, kills: 0, deaths: 0 }
+                  where: { armaId: victimIdentity, seasonId },
+                  defaults: { userId: victimUser ? victimUser.id : null, armaId: victimIdentity, seasonId, kills: 0, deaths: 0 }
                 });
                 await seasonStats.increment('deaths');
                 await seasonStats.update({ lastUpdated: new Date() });
