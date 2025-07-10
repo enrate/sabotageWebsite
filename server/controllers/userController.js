@@ -54,6 +54,9 @@ exports.updateProfile = async (req, res) => {
       return res.status(404).json({ message: 'Пользователь не найден' });
     }
 
+    // Сохраняем старое значение armaId для сравнения
+    const oldArmaId = user.armaId;
+
     // Проверяем уникальность username, если он изменился
     if (username && username !== user.username) {
       const existingUser = await User.findOne({ where: { username } });
@@ -81,7 +84,7 @@ exports.updateProfile = async (req, res) => {
     
     console.log('[UserController] Обновление профиля:', {
       userId,
-      oldArmaId: user.armaId,
+      oldArmaId,
       newArmaId,
       armaIdFromBody: armaId
     });
@@ -98,11 +101,11 @@ exports.updateProfile = async (req, res) => {
     // Если установлен новый armaId, привязываем статистику
     console.log('[UserController] Проверка условия привязки:', {
       newArmaId,
-      userArmaId: user.armaId,
-      condition: newArmaId && newArmaId !== user.armaId
+      oldArmaId,
+      condition: newArmaId && newArmaId !== oldArmaId
     });
     
-    if (newArmaId && newArmaId !== user.armaId) {
+    if (newArmaId && newArmaId !== oldArmaId) {
       try {
         console.log('[UserController] Вызываю linkArmaIdToStats для:', { userId, newArmaId });
         await User.linkArmaIdToStats(userId, newArmaId);
