@@ -2,7 +2,7 @@ module.exports = {
   up: async (queryInterface, Sequelize) => {
     await queryInterface.createTable('player_season_stats', {
       id: { allowNull: false, autoIncrement: true, primaryKey: true, type: Sequelize.INTEGER },
-      userId: { type: Sequelize.INTEGER, allowNull: false },
+      userId: { type: Sequelize.INTEGER, allowNull: true },
       armaId: { type: Sequelize.STRING, allowNull: false },
       seasonId: { type: Sequelize.INTEGER, allowNull: false },
       kills: { type: Sequelize.INTEGER, defaultValue: 0 },
