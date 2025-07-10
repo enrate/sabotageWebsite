@@ -414,8 +414,17 @@ app.post('/api/server/data', async (req, res) => {
         // 1. Получаем всех пользователей по armaId
         // (armaIds, users, seasonId уже объявлены выше)
         // 3. Группируем по результату
+        const results = playersResults.map(p => p.result);
+        const allWin = results.length > 0 && results.every(r => r === 'win');
+        const allLose = results.length > 0 && results.every(r => r === 'lose');
+        if (allWin || allLose) {
+          for (const player of playersResults) {
+            player.result = 'draw';
+          }
+        }
         const winners = armaIds.filter(aid => playersResults.find(p => p.playerIdentity === aid)?.result === 'win');
         const losers = armaIds.filter(aid => playersResults.find(p => p.playerIdentity === aid)?.result === 'lose');
+        const draws = armaIds.filter(aid => playersResults.find(p => p.playerIdentity === aid)?.result === 'draw');
         // 4. Получаем текущий эло игроков и отрядов
         const playerStats = await db.PlayerSeasonStats.findAll({ where: { seasonId, armaId: armaIds } });
         // --- создаём записи, если их нет ---
@@ -443,22 +452,35 @@ app.post('/api/server/data', async (req, res) => {
           const stats = playerStats.find(s => s.armaId === armaId);
           if (!stats) continue;
           const playerResult = playersResults.find(p => p.playerIdentity === armaId);
-          if (!playerResult || (playerResult.result !== 'win' && playerResult.result !== 'lose')) continue;
-          const isWin = playerResult.result === 'win';
+          if (!playerResult) continue;
+
+          let isWin = playerResult.result === 'win';
+          let isLose = playerResult.result === 'lose';
+          let isDraw = playerResult.result === 'draw';
+
           // Получаем статистику за матч (kills, deaths, teamkills)
           const kills = playerResult.kills || 0;
           const deaths = playerResult.deaths || 0;
           const teamkills = playerResult.teamkills || 0;
-          let score = (isWin ? 1 : 0) + (kills * 0.04) - (deaths * 0.02) - (teamkills * 0.1);
-          score = Math.max(0, Math.min(1, score));
-          const opponents = isWin ? losers : winners;
-          // --- Логируем для диагностики ---
-          console.log('armaId:', armaId, 'isWin:', isWin, 'opponents:', opponents, 'playerStats:', playerStats.map(s => ({ armaId: s.armaId, elo: s.elo, userId: s.userId })));
+
+          let score = isWin ? 1 : isLose ? 0 : 0.5; // ничья = 0.5
+
+          // Среднее эло соперников
+          let opponents;
+          if (isWin) opponents = losers;
+          else if (isLose) opponents = winners;
+          else opponents = armaIds.filter(aid => aid !== armaId); // для ничьи — все остальные
+
           if (!opponents.length) continue;
           const avgOpponentElo = opponents.reduce((sum, aid) => {
             const s = playerStats.find(ps => ps.armaId === aid);
             return sum + (s ? s.elo : 1000);
           }, 0) / opponents.length;
+
+          // Новый score с учётом всех параметров
+          score += (kills * 0.04) - (deaths * 0.02) - (teamkills * 0.1);
+          score = Math.max(0, Math.min(1, score));
+
           const expected = 1 / (1 + Math.pow(10, ((avgOpponentElo - stats.elo) / 400)));
           const newElo = Math.round(stats.elo + K * (score - expected));
           console.log('Обновляю эло игрока:', armaId, 'userId:', stats.userId, 'старое:', stats.elo, 'новое:', newElo, 'score:', score);
