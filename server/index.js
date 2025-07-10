@@ -424,16 +424,15 @@ app.post('/api/server/data', async (req, res) => {
             playerStats.push(stats);
           }
         }
-        const squadIds = users.map(u => u?.squadId).filter(Boolean);
-        let squadStats = squadIds.length ? await db.SquadSeasonStats.findAll({ where: { seasonId, squadId: squadIds } }) : [];
-        // --- создаём записи для отрядов, если их нет ---
-        for (const squadId of squadIds) {
-          let squad = squadStats.find(sq => sq.squadId === squadId);
-          if (!squad) {
-            squad = await db.SquadSeasonStats.create({ squadId, seasonId, kills: 0, deaths: 0 });
-            squadStats.push(squad);
+        // --- ГАРАНТИРУЕМ: для всех жертв из KillLog тоже есть записи ---
+        for (const log of unprocessedLogs) {
+          if (log.victimIdentity && !playerStats.find(s => s.armaId === log.victimIdentity)) {
+            stats = await db.PlayerSeasonStats.create({ userId: null, armaId: log.victimIdentity, seasonId, kills: 0, deaths: 0 });
+            playerStats.push(stats);
           }
         }
+        // --- Логируем для диагностики ---
+        console.log('playerStats:', playerStats.map(s => ({ armaId: s.armaId, elo: s.elo, userId: s.userId })));
         // 5. Классическая формула эло
         const K = 32;
         // Для игроков
@@ -444,16 +443,14 @@ app.post('/api/server/data', async (req, res) => {
           if (!playerResult || (playerResult.result !== 'win' && playerResult.result !== 'lose')) continue;
           const isWin = playerResult.result === 'win';
           // Получаем статистику за матч (kills, deaths, teamkills)
-          // Для этого нужно, чтобы playersResults содержал эти данные, либо получить их из KillLog за матч
-          // Здесь предполагаем, что playerResult содержит kills, deaths, teamkills за матч
           const kills = playerResult.kills || 0;
           const deaths = playerResult.deaths || 0;
           const teamkills = playerResult.teamkills || 0;
-          // Новый score с учётом всех параметров
           let score = (isWin ? 1 : 0) + (kills * 0.04) - (deaths * 0.02) - (teamkills * 0.1);
           score = Math.max(0, Math.min(1, score));
-          // Среднее эло соперников
           const opponents = isWin ? losers : winners;
+          // --- Логируем для диагностики ---
+          console.log('armaId:', armaId, 'isWin:', isWin, 'opponents:', opponents, 'playerStats:', playerStats.map(s => ({ armaId: s.armaId, elo: s.elo, userId: s.userId })));
           if (!opponents.length) continue;
           const avgOpponentElo = opponents.reduce((sum, aid) => {
             const s = playerStats.find(ps => ps.armaId === aid);
@@ -463,7 +460,6 @@ app.post('/api/server/data', async (req, res) => {
           const newElo = Math.round(stats.elo + K * (score - expected));
           console.log('Обновляю эло игрока:', armaId, 'userId:', stats.userId, 'старое:', stats.elo, 'новое:', newElo, 'score:', score);
           await stats.update({ elo: newElo, lastUpdated: new Date() });
-          // --- Обновление maxElo в user_stats ---
           if (stats.userId) {
             const userStats = await db.UserStats.findOne({ where: { userId: stats.userId } });
             if (userStats && (userStats.maxElo === null || newElo > userStats.maxElo)) {
