@@ -100,8 +100,8 @@ app.post('/api/server/data', async (req, res) => {
           const seasonId = currentSeason ? currentSeason.id : null;
 
           const { killerIdentity, victimIdentity } = event.data;
-          const isSuicide = !!event.data.suicide;
-          const isFriendlyFire = !!event.data.friendlyFire;
+          const isSuicide = event.data.suicide;
+          const isFriendlyFire = event.data.friendlyFire;
 
           // --- Тимкилл ---
           if (isFriendlyFire && killerIdentity) {
