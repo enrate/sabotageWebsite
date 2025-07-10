@@ -147,6 +147,7 @@ app.post('/api/server/data', async (req, res) => {
             // Жертве засчитываем только смерть
             if (victimIdentity) {
               const victimUser = await db.User.findOne({ where: { armaId: victimIdentity } });
+              // --- Общая статистика --- (только если есть пользователь)
               if (victimUser) {
                 const [stats] = await db.UserStats.findOrCreate({
                   where: { armaId: victimIdentity },
@@ -162,21 +163,22 @@ app.post('/api/server/data', async (req, res) => {
                   await squadStats.increment('deaths');
                   await squadStats.update({ lastUpdated: new Date() });
                 }
-                if (seasonId) {
-                  const [seasonStats] = await db.PlayerSeasonStats.findOrCreate({
-                    where: { armaId: victimIdentity, seasonId },
-                    defaults: { userId: victimUser ? victimUser.id : null, armaId: victimIdentity, seasonId, kills: 0, deaths: 0, teamkills: 0 }
+              }
+              // --- player_season_stats --- (ВСЕГДА, если есть victimIdentity и seasonId)
+              if (seasonId) {
+                const [seasonStats] = await db.PlayerSeasonStats.findOrCreate({
+                  where: { armaId: victimIdentity, seasonId },
+                  defaults: { userId: victimUser ? victimUser.id : null, armaId: victimIdentity, seasonId, kills: 0, deaths: 0, teamkills: 0 }
+                });
+                await seasonStats.increment('deaths');
+                await seasonStats.update({ lastUpdated: new Date() });
+                if (victimUser && victimUser.squadId) {
+                  const [squadSeasonStats] = await db.SquadSeasonStats.findOrCreate({
+                    where: { squadId: victimUser.squadId, seasonId },
+                    defaults: { squadId: victimUser.squadId, seasonId, kills: 0, deaths: 0, teamkills: 0 }
                   });
-                  await seasonStats.increment('deaths');
-                  await seasonStats.update({ lastUpdated: new Date() });
-                  if (victimUser.squadId) {
-                    const [squadSeasonStats] = await db.SquadSeasonStats.findOrCreate({
-                      where: { squadId: victimUser.squadId, seasonId },
-                      defaults: { squadId: victimUser.squadId, seasonId, kills: 0, deaths: 0, teamkills: 0 }
-                    });
-                    await squadSeasonStats.increment('deaths');
-                    await squadSeasonStats.update({ lastUpdated: new Date() });
-                  }
+                  await squadSeasonStats.increment('deaths');
+                  await squadSeasonStats.update({ lastUpdated: new Date() });
                 }
               }
             }
@@ -208,7 +210,7 @@ app.post('/api/server/data', async (req, res) => {
                 });
                 await seasonStats.increment('deaths');
                 await seasonStats.update({ lastUpdated: new Date() });
-                if (victimUser.squadId) {
+                if (victimUser && victimUser.squadId) {
                   const [squadSeasonStats] = await db.SquadSeasonStats.findOrCreate({
                     where: { squadId: victimUser.squadId, seasonId },
                     defaults: { squadId: victimUser.squadId, seasonId, kills: 0, deaths: 0, teamkills: 0 }
@@ -262,10 +264,9 @@ app.post('/api/server/data', async (req, res) => {
               }
             }
           }
-          // Обновить статистику жертвы
+          // Обновить статистику жертвы (обычное убийство)
           if (victimIdentity) {
             const victimUser = await db.User.findOne({ where: { armaId: victimIdentity } });
-            // --- Общая статистика ---
             if (victimUser) {
               const [stats, created] = await db.UserStats.findOrCreate({
                 where: { armaId: victimIdentity },
@@ -273,7 +274,6 @@ app.post('/api/server/data', async (req, res) => {
               });
               await stats.increment('deaths');
               await stats.update({ lastUpdated: new Date() });
-              // --- squad_stats ---
               if (victimUser.squadId) {
                 const [squadStats, squadCreated] = await db.SquadStats.findOrCreate({
                   where: { squadId: victimUser.squadId },
@@ -282,23 +282,21 @@ app.post('/api/server/data', async (req, res) => {
                 await squadStats.increment('deaths');
                 await squadStats.update({ lastUpdated: new Date() });
               }
-              // --- player_season_stats ---
-              if (seasonId) {
-                const [seasonStats, seasonCreated] = await db.PlayerSeasonStats.findOrCreate({
-                  where: { armaId: victimIdentity, seasonId },
-                  defaults: { userId: victimUser ? victimUser.id : null, armaId: victimIdentity, seasonId, kills: 0, deaths: 0 }
+            }
+            if (seasonId) {
+              const [seasonStats, seasonCreated] = await db.PlayerSeasonStats.findOrCreate({
+                where: { armaId: victimIdentity, seasonId },
+                defaults: { userId: victimUser ? victimUser.id : null, armaId: victimIdentity, seasonId, kills: 0, deaths: 0 }
+              });
+              await seasonStats.increment('deaths');
+              await seasonStats.update({ lastUpdated: new Date() });
+              if (victimUser && victimUser.squadId) {
+                const [squadSeasonStats, squadSeasonCreated] = await db.SquadSeasonStats.findOrCreate({
+                  where: { squadId: victimUser.squadId, seasonId },
+                  defaults: { squadId: victimUser.squadId, seasonId, kills: 0, deaths: 0 }
                 });
-                await seasonStats.increment('deaths');
-                await seasonStats.update({ lastUpdated: new Date() });
-                // --- squad_season_stats ---
-                if (victimUser.squadId) {
-                  const [squadSeasonStats, squadSeasonCreated] = await db.SquadSeasonStats.findOrCreate({
-                    where: { squadId: victimUser.squadId, seasonId },
-                    defaults: { squadId: victimUser.squadId, seasonId, kills: 0, deaths: 0 }
-                  });
-                  await squadSeasonStats.increment('deaths');
-                  await squadSeasonStats.update({ lastUpdated: new Date() });
-                }
+                await squadSeasonStats.increment('deaths');
+                await squadSeasonStats.update({ lastUpdated: new Date() });
               }
             }
           }
