@@ -44,28 +44,52 @@ function getWinner(factionResults) {
 }
 
 function getAllPlayersResults(jsonData, winningFactionKey) {
-  if (!winningFactionKey) return false;
+  // Собираем всех игроков из Players
   const entityToFactionMap = new Map();
-  jsonData.Factions.forEach(faction => {
-    faction.Groups.forEach(group => {
-      group.Playables.forEach(playable => {
-        entityToFactionMap.set(playable.EntityId, faction.Key);
+  if (jsonData.Factions) {
+    jsonData.Factions.forEach(faction => {
+      faction.Groups.forEach(group => {
+        group.Playables.forEach(playable => {
+          entityToFactionMap.set(playable.EntityId, faction.Key);
+        });
       });
     });
-  });
+  }
   const playerToEntityMap = new Map();
-  jsonData.PlayersToPlayables.forEach(mapping => {
-    playerToEntityMap.set(mapping.PlayerId, mapping.EntityId);
-  });
-  return jsonData.Players.map(player => {
-    const entityId = playerToEntityMap.get(player.PlayerId);
-    const faction = entityId ? entityToFactionMap.get(entityId) : "unknown";
-    const result = faction === winningFactionKey ? "win" : "lose";
-    return {
-      playerIdentity: player.GUID,
-      result,
-    };
-  });
+  if (jsonData.PlayersToPlayables) {
+    jsonData.PlayersToPlayables.forEach(mapping => {
+      playerToEntityMap.set(mapping.PlayerId, mapping.EntityId);
+    });
+  }
+  let results = [];
+  if (jsonData.Players) {
+    results = jsonData.Players.map(player => {
+      const entityId = playerToEntityMap.get(player.PlayerId);
+      const faction = entityId ? entityToFactionMap.get(entityId) : "unknown";
+      let result;
+      if (!winningFactionKey) {
+        result = "draw";
+      } else {
+        result = faction === winningFactionKey ? "win" : "lose";
+      }
+      return {
+        playerIdentity: player.GUID,
+        result,
+      };
+    });
+  }
+  // --- ДОБАВЛЯЕМ ВСЕХ ИЗ KillLog, если их нет в results ---
+  if (jsonData.KillLog) {
+    for (const log of jsonData.KillLog) {
+      if (log.killerIdentity && !results.find(r => r.playerIdentity === log.killerIdentity)) {
+        results.push({ playerIdentity: log.killerIdentity, result: "draw" });
+      }
+      if (log.victimIdentity && !results.find(r => r.playerIdentity === log.victimIdentity)) {
+        results.push({ playerIdentity: log.victimIdentity, result: "draw" });
+      }
+    }
+  }
+  return results;
 }
 
 // Простой POST /api/server/data с проверкой Bearer токена
