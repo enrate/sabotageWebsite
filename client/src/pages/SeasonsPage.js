@@ -200,6 +200,29 @@ const SeasonsPage = () => {
   const data = getDisplayData();
   const nameLabel = tab === 0 ? 'Игрок' : 'Название отряда';
 
+  // Функция для вычисления места пользователя
+  const getUserPlace = (userData, topData) => {
+    if (!userData || !topData.length) return '-';
+    
+    // Проверяем, есть ли пользователь в топе
+    const userInTop = topData.findIndex(p => p.id === userData.id);
+    if (userInTop !== -1) {
+      // Если в топе — возвращаем его позицию
+      return userInTop + 1;
+    }
+    
+    // Если не в топе, но у него максимальное elo среди топа — показываем 1
+    const maxElo = Math.max(...topData.map(p => p.elo));
+    if (userData.elo === maxElo) {
+      return 1;
+    }
+    
+    return '-';
+  };
+
+  // Получаем место пользователя
+  const userPlace = tab === 0 ? getUserPlace(userData, players) : getUserPlace(userSquadData, squads);
+
   return (
     <Box 
       sx={{ 
@@ -382,7 +405,7 @@ const SeasonsPage = () => {
                           }}
                         >
                           <TableCell align="left" sx={{ fontWeight: 700 }}>
-                            {showSeparator ? '—' : idx + 1}
+                            {showSeparator ? userPlace : idx + 1}
                           </TableCell>
                           <TableCell align="left" sx={{ borderBottom: 'none' }}>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
