@@ -310,7 +310,7 @@ const SettingsPage = () => {
               '& .MuiInputLabel-root.Mui-disabled': { color: '#fff !important' },
               '& .MuiFormHelperText-root': { color: '#fff !important' },
             }}
-            disabled={!!form.armaId}
+            disabled={!!currentUser?.armaId}
             helperText="Внимание: изменить Arma ID после сохранения будет невозможно!"
           />
           {!currentUser?.armaId && (

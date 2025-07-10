@@ -78,6 +78,14 @@ exports.updateProfile = async (req, res) => {
     // Обновляем профиль
     let newArmaId = armaId !== undefined ? armaId : user.armaId;
     if (newArmaId === '') newArmaId = null;
+    
+    console.log('[UserController] Обновление профиля:', {
+      userId,
+      oldArmaId: user.armaId,
+      newArmaId,
+      armaIdFromBody: armaId
+    });
+    
     await user.update({
       username: username || user.username,
       email: user.email, // Email нельзя изменять
@@ -88,14 +96,23 @@ exports.updateProfile = async (req, res) => {
     });
 
     // Если установлен новый armaId, привязываем статистику
+    console.log('[UserController] Проверка условия привязки:', {
+      newArmaId,
+      userArmaId: user.armaId,
+      condition: newArmaId && newArmaId !== user.armaId
+    });
+    
     if (newArmaId && newArmaId !== user.armaId) {
       try {
+        console.log('[UserController] Вызываю linkArmaIdToStats для:', { userId, newArmaId });
         await User.linkArmaIdToStats(userId, newArmaId);
         console.log(`[UserController] Привязана статистика для пользователя ${userId} с armaId ${newArmaId}`);
       } catch (err) {
         console.error('[UserController] Ошибка привязки статистики:', err);
         // Не прерываем выполнение, так как профиль уже обновлён
       }
+    } else {
+      console.log('[UserController] Условие привязки не выполнено');
     }
 
     // Возвращаем обновленного пользователя
