@@ -101,6 +101,22 @@ module.exports = (sequelize) => {
       type: DataTypes.TEXT,
       allowNull: true,
       comment: 'Причина блокировки пользователя'
+    },
+    emailVerified: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      comment: 'Флаг подтверждения email'
+    },
+    emailVerificationToken: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'Токен для подтверждения email'
+    },
+    emailVerificationExpires: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      comment: 'Срок действия токена подтверждения email'
     }
   }, {
     tableName: 'users',
@@ -180,6 +196,21 @@ module.exports = (sequelize) => {
     const values = Object.assign({}, this.get());
     delete values.password;
     return values;
+  };
+
+  // Метод для привязки armaId к статистике
+  User.linkArmaIdToStats = async function(userId, armaId) {
+    const db = require('.');
+    // user_stats
+    await db.UserStats.update(
+      { userId },
+      { where: { armaId } }
+    );
+    // player_season_stats
+    await db.PlayerSeasonStats.update(
+      { userId },
+      { where: { armaId } }
+    );
   };
 
   return User;

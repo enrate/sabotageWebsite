@@ -87,6 +87,17 @@ exports.updateProfile = async (req, res) => {
       isLookingForSquad: isLookingForSquad !== undefined ? isLookingForSquad : user.isLookingForSquad
     });
 
+    // Если установлен новый armaId, привязываем статистику
+    if (newArmaId && newArmaId !== user.armaId) {
+      try {
+        await User.linkArmaIdToStats(userId, newArmaId);
+        console.log(`[UserController] Привязана статистика для пользователя ${userId} с armaId ${newArmaId}`);
+      } catch (err) {
+        console.error('[UserController] Ошибка привязки статистики:', err);
+        // Не прерываем выполнение, так как профиль уже обновлён
+      }
+    }
+
     // Возвращаем обновленного пользователя
     const updatedUser = await User.findByPk(userId, {
       attributes: ['id', 'username', 'avatar', 'role', 'description', 'email', 'squadId', 'armaId', 'joinDate', 'isLookingForSquad']
