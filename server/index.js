@@ -265,8 +265,8 @@ app.post('/api/server/data', async (req, res) => {
           // Обновить статистику жертвы
           if (victimIdentity) {
             const victimUser = await db.User.findOne({ where: { armaId: victimIdentity } });
+            // --- Общая статистика ---
             if (victimUser) {
-              // --- Общая статистика ---
               const [stats, created] = await db.UserStats.findOrCreate({
                 where: { armaId: victimIdentity },
                 defaults: { userId: victimUser.id, armaId: victimIdentity, kills: 0, deaths: 0 }
