@@ -366,10 +366,18 @@ app.post('/api/server/data', async (req, res) => {
           // Игроки
           for (const player of playersResults) {
             const user = users.find(u => u.armaId === player.playerIdentity);
-            if (!user) continue;
             const [stats] = await db.PlayerSeasonStats.findOrCreate({
-              where: { userId: user.id, armaId: player.playerIdentity, seasonId },
-              defaults: { userId: user.id, armaId: player.playerIdentity, seasonId, kills: 0, deaths: 0, matches: 0, wins: 0, losses: 0 }
+              where: { armaId: player.playerIdentity, seasonId },
+              defaults: {
+                userId: user ? user.id : null,
+                armaId: player.playerIdentity,
+                seasonId,
+                kills: 0,
+                deaths: 0,
+                matches: 0,
+                wins: 0,
+                losses: 0
+              }
             });
             await stats.increment('matches');
             if (player.result === 'win') await stats.increment('wins');
