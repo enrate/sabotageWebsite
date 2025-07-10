@@ -3,7 +3,7 @@ module.exports = {
     await queryInterface.changeColumn('player_season_stats', 'userId', {
       type: Sequelize.INTEGER,
       allowNull: true,
-      references: { model: 'Users', key: 'id' },
+      references: { model: 'users', key: 'id' },
       onUpdate: 'CASCADE',
       onDelete: 'SET NULL'
     });
@@ -12,7 +12,7 @@ module.exports = {
     await queryInterface.changeColumn('player_season_stats', 'userId', {
       type: Sequelize.INTEGER,
       allowNull: false,
-      references: { model: 'Users', key: 'id' },
+      references: { model: 'users', key: 'id' },
       onUpdate: 'CASCADE',
       onDelete: 'SET NULL'
     });
