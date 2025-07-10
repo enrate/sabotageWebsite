@@ -7,7 +7,7 @@ exports.getTopPlayers = async (req, res) => {
     if (seasonId) {
       // Топ игроков по сезону
       const stats = await PlayerSeasonStats.findAll({
-        where: { seasonId },
+        where: { seasonId, userId: { [require('sequelize').Op.ne]: null } },
         order: [['elo', 'DESC']],
         limit: 20
       });
