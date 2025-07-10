@@ -79,6 +79,7 @@ app.post('/api/server/data', async (req, res) => {
     const { events } = req.body;
     if (Array.isArray(events)) {
       for (const event of events) {
+        console.log(event)
         if (event.name === 'logger_player_killed') {
           const killLog = await db.KillLog.create({
             friendlyFire: event.data.friendlyFire,
@@ -87,6 +88,7 @@ app.post('/api/server/data', async (req, res) => {
             victimIdentity: event.data.victimIdentity || null,
             timestamp: event.data.timestamp ? new Date(event.data.timestamp * 1000) : new Date(),
           });
+          console.log(killLog);
 
           // --- Определяем текущий сезон ---
           const now = new Date();
