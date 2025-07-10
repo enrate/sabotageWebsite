@@ -82,8 +82,8 @@ app.post('/api/server/data', async (req, res) => {
         console.log(event)
         if (event.name === 'logger_player_killed') {
           const killLog = await db.KillLog.create({
-            friendlyFire: event.data.friendlyFire,
-            suicide: event.data.suicide,
+            friendlyFire: event.data.isFriendly, // исправлено
+            suicide: event.data.isSuicide,       // исправлено
             killerIdentity: event.data.killerIdentity || null,
             victimIdentity: event.data.victimIdentity || null,
             timestamp: event.data.timestamp ? new Date(event.data.timestamp * 1000) : new Date(),
