@@ -96,15 +96,30 @@ exports.getTopSquads = async (req, res) => {
 };
 
 exports.getAllSeasons = async (req, res) => {
-  const seasons = await Season.findAll({
-    include: [
-      { model: Award, as: 'trophy1' },
-      { model: Award, as: 'trophy2' },
-      { model: Award, as: 'trophy3' }
-    ],
-    order: [['startDate', 'DESC']]
-  });
-  res.json(seasons);
+  try {
+    const seasons = await Season.findAll({
+      include: [
+        { model: Award, as: 'trophy1' },
+        { model: Award, as: 'trophy2' },
+        { model: Award, as: 'trophy3' }
+      ],
+      order: [['startDate', 'DESC']]
+    });
+    // Для каждого сезона добавляем только пользователей с userId
+    const seasonsWithPlayers = [];
+    for (const season of seasons) {
+      const playerStats = await PlayerSeasonStats.findAll({
+        where: { seasonId: season.id, userId: { [require('sequelize').Op.ne]: null } }
+      });
+      seasonsWithPlayers.push({
+        ...season.toJSON(),
+        playerStats
+      });
+    }
+    res.json(seasonsWithPlayers);
+  } catch (err) {
+    res.status(500).json({ message: 'Ошибка получения сезонов' });
+  }
 };
 
 exports.getSeason = async (req, res) => {
