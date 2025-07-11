@@ -1,5 +1,6 @@
 const { User, SquadRole, Squad } = require('../models');
 const jwt = require('jsonwebtoken');
+const { generateVerificationToken, sendVerificationEmail } = require('../services/emailService');
 
 // Регистрация пользователя
 exports.register = async (req, res) => {
@@ -12,25 +13,36 @@ exports.register = async (req, res) => {
       return res.status(400).json({ message: 'Пользователь уже существует' });
     }
     
-    // Создание нового пользователя
-    const user = await User.create({ username, email, password });
+    // Генерация токена подтверждения
+    const verificationToken = generateVerificationToken();
+    const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 часа
     
-    console.log('JWT_SECRET:', process.env.JWT_SECRET);
-    // Создание JWT токена
-    const payload = { userId: user.id };
-    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1d' });
+    // Создание нового пользователя
+    const user = await User.create({ 
+      username, 
+      email, 
+      password,
+      emailVerificationToken: verificationToken,
+      emailVerificationExpires: verificationExpires
+    });
+    
+    // Отправка email для подтверждения
+    const emailSent = await sendVerificationEmail(email, username, verificationToken);
+    
+    if (!emailSent) {
+      // Если email не отправлен, удаляем пользователя
+      await user.destroy();
+      return res.status(500).json({ message: 'Ошибка отправки email подтверждения' });
+    }
     
     res.status(201).json({ 
-      token, 
+      message: 'Регистрация успешна! Проверьте ваш email для подтверждения аккаунта.',
       user: {
         id: user.id,
         username: user.username,
         email: user.email,
         role: user.role,
-        squadId: user.squadId,
-        avatar: user.avatar,
-        description: user.description,
-        armaId: user.armaId
+        emailVerified: user.emailVerified
       }
     });
   } catch (err) {
@@ -59,6 +71,14 @@ exports.login = async (req, res) => {
     const isMatch = await user.matchPassword(password);
     if (!isMatch) {
       return res.status(400).json({ message: 'Неверные учетные данные' });
+    }
+    
+    // Проверка подтверждения email
+    if (!user.emailVerified) {
+      return res.status(403).json({ 
+        message: 'Email не подтвержден. Проверьте вашу почту и перейдите по ссылке для подтверждения.',
+        emailNotVerified: true
+      });
     }
     
     console.log('JWT_SECRET:', process.env.JWT_SECRET);
@@ -107,6 +127,93 @@ exports.getUser = async (req, res) => {
     // Возвращаем только основные поля пользователя (без armaId, stats, verified)
     const { id, username, email, role, squadId, avatar, description, isLookingForSquad, createdAt, armaId } = user;
     res.json({ id, username, email, role, squadId, avatar, description, isLookingForSquad, createdAt, squadRole, armaId });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Ошибка сервера' });
+  }
+};
+
+// Подтверждение email
+exports.verifyEmail = async (req, res) => {
+  const { token } = req.params;
+  
+  try {
+    // Поиск пользователя по токену
+    const user = await User.findOne({ 
+      where: { 
+        emailVerificationToken: token,
+        emailVerificationExpires: { [require('sequelize').Op.gt]: new Date() }
+      }
+    });
+    
+    if (!user) {
+      return res.status(400).json({ message: 'Недействительная или истекшая ссылка подтверждения' });
+    }
+    
+    // Подтверждение email
+    await user.update({
+      emailVerified: true,
+      emailVerificationToken: null,
+      emailVerificationExpires: null
+    });
+    
+    // Создание JWT токена
+    const payload = { userId: user.id };
+    const jwtToken = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1d' });
+    
+    res.json({ 
+      message: 'Email успешно подтвержден!',
+      token: jwtToken,
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+        squadId: user.squadId,
+        avatar: user.avatar,
+        description: user.description,
+        armaId: user.armaId,
+        emailVerified: true
+      }
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Ошибка сервера' });
+  }
+};
+
+// Повторная отправка email подтверждения
+exports.resendVerification = async (req, res) => {
+  const { email } = req.body;
+  
+  try {
+    const user = await User.findOne({ where: { email } });
+    
+    if (!user) {
+      return res.status(404).json({ message: 'Пользователь не найден' });
+    }
+    
+    if (user.emailVerified) {
+      return res.status(400).json({ message: 'Email уже подтвержден' });
+    }
+    
+    // Генерация нового токена
+    const verificationToken = generateVerificationToken();
+    const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 часа
+    
+    await user.update({
+      emailVerificationToken: verificationToken,
+      emailVerificationExpires: verificationExpires
+    });
+    
+    // Отправка email
+    const emailSent = await sendVerificationEmail(email, user.username, verificationToken);
+    
+    if (!emailSent) {
+      return res.status(500).json({ message: 'Ошибка отправки email' });
+    }
+    
+    res.json({ message: 'Email подтверждения отправлен повторно' });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Ошибка сервера' });

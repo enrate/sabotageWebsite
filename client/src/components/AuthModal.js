@@ -22,10 +22,15 @@ const AuthModal = ({ onClose }) => {
     }
     setLoading(true);
     try {
-      await register({ username, email, password });
-      // Автоматический вход после регистрации
-      await login(email, password);
-      onClose();
+      const result = await register({ username, email, password });
+      // Показываем сообщение об успешной регистрации
+      setError('');
+      alert('Регистрация успешна! Проверьте ваш email для подтверждения аккаунта.');
+      setMode('login');
+      setEmail('');
+      setPassword('');
+      setConfirmPassword('');
+      setUsername('');
     } catch (err) {
       if (err.response && err.response.data && err.response.data.message) {
         setError(err.response.data.message);
@@ -45,8 +50,12 @@ const AuthModal = ({ onClose }) => {
       await login(email, password);
       onClose();
     } catch (err) {
-      if (err.response && err.response.data && err.response.data.message) {
-        setError(err.response.data.message);
+      if (err.response && err.response.data) {
+        if (err.response.data.emailNotVerified) {
+          setError('Email не подтвержден. Проверьте вашу почту и перейдите по ссылке для подтверждения.');
+        } else {
+          setError(err.response.data.message);
+        }
       } else {
         setError('Неверные учетные данные');
       }

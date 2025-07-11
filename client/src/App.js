@@ -20,6 +20,7 @@ import './App.css';
 import { useLocation } from 'react-router-dom';
 import axios from 'axios';
 import SeasonsPage from './pages/SeasonsPage';
+import VerifyEmailPage from './pages/VerifyEmailPage';
 
 console.log('App rendered');
 
@@ -135,10 +136,11 @@ function App() {
                       </PrivateRoute>
                     }
                   />
-                  <Route 
-                    path="/seasons" 
-                    element={<SeasonsPage />} 
-                  />
+                                  <Route 
+                  path="/seasons" 
+                  element={<SeasonsPage />} 
+                />
+                <Route path="/verify-email" element={<VerifyEmailPage />} />
               </Routes>
             </main>
             <Footer />
