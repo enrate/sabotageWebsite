@@ -94,7 +94,7 @@ exports.createSquad = async (req, res) => {
     await SquadRole.create({
       userId: req.user.id,
       squadId: newSquad.id,
-      role: 'member' // Лидер по умолчанию имеет роль member в squad_roles
+      role: 'leader' // Лидер должен иметь роль leader в squad_roles
     });
     
     // Отклоняем все приглашения в отряд для пользователя

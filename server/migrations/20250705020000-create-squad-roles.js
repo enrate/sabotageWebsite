@@ -31,7 +31,7 @@ module.exports = {
         onDelete: 'CASCADE'
       },
       role: {
-        type: Sequelize.ENUM('member', 'deputy'),
+        type: Sequelize.ENUM('leader', 'member', 'deputy'),
         allowNull: false,
         defaultValue: 'member'
       },
