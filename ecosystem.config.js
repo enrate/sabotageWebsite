@@ -24,7 +24,8 @@ module.exports = {
       env: {
         NODE_ENV: 'production'
       },
-      watch: false
+      watch: false,
+      cron_restart: '0 0 * * *' // запускать каждый день в полночь
     }
   ]
 }; 
