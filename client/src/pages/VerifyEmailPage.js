@@ -42,14 +42,7 @@ const VerifyEmailPage = () => {
       // Автоматический вход после подтверждения
       if (response.data.token) {
         localStorage.setItem('token', response.data.token);
-        // Получаем пользователя с новым токеном
-        try {
-          const userRes = await axios.get('/api/auth/user', {
-            headers: { Authorization: `Bearer ${response.data.token}` }
-          });
-          updateUser(userRes.data);
-        } catch {}
-        navigate('/');
+        window.location.href = '/';
       }
       
       setStatus('success');
