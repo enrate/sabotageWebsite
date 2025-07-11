@@ -223,6 +223,10 @@ const SeasonsPage = () => {
   // Получаем место пользователя
   const userPlace = tab === 0 ? getUserPlace(userData, players) : getUserPlace(userSquadData, squads);
 
+  // Для таба "Отряды" убираем winrate и matches
+  const squadColumns = columns.filter(col => col.key !== 'winrate' && col.key !== 'matches');
+  const usedColumns = tab === 0 ? columns : squadColumns;
+
   return (
     <Box 
       sx={{ 
@@ -349,7 +353,7 @@ const SeasonsPage = () => {
               <Table>
                 <TableHead>
                   <TableRow>
-                    {columns.map(col => (
+                    {usedColumns.map(col => (
                       <TableCell key={col.key} align="left" sx={{ color: '#ffb347', fontWeight: 700, fontSize: '1rem', background: 'transparent' }}>
                         {col.key === 'name' ? nameLabel : col.label}
                       </TableCell>
@@ -367,7 +371,7 @@ const SeasonsPage = () => {
                         {showSeparator && (
                           <TableRow>
                             <TableCell 
-                              colSpan={columns.length} 
+                              colSpan={usedColumns.length} 
                               sx={{ 
                                 borderBottom: '2px solid #ffb347',
                                 py: 1,
@@ -404,50 +408,63 @@ const SeasonsPage = () => {
                             } : {})
                           }}
                         >
-                          <TableCell align="left" sx={{ fontWeight: 700 }}>
-                            {showSeparator ? userPlace : idx + 1}
-                          </TableCell>
-                          <TableCell align="left" sx={{ borderBottom: 'none' }}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                              <Avatar 
-                                src={row.avatar} 
-                                sx={{ 
-                                  width: 32, 
-                                  height: 32, 
-                                  bgcolor: row.avatar ? 'transparent' : '#ffb347', 
-                                  color: '#23242a', 
-                                  fontWeight: 700, 
-                                  mr: 1 
-                                }}
-                              >
-                                {!row.avatar && <PersonIcon sx={{ fontSize: 20 }} />}
-                              </Avatar>
-                              {tab === 0 ? (
-                                <Typography
-                                  component={Link}
-                                  to={`/profile/${row.id}`}
-                                  sx={{ color: '#ffb347', fontWeight: 600, textDecoration: 'none', cursor: 'pointer', borderBottom: 'none', '&:hover, &:focus': { color: '#ffd580', textDecoration: 'none', borderBottom: 'none' } }}
-                                >
-                                  {row.username}
-                                </Typography>
-                              ) : (
-                                <Typography
-                                  component={Link}
-                                  to={`/squads/${row.id}`}
-                                  sx={{ color: '#ffb347', fontWeight: 600, textDecoration: 'none', cursor: 'pointer', borderBottom: 'none', '&:hover, &:focus': { color: '#ffd580', textDecoration: 'none', borderBottom: 'none' } }}
-                                >
-                                  {row.name}
-                                </Typography>
-                              )}
-                            </Box>
-                          </TableCell>
-                          <TableCell align="left">{row.elo}</TableCell>
-                          <TableCell align="left">{row.kills && row.deaths ? (row.deaths ? (row.kills / row.deaths).toFixed(2) : row.kills) : row.kd || '-'}</TableCell>
-                          <TableCell align="left">{row.kills}</TableCell>
-                          <TableCell align="left">{row.deaths}</TableCell>
-                          <TableCell align="left">{row.teamkills}</TableCell>
-                          <TableCell align="left">{row.winrate}%</TableCell>
-                          <TableCell align="left">{row.matches}</TableCell>
+                          {usedColumns.map((col, colIdx) => {
+                            if (col.key === 'place') {
+                              return (
+                                <TableCell align="left" sx={{ fontWeight: 700 }} key={col.key}>
+                                  {showSeparator ? userPlace : idx + 1}
+                                </TableCell>
+                              );
+                            }
+                            if (col.key === 'name') {
+                              return (
+                                <TableCell align="left" sx={{ borderBottom: 'none' }} key={col.key}>
+                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                    <Avatar 
+                                      src={row.avatar} 
+                                      sx={{ 
+                                        width: 32, 
+                                        height: 32, 
+                                        bgcolor: row.avatar ? 'transparent' : '#ffb347', 
+                                        color: '#23242a', 
+                                        fontWeight: 700, 
+                                        mr: 1 
+                                      }}
+                                    >
+                                      {!row.avatar && <PersonIcon sx={{ fontSize: 20 }} />}
+                                    </Avatar>
+                                    {tab === 0 ? (
+                                      <Typography
+                                        component={Link}
+                                        to={`/profile/${row.id}`}
+                                        sx={{ color: '#ffb347', fontWeight: 600, textDecoration: 'none', cursor: 'pointer', borderBottom: 'none', '&:hover, &:focus': { color: '#ffd580', textDecoration: 'none', borderBottom: 'none' } }}
+                                      >
+                                        {row.username}
+                                      </Typography>
+                                    ) : (
+                                      <Typography
+                                        component={Link}
+                                        to={`/squads/${row.id}`}
+                                        sx={{ color: '#ffb347', fontWeight: 600, textDecoration: 'none', cursor: 'pointer', borderBottom: 'none', '&:hover, &:focus': { color: '#ffd580', textDecoration: 'none', borderBottom: 'none' } }}
+                                      >
+                                        {row.name}
+                                      </Typography>
+                                    )}
+                                  </Box>
+                                </TableCell>
+                              );
+                            }
+                            if (col.key === 'kd') {
+                              return (
+                                <TableCell align="left" key={col.key}>
+                                  {row.kills && row.deaths ? (row.deaths ? (row.kills / row.deaths).toFixed(2) : row.kills) : row.kd || '-'}
+                                </TableCell>
+                              );
+                            }
+                            return (
+                              <TableCell align="left" key={col.key}>{row[col.key]}</TableCell>
+                            );
+                          })}
                         </TableRow>
                       </React.Fragment>
                     );

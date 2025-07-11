@@ -139,9 +139,40 @@ exports.getLookingForSquadUsers = async (req, res) => {
         squadId: null
       },
       order: [['username', 'ASC']],
-      attributes: ['id', 'username', 'avatar', 'description', 'createdAt']
+      attributes: ['id', 'username', 'avatar', 'description', 'createdAt', 'armaId']
     });
-    res.json(users);
+    // Определяем текущий сезон
+    const { Season, PlayerSeasonStats } = require('../models');
+    const now = new Date();
+    const currentSeason = await Season.findOne({
+      where: {
+        startDate: { $lte: now },
+        endDate: { $gte: now }
+      },
+      order: [['startDate', 'DESC']]
+    });
+    const seasonId = currentSeason ? currentSeason.id : null;
+    const usersWithStats = await Promise.all(users.map(async user => {
+      let stats = null;
+      if (user.armaId && seasonId) {
+        const seasonStats = await PlayerSeasonStats.findOne({ where: { armaId: user.armaId, seasonId } });
+        if (seasonStats) {
+          const winRate = seasonStats.matches > 0 ? ((seasonStats.wins / seasonStats.matches) * 100).toFixed(1) : null;
+          stats = {
+            kills: seasonStats.kills,
+            deaths: seasonStats.deaths,
+            teamkills: seasonStats.teamkills,
+            matches: seasonStats.matches,
+            wins: seasonStats.wins,
+            losses: seasonStats.losses,
+            winRate,
+            elo: seasonStats.elo
+          };
+        }
+      }
+      return { ...user.toJSON(), stats };
+    }));
+    res.json(usersWithStats);
   } catch (err) {
     res.status(500).json({ message: 'Ошибка получения пользователей' });
   }

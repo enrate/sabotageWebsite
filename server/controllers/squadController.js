@@ -72,6 +72,12 @@ exports.createSquad = async (req, res) => {
       }
     }
     
+    // Проверка: пользователь не должен состоять в другом отряде
+    const user = await User.findByPk(req.user.id);
+    if (user && user.squadId) {
+      return res.status(400).json({ message: 'Вы уже состоите в отряде. Сначала покиньте текущий отряд.' });
+    }
+
     const newSquad = await Squad.create({
       name,
       description,

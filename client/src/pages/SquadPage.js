@@ -62,7 +62,7 @@ const SquadCard = ({ squad, onClose }) => {
 };
 
 const SquadPage = () => {
-  const { currentUser } = useAuth();
+  const { currentUser, updateUser } = useAuth();
   const [squads, setSquads] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -131,9 +131,29 @@ const SquadPage = () => {
     }
   }, [location.state, currentUser, navigate]);
 
+  useEffect(() => {
+    // При открытии таба 'В поиске отряда' обновляем currentUser с бэка
+    if (tab === 1) {
+      const token = localStorage.getItem('token');
+      if (token) {
+        axios.get('/api/auth/user', {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        .then(res => {
+          updateUser(res.data);
+        })
+        .catch(() => {});
+      }
+    }
+  }, [tab]);
+
   const handleSquadCreated = (newSquad) => {
     setSquads([...squads, newSquad]);
     setShowCreateModal(false);
+    // Обновляем currentUser, чтобы кнопка сразу пропала
+    if (currentUser) {
+      updateUser({ ...currentUser, squadId: newSquad.id });
+    }
   };
 
   const handleJoinSquad = (squadId) => {
@@ -190,10 +210,17 @@ const SquadPage = () => {
     if (user.squadId) return false;
     if (!currentUser.squadId) return false;
     // Проверка: лидер или заместитель
-    if (!currentUser.squadRole) return false;
-    // Проверка: верифицирован ли приглашаемый пользователь
-    if (!user.armaId) return false;
-    return currentUser.squadRole === 'leader' || currentUser.squadRole === 'deputy';
+    // Если есть squadRole — стандартная логика
+    if (currentUser.squadRole) {
+      if (!user.armaId) return false;
+      return currentUser.squadRole === 'leader' || currentUser.squadRole === 'deputy';
+    }
+    // Если squadRole нет, но пользователь — лидер своего отряда
+    if (currentUser.squad && currentUser.id === currentUser.squad.leaderId) {
+      if (!user.armaId) return false;
+      return true;
+    }
+    return false;
   };
 
   const handleAcceptInvite = async (inviteId, squadId) => {
@@ -671,7 +698,7 @@ const SquadPage = () => {
                           }}>
                             <Box sx={{ textAlign: 'center', p: 2, bgcolor: 'rgba(255, 179, 71, 0.05)', borderRadius: 2 }}>
                               <Typography variant="h5" sx={{ color: '#ffb347', fontWeight: 700, mb: 0.5 }}>
-                                {user.elo || 1000}
+                                {user.stats?.elo ?? 1000}
                               </Typography>
                               <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.75rem' }}>
                                 Рейтинг Эло
@@ -699,7 +726,7 @@ const SquadPage = () => {
                           }}>
                             <Box sx={{ textAlign: 'center' }}>
                               <Typography variant="body2" sx={{ color: '#4caf50', fontWeight: 600 }}>
-                                {user.kills || 0}
+                                {user.stats?.kills ?? 0}
                               </Typography>
                               <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.6)' }}>
                                 Убийств
@@ -707,7 +734,7 @@ const SquadPage = () => {
                             </Box>
                             <Box sx={{ textAlign: 'center' }}>
                               <Typography variant="body2" sx={{ color: '#f44336', fontWeight: 600 }}>
-                                {user.deaths || 0}
+                                {user.stats?.deaths ?? 0}
                               </Typography>
                               <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.6)' }}>
                                 Смертей
@@ -715,7 +742,7 @@ const SquadPage = () => {
                             </Box>
                             <Box sx={{ textAlign: 'center' }}>
                               <Typography variant="body2" sx={{ color: '#ff9800', fontWeight: 600 }}>
-                                {user.teamkills || 0}
+                                {user.stats?.teamkills ?? 0}
                               </Typography>
                               <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.6)' }}>
                                 Тимкиллов
@@ -723,10 +750,18 @@ const SquadPage = () => {
                             </Box>
                             <Box sx={{ textAlign: 'center' }}>
                               <Typography variant="body2" sx={{ color: '#9c27b0', fontWeight: 600 }}>
-                                {user.winrate ? `${user.winrate}%` : '0%'}
+                                {user.stats?.winRate ? `${user.stats.winRate}%` : '0%'}
                               </Typography>
                               <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.6)' }}>
                                 Win Rate
+                              </Typography>
+                            </Box>
+                            <Box sx={{ textAlign: 'center' }}>
+                              <Typography variant="body2" sx={{ color: '#1976d2', fontWeight: 600 }}>
+                                {user.stats?.matches ?? 0}
+                              </Typography>
+                              <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.6)' }}>
+                                Матчей
                               </Typography>
                             </Box>
                           </Box>
