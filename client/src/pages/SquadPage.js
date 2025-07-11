@@ -781,10 +781,11 @@ const SquadPage = () => {
                           </Box>
                         </Box>
                         {/* Кнопки действий */}
-                        <Box sx={{ display: 'flex', gap: 2, px: 3, pb: 3 }}>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, px: 3, pb: 3 }}>
                           <Button
                             variant="outlined"
                             size="small"
+                            fullWidth
                             sx={{ color: '#ffb347', borderColor: '#ffb347', fontWeight: 600, '&:hover': { bgcolor: 'rgba(255,179,71,0.08)', borderColor: '#ffd580', color: '#ffd580' } }}
                             component={Link}
                             to={`/profile/${user.id}`}
@@ -795,19 +796,27 @@ const SquadPage = () => {
                             <Button
                               variant="contained"
                               size="small"
+                              fullWidth
                               sx={{ bgcolor: '#ffb347', color: '#232526', fontWeight: 600, '&:hover': { bgcolor: '#ffd580' } }}
                               disabled={inviteLoading[user.id]}
                               onClick={() => handleInvite(user.id)}
                             >
-                              {inviteLoading[user.id] ? '...' : 'Пригласить'}
+                              Пригласить
                             </Button>
                           )}
-                          {canInviteToSquad(user) && hasInvite[user.id] && (
+                          {hasInvite[user.id] && (
                             <Button
                               variant="outlined"
                               size="small"
-                              sx={{ color: '#bbb', borderColor: '#bbb', fontWeight: 600, cursor: 'default' }}
+                              fullWidth
                               disabled
+                              sx={{
+                                color: '#888',
+                                borderColor: '#bbb',
+                                background: 'rgba(255,255,255,0.08)',
+                                fontWeight: 600,
+                                opacity: 1
+                              }}
                             >
                               Приглашение отправлено
                             </Button>

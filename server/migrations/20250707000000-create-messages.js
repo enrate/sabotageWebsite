@@ -31,6 +31,11 @@ module.exports = {
         type: Sequelize.TEXT,
         allowNull: false
       },
+      type: {
+        type: Sequelize.STRING,
+        allowNull: false,
+        defaultValue: 'text'
+      },
       isRead: {
         type: Sequelize.BOOLEAN,
         defaultValue: false

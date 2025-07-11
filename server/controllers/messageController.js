@@ -64,9 +64,9 @@ exports.getChat = async (req, res) => {
 exports.sendMessage = async (req, res) => {
   try {
     const senderId = req.user.id;
-    const { receiverId, content } = req.body;
+    const { receiverId, content, type } = req.body;
     if (!receiverId || !content) return res.status(400).json({ message: 'receiverId и content обязательны' });
-    const message = await Message.create({ senderId, receiverId, content });
+    const message = await Message.create({ senderId, receiverId, content, type: type || 'text' });
     const fullMessage = await Message.findByPk(message.id, {
       include: [
         { model: User, as: 'sender', attributes: ['id', 'username', 'avatar'] },
