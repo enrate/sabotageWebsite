@@ -1121,7 +1121,7 @@ const SquadDetailPage = () => {
                     Участники
                   </Typography>
                   {Array.isArray(squad.members) && squad.members.length > 0 ? (
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', width: '100%', gap: 3 }}>
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', width: '100%', gap: 2 }}>
                       {getSortedMembers.map((member, idx) => (
                         <Box key={member.id || idx} sx={{ width: { xs: '100%', sm: '48.5%' }, boxSizing: 'border-box', p: 1.5 }}>
                           <Box
