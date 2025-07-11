@@ -26,7 +26,7 @@ const AuthModal = ({ onClose, onShowSnackbar }) => {
       setError('');
       // Закрываем модалку и показываем попап
       if (onShowSnackbar) {
-        onShowSnackbar('Регистрация успешна! Проверьте ваш email для подтверждения аккаунта.');
+        onShowSnackbar('Регистрация успешна! Проверьте ваш email для подтверждения аккаунта. Сообщение могло попасть в спам.');
       }
       onClose();
       setMode('login');

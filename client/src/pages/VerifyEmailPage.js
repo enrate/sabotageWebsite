@@ -8,7 +8,8 @@ import {
   CircularProgress,
   Alert,
   Button,
-  Paper
+  Paper,
+  TextField
 } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorIcon from '@mui/icons-material/Error';
@@ -20,6 +21,8 @@ const VerifyEmailPage = () => {
   const [status, setStatus] = useState('loading'); // 'loading' | 'success' | 'error'
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
+  const [resendEmail, setResendEmail] = useState('');
+  const [resendSuccess, setResendSuccess] = useState(false);
 
   useEffect(() => {
     const token = searchParams.get('token');
@@ -39,7 +42,7 @@ const VerifyEmailPage = () => {
       // Автоматический вход после подтверждения
       if (response.data.token) {
         localStorage.setItem('token', response.data.token);
-        await login(response.data.user.email, ''); // Пароль не нужен, так как у нас есть токен
+        window.location.reload();
       }
       
       setStatus('success');
@@ -61,12 +64,19 @@ const VerifyEmailPage = () => {
 
   const handleResendVerification = async () => {
     setLoading(true);
+    setResendSuccess(false);
+    setMessage('');
     try {
-      // Здесь нужно получить email пользователя, но у нас его нет
-      // Можно добавить форму для ввода email
-      setMessage('Функция повторной отправки будет добавлена позже');
+      if (!resendEmail) {
+        setMessage('Введите email для повторной отправки');
+        setLoading(false);
+        return;
+      }
+      const res = await axios.post('/api/auth/resend-verification', { email: resendEmail });
+      setResendSuccess(true);
+      setMessage(res.data.message || 'Письмо отправлено! Проверьте почту.');
     } catch (err) {
-      setMessage('Ошибка отправки email');
+      setMessage(err.response?.data?.message || 'Ошибка отправки email');
     } finally {
       setLoading(false);
     }
@@ -143,7 +153,7 @@ const VerifyEmailPage = () => {
             <Typography variant="body1" sx={{ color: 'rgba(255, 255, 255, 0.8)', mb: 3 }}>
               {message}
             </Typography>
-            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
+            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
               <Button
                 variant="outlined"
                 onClick={() => navigate('/')}
@@ -158,20 +168,42 @@ const VerifyEmailPage = () => {
               >
                 На главную
               </Button>
-              <Button
-                variant="contained"
-                onClick={handleResendVerification}
-                disabled={loading}
-                sx={{
-                  bgcolor: '#ffb347',
-                  color: '#232526',
-                  '&:hover': {
-                    bgcolor: '#e6a23c'
-                  }
-                }}
-              >
-                {loading ? 'Отправка...' : 'Отправить повторно'}
-              </Button>
+              <Box sx={{ width: '100%', maxWidth: 340, mt: 1 }}>
+                <TextField
+                  fullWidth
+                  label="Email для повторной отправки"
+                  variant="outlined"
+                  value={resendEmail}
+                  onChange={e => setResendEmail(e.target.value)}
+                  disabled={loading || resendSuccess}
+                  sx={{
+                    mb: 1,
+                    input: { color: '#fff' },
+                    label: { color: '#ffb347' },
+                    '& .MuiOutlinedInput-root': {
+                      color: '#fff',
+                      '& fieldset': { borderColor: '#ffb347' },
+                      '&:hover fieldset': { borderColor: '#ffd580' },
+                      '&.Mui-focused fieldset': { borderColor: '#ffd580' }
+                    }
+                  }}
+                />
+                <Button
+                  variant="contained"
+                  onClick={handleResendVerification}
+                  disabled={loading || resendSuccess}
+                  sx={{
+                    bgcolor: resendSuccess ? '#4caf50' : '#ffb347',
+                    color: '#232526',
+                    width: '100%',
+                    '&:hover': {
+                      bgcolor: resendSuccess ? '#43a047' : '#e6a23c'
+                    }
+                  }}
+                >
+                  {loading ? 'Отправка...' : resendSuccess ? 'Письмо отправлено!' : 'Отправить повторно'}
+                </Button>
+              </Box>
             </Box>
           </>
         )}
