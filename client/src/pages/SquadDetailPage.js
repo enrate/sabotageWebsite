@@ -954,7 +954,7 @@ const SquadDetailPage = () => {
                 {/* Кнопки действий */}
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                   {/* Кнопка вступить/отменить заявку */}
-                  {squad.isJoinRequestOpen && !isMember && !isLeader && currentUser && currentUser.armaId && (
+                  {squad.isJoinRequestOpen && !isMember && !isLeader && currentUser && currentUser.armaId && !currentUser.squadId && (
                     joinRequestStatus === 'pending' ? (
                       <Button
                         variant="contained"
