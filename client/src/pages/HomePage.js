@@ -105,8 +105,8 @@ const HomePage = () => {
       const offset = news.length;
       const newsRes = await axios.get(`/api/news/latest?limit=4&offset=${offset}`);
       if (newsRes.data.length > 0) {
-        // Исключаем дубли
-        const newNews = newsRes.data.filter(n => !news.some(existing => existing.id === n.id || existing._id === n._id));
+        // Исключаем дубли только по id
+        const newNews = newsRes.data.filter(n => !news.some(existing => existing.id === n.id));
         setNews(prev => [...prev, ...newNews]);
         setHasMoreNews(newsRes.data.length === 4);
       } else {
@@ -285,31 +285,30 @@ const HomePage = () => {
               {news.length === 0 && !loading && (
                 <Typography sx={{ color: 'rgba(255,255,255,0.7)', mb: 2 }}>Нет новостей</Typography>
               )}
-              <Grid container spacing={4}>
+              {/* Список новостей в столбец */}
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, width: '100%', maxWidth: 900, mx: 'auto' }}>
                 {news.map(item => (
-                  <Grid item xs={12} sm={6} md={4} key={item.id || item._id}>
-                    <Card elevation={2} sx={{ height: '100%', display: 'flex', flexDirection: 'column', transition: 'all 0.3s ease', '&:hover': { elevation: 8, transform: 'translateY(-4px)' } }}>
-                      <CardContent sx={{ flexGrow: 1, p: 3 }}>
-                        {/* Заголовок */}
-                        <Link to={`/news/${item.id || item._id}`} style={{ textDecoration: 'none' }}>
-                          <Typography variant="h6" component="h2" sx={{ color: '#ffb347', fontWeight: 600, mb: 2, lineHeight: 1.3, minHeight: '3rem', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', transition: 'color 0.2s', cursor: 'pointer', '&:hover': { color: '#ffd580' } }}>
-                            {item.title}
-                          </Typography>
-                        </Link>
-                        {/* Контент */}
-                        <Box sx={{ color: 'rgba(255, 255, 255, 0.8)', mb: 3, lineHeight: 1.6, minHeight: '4.8rem', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden', '& img': { maxWidth: '100%', height: 'auto' }, '& video': { maxWidth: '100%', height: 'auto' } }} dangerouslySetInnerHTML={{ __html: item.content.length > 200 ? item.content.substring(0, 200) + '...' : item.content }} />
-                        {/* Метаданные */}
-                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <Chip icon={<ScheduleIcon />} label={new Date(item.createdAt).toLocaleDateString('ru-RU', { year: 'numeric', month: 'long', day: 'numeric' })} size="small" sx={{ bgcolor: 'rgba(255, 179, 71, 0.1)', color: '#ffb347', border: '1px solid rgba(255, 179, 71, 0.3)', '& .MuiChip-icon': { color: '#ffb347' } }} />
-                            <Chip icon={<PersonIcon />} label={item.author?.username || 'Неизвестно'} size="small" sx={{ bgcolor: 'rgba(255, 255, 255, 0.1)', color: 'rgba(255, 255, 255, 0.8)', border: '1px solid rgba(255, 255, 255, 0.2)', '& .MuiChip-icon': { color: 'rgba(255, 255, 255, 0.6)' } }} />
-                          </Box>
+                  <Card key={item.id} elevation={2} sx={{ width: '100%', maxWidth: 900, mx: 'auto', display: 'flex', flexDirection: 'column', transition: 'all 0.3s ease', '&:hover': { elevation: 8, transform: 'translateY(-4px)' } }}>
+                    <CardContent sx={{ flexGrow: 1, p: 3 }}>
+                      {/* Заголовок */}
+                      <Link to={`/news/${item.id}`} style={{ textDecoration: 'none' }}>
+                        <Typography variant="h6" component="h2" sx={{ color: '#ffb347', fontWeight: 600, mb: 2, lineHeight: 1.3, minHeight: '3rem', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', transition: 'color 0.2s', cursor: 'pointer', '&:hover': { color: '#ffd580' } }}>
+                          {item.title}
+                        </Typography>
+                      </Link>
+                      {/* Контент */}
+                      <Box sx={{ color: 'rgba(255, 255, 255, 0.8)', mb: 3, lineHeight: 1.6, minHeight: '4.8rem', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden', '& img': { maxWidth: '100%', height: 'auto' }, '& video': { maxWidth: '100%', height: 'auto' } }} dangerouslySetInnerHTML={{ __html: item.content.length > 200 ? item.content.substring(0, 200) + '...' : item.content }} />
+                      {/* Метаданные */}
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Chip icon={<ScheduleIcon />} label={new Date(item.createdAt).toLocaleDateString('ru-RU', { year: 'numeric', month: 'long', day: 'numeric' })} size="small" sx={{ bgcolor: 'rgba(255, 179, 71, 0.1)', color: '#ffb347', border: '1px solid rgba(255, 179, 71, 0.3)', '& .MuiChip-icon': { color: '#ffb347' } }} />
+                          <Chip icon={<PersonIcon />} label={item.author?.username || 'Неизвестно'} size="small" sx={{ bgcolor: 'rgba(255, 255, 255, 0.1)', color: 'rgba(255, 255, 255, 0.8)', border: '1px solid rgba(255, 255, 255, 0.2)', '& .MuiChip-icon': { color: 'rgba(255, 255, 255, 0.6)' } }} />
                         </Box>
-                      </CardContent>
-                    </Card>
-                  </Grid>
+                      </Box>
+                    </CardContent>
+                  </Card>
                 ))}
-              </Grid>
+              </Box>
               {newsLoading && (
                 <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
                   <Loader />

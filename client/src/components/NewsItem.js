@@ -15,7 +15,17 @@ const NewsItem = ({ news }) => {
 
   const handleMiniProfileOpen = async (event) => {
     if (!news.author || !seasonId) return;
-    setMiniProfile({ open: true, anchorEl: event.currentTarget, user: news.author, stats: null });
+    // Если у автора есть squadId, подгружаем squadName
+    let userWithSquad = { ...news.author };
+    if (news.author.squadId) {
+      try {
+        const res = await axios.get(`/api/users/${news.author.id}`);
+        if (res.data && res.data.squadName) {
+          userWithSquad.squadName = res.data.squadName;
+        }
+      } catch {}
+    }
+    setMiniProfile({ open: true, anchorEl: event.currentTarget, user: userWithSquad, stats: null });
     setLoadingStats(true);
     try {
       const res = await axios.get(`/api/seasons/player-stats`, { params: { userId: news.author.id, seasonId } });

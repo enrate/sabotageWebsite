@@ -53,6 +53,17 @@ const MiniProfile = ({ user, seasonStats, anchorEl, open, onClose, onSendMessage
               >
                 {user.username}
               </Typography>
+              {/* Отображение отряда */}
+              {user.squadId && user.squadName && (
+                <Typography
+                  component={Link}
+                  to={`/squads/${user.squadId}`}
+                  sx={{ color: '#ffd580', fontWeight: 500, fontSize: '0.98rem', textDecoration: 'none', display: 'block', mt: 0.5, '&:hover': { color: '#fff3c1', textDecoration: 'underline' } }}
+                  onClick={onClose}
+                >
+                  {`Отряд: ${user.squadName}`}
+                </Typography>
+              )}
             </Box>
           </Box>
           <Divider sx={{ my: 1, borderColor: '#ffb347', opacity: 0.3 }} />

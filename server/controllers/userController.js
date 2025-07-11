@@ -37,7 +37,14 @@ exports.getUserById = async (req, res) => {
         };
       }
     }
-    res.json({ ...user.toJSON(), verified, stats });
+    // Получаем название отряда, если есть squadId
+    let squadName = undefined;
+    if (user.squadId) {
+      const { Squad } = require('../models');
+      const squad = await Squad.findByPk(user.squadId);
+      if (squad) squadName = squad.name;
+    }
+    res.json({ ...user.toJSON(), verified, stats, squadName });
   } catch (err) {
     res.status(500).json({ message: 'Ошибка получения пользователя' });
   }
