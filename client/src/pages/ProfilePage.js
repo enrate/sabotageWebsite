@@ -343,13 +343,13 @@ const ProfilePage = () => {
           </Button>
         </Box>
       )}
-      <Grid container spacing={3} alignItems="stretch">
+      <Grid container spacing={3} alignItems="stretch" sx={{ width: '100%', flexWrap: { xs: 'wrap', md: 'nowrap' } }}>
         {/* Левая панель с информацией о пользователе */}
-        <Grid item xs={12} md={3} lg={2}>
+        <Grid item xs={12} md="auto" sx={{ minWidth: 220, maxWidth: 320, flex: '0 0 auto' }}>
           <Paper
         elevation={8}
         sx={{
-              p: 3,
+              p: isMobile ? 1 : 3,
               background: 'rgba(0, 0, 0, 0.3)',
           borderRadius: 3,
               backdropFilter: 'blur(10px)',
@@ -358,23 +358,23 @@ const ProfilePage = () => {
             }}
           >
             {/* Аватар и имя */}
-            <Box sx={{ textAlign: 'center', mb: 3 }}>
+            <Box sx={{ textAlign: 'center', mb: isMobile ? 1 : 3 }}>
             <Avatar
                 src={user.avatar}
               sx={{
-                  width: 120,
-                  height: 120,
+                  width: isMobile ? 64 : 120,
+                  height: isMobile ? 64 : 120,
                 mx: 'auto',
-                mb: 2,
+                mb: isMobile ? 1 : 2,
                   border: '3px solid #ffb347',
-                  fontSize: '3rem',
+                  fontSize: isMobile ? '1.7rem' : '3rem',
                   bgcolor: user.avatar ? 'transparent' : '#ffb347'
               }}
             >
-                {!user.avatar && <PersonIcon sx={{ fontSize: '3rem' }} />}
+                {!user.avatar && <PersonIcon sx={{ fontSize: isMobile ? '1.7rem' : '3rem' }} />}
                 {user.avatar && (user.username?.charAt(0)?.toUpperCase() || 'U')}
             </Avatar>
-              <Typography variant="h4" sx={{ color: '#ffb347', fontWeight: 700, mb: 1 }}>
+              <Typography variant={isMobile ? 'h6' : 'h4'} sx={{ color: '#ffb347', fontWeight: 700, mb: isMobile ? 1 : 1, fontSize: isMobile ? '1.2rem' : undefined }}>
                 {user.username}
               </Typography>
               <Chip 
@@ -386,8 +386,8 @@ const ProfilePage = () => {
                 }}
               />
               {/* Информация о пользователе: верификация, отряд/статус, дни */}
-              <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1, color: 'rgba(255,255,255,0.85)', fontSize: '1rem', fontWeight: 500 }}>
-                <Divider sx={{ width: '100%', bgcolor: 'rgba(255,179,71,0.5)', my: 1 }} />
+              <Box sx={{ mt: isMobile ? 1 : 2, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: isMobile ? 0.5 : 1, color: 'rgba(255,255,255,0.85)', fontSize: '1rem', fontWeight: 500 }}>
+                <Divider sx={{ width: '100%', bgcolor: 'rgba(255,179,71,0.5)', my: isMobile ? 0.5 : 1 }} />
                 {!user.armaId && (
                   <>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -395,7 +395,7 @@ const ProfilePage = () => {
                         Не верифицирован
                       </span>
                     </Box>
-                    <Divider sx={{ width: '100%', bgcolor: 'rgba(255,179,71,0.5)', my: 1 }} />
+                    <Divider sx={{ width: '100%', bgcolor: 'rgba(255,179,71,0.5)', my: isMobile ? 0.5 : 1 }} />
                   </>
                 )}
                 {/* Статус поиска отряда или отряд */}
@@ -423,18 +423,18 @@ const ProfilePage = () => {
                     </span>
                   </Box>
                 )}
-                <Divider sx={{ width: '100%', bgcolor: 'rgba(255,179,71,0.5)', my: 1 }} />
+                <Divider sx={{ width: '100%', bgcolor: 'rgba(255,179,71,0.5)', my: isMobile ? 0.5 : 1 }} />
                 {/* Количество дней на проекте */}
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <span>На проекте:</span>
                   <span style={{ color: '#fff', fontWeight: 600 }}>{Math.floor((new Date() - new Date(user.createdAt)) / (1000 * 60 * 60 * 24))} дней</span>
                 </Box>
-                <Divider sx={{ width: '100%', bgcolor: 'rgba(255,179,71,0.5)', my: 1 }} />
+                <Divider sx={{ width: '100%', bgcolor: 'rgba(255,179,71,0.5)', my: isMobile ? 0.5 : 1 }} />
               </Box>
 
               {/* Кнопка написать сообщение внизу контейнера */}
               {currentUser && user.id !== currentUser.id && (
-                <Box sx={{ mt: 3, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                <Box sx={{ mt: isMobile ? 1 : 3, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: isMobile ? 1 : 2 }}>
                   <Button
                     variant="contained"
                     startIcon={<MailIcon />}
@@ -471,7 +471,7 @@ const ProfilePage = () => {
               )}
 
               {userWarnings.length > 0 && (
-                <Box sx={{ mt: 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Box sx={{ mt: isMobile ? 1 : 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <Typography variant="caption" sx={{ color: '#ff9800', fontWeight: 500, fontSize: '0.92rem' }}>
                     Активных предупреждений: {userWarnings.length}
                   </Typography>
@@ -482,7 +482,7 @@ const ProfilePage = () => {
         </Grid>
 
         {/* Правая панель с контентом */}
-        <Grid item xs={12} md={9} lg={10}>
+        <Grid item xs={12} md sx={{ flex: 1, minWidth: 0 }}>
           <Paper
             elevation={8}
             sx={{
@@ -490,10 +490,15 @@ const ProfilePage = () => {
               borderRadius: 3,
               backdropFilter: 'blur(10px)',
               border: '1px solid rgba(255, 179, 71, 0.2)',
-              minHeight: '400px',
+              minHeight: isMobile ? '200px' : '400px',
               height: '100%',
-              //width: '100%',
-              width: '1200px'
+              width: '100%',
+              p: isMobile ? 1 : 3,
+              boxSizing: 'border-box',
+              alignSelf: 'stretch',
+              display: 'flex',
+              flexDirection: 'column',
+              flex: 1
             }}
           >
             {/* Вкладки */}
@@ -544,22 +549,22 @@ const ProfilePage = () => {
             </Paper>
 
             {/* Контент вкладок */}
-            <Box sx={{ p: 3, width: '100%' }}>
+            <Box sx={{ p: isMobile ? 1 : 3, width: '100%' }}>
               {/* Вкладка "Награды" */}
               {tab === 'about' && (
                 <Box sx={{ width: '100%' }}>
                 
-                  <Box sx={{ mt: 5 }}>
-                    <Card sx={{ bgcolor: 'rgba(0,0,0,0.18)', border: '1px solid rgba(255,179,71,0.18)', p: 2 }}>
+                  <Box sx={{ mt: isMobile ? 1 : 5 }}>
+                    <Card sx={{ bgcolor: 'rgba(0,0,0,0.18)', border: '1px solid rgba(255,179,71,0.18)', p: isMobile ? 1 : 2 }}>
                       {awardsLoading ? (
                         <Typography>Загрузка...</Typography>
                       ) : userAwards.length === 0 ? (
                         <Typography sx={{ color: 'rgba(255,255,255,0.7)' }}>Нет наград</Typography>
                       ) : (
-                        <Grid container spacing={2}>
+                        <Grid container spacing={isMobile ? 1 : 2}>
                           {userAwards.map(award => (
                             <Grid item xs={12} sm={6} md={4} key={award.id}>
-                              <Paper sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2, bgcolor: 'rgba(255,255,255,0.03)' }} elevation={2}>
+                              <Paper sx={{ p: isMobile ? 1 : 2, display: 'flex', alignItems: 'center', gap: 2, bgcolor: 'rgba(255,255,255,0.03)' }} elevation={2}>
                                 <Avatar src={award.Award?.image} sx={{ bgcolor: '#ffb347', width: 56, height: 56 }}>
                                   {!award.Award?.image && <EmojiEventsIcon />}
                                 </Avatar>
@@ -591,7 +596,7 @@ const ProfilePage = () => {
                     value={statsTab}
                     onChange={(_, v) => setStatsTab(v)}
                     centered
-                    sx={{ mb: 3,
+                    sx={{ mb: isMobile ? 1 : 3,
                       '& .MuiTab-root': {
                         color: 'rgba(255,255,255,0.7)',
                         fontWeight: 500,
@@ -605,51 +610,51 @@ const ProfilePage = () => {
                     <MuiTab label="Сезонная" value="seasonal" />
                   </MuiTabs>
                   {statsTab === 'common' && (
-                    <Grid container spacing={2} sx={{ maxWidth: 700, mx: 'auto', mt: 2 }}>
+                    <Grid container spacing={isMobile ? 1 : 2} sx={{ maxWidth: 700, mx: 'auto', mt: isMobile ? 1 : 2 }}>
                       <Grid item xs={12} sm={6} md={4}>
-                        <Box sx={{ textAlign: 'center', p: 2 }}>
+                        <Box sx={{ textAlign: 'center', p: isMobile ? 1 : 2 }}>
                           <TrendingUpIcon sx={{ color: '#ffb347', fontSize: 32, mb: 1 }} />
                           <Typography sx={{ color: '#ffb347', fontWeight: 700 }}>Максимальный рейтинг</Typography>
                           <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{userStats?.maxElo ?? '-'}</Typography>
                         </Box>
                       </Grid>
                       <Grid item xs={12} sm={6} md={4}>
-                        <Box sx={{ textAlign: 'center', p: 2 }}>
+                        <Box sx={{ textAlign: 'center', p: isMobile ? 1 : 2 }}>
                           <SportsKabaddiIcon sx={{ color: '#ffb347', fontSize: 32, mb: 1 }} />
                           <Typography sx={{ color: '#ffb347', fontWeight: 700 }}>Убийств всего</Typography>
                           <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{userStats?.kills ?? '-'}</Typography>
                         </Box>
                       </Grid>
                       <Grid item xs={12} sm={6} md={4}>
-                        <Box sx={{ textAlign: 'center', p: 2 }}>
+                        <Box sx={{ textAlign: 'center', p: isMobile ? 1 : 2 }}>
                           <GroupRemoveIcon sx={{ color: '#ffb347', fontSize: 32, mb: 1 }} />
                           <Typography sx={{ color: '#ffb347', fontWeight: 700 }}>Смертей всего</Typography>
                           <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{userStats?.deaths ?? '-'}</Typography>
                         </Box>
                       </Grid>
                       <Grid item xs={12} sm={6} md={4}>
-                        <Box sx={{ textAlign: 'center', p: 2 }}>
+                        <Box sx={{ textAlign: 'center', p: isMobile ? 1 : 2 }}>
                           <GroupOffIcon sx={{ color: '#ffb347', fontSize: 32, mb: 1 }} />
                           <Typography sx={{ color: '#ffb347', fontWeight: 700 }}>Тимкиллы всего</Typography>
                           <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{userStats?.teamKills ?? '-'}</Typography>
                         </Box>
                       </Grid>
                       <Grid item xs={12} sm={6} md={4}>
-                        <Box sx={{ textAlign: 'center', p: 2 }}>
+                        <Box sx={{ textAlign: 'center', p: isMobile ? 1 : 2 }}>
                           <TrendingUpIcon sx={{ color: '#ffb347', fontSize: 32, mb: 1 }} />
                           <Typography sx={{ color: '#ffb347', fontWeight: 700 }}>K/D</Typography>
                           <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{userStats && userStats.deaths > 0 ? (userStats.kills / userStats.deaths).toFixed(2) : userStats?.kills ?? '-'}</Typography>
                         </Box>
                       </Grid>
                       <Grid item xs={12} sm={6} md={4}>
-                        <Box sx={{ textAlign: 'center', p: 2 }}>
+                        <Box sx={{ textAlign: 'center', p: isMobile ? 1 : 2 }}>
                           <PercentIcon sx={{ color: '#ffb347', fontSize: 32, mb: 1 }} />
                           <Typography sx={{ color: '#ffb347', fontWeight: 700 }}>% побед</Typography>
                           <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{userStats?.winRate ?? '-'}</Typography>
                         </Box>
                       </Grid>
                       <Grid item xs={12} sm={6} md={4}>
-                        <Box sx={{ textAlign: 'center', p: 2 }}>
+                        <Box sx={{ textAlign: 'center', p: isMobile ? 1 : 2 }}>
                           <SportsScoreIcon sx={{ color: '#ffb347', fontSize: 32, mb: 1 }} />
                           <Typography sx={{ color: '#ffb347', fontWeight: 700 }}>Матчей всего</Typography>
                           <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{userStats?.totalGames ?? '-'}</Typography>
@@ -658,16 +663,16 @@ const ProfilePage = () => {
                     </Grid>
                   )}
                   {statsTab === 'seasonal' && (
-                    <Box sx={{ mt: 2 }}>
+                    <Box sx={{ mt: isMobile ? 1 : 2 }}>
                       {seasons.length === 0 ? (
-                        <Typography sx={{ color: 'rgba(255,255,255,0.7)', textAlign: 'center', mb: 4 }}>Нет сезонов</Typography>
+                        <Typography sx={{ color: 'rgba(255,255,255,0.7)', textAlign: 'center', mb: isMobile ? 1 : 4 }}>Нет сезонов</Typography>
                       ) : (
-                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 3 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: isMobile ? 1 : 3 }}>
                           <Button onClick={() => setSeasonIdx(i => Math.max(0, i - 1))} disabled={seasonIdx === 0}><ArrowBackIosIcon /></Button>
                           <Paper sx={{
-                            px: 4,
-                            py: 2,
-                            mx: 2,
+                            px: isMobile ? 2 : 4,
+                            py: isMobile ? 1 : 2,
+                            mx: isMobile ? 1 : 2,
                             minWidth: 220,
                             textAlign: 'center',
                             background: 'rgba(0, 0, 0, 0.3)',
@@ -686,39 +691,39 @@ const ProfilePage = () => {
                       )}
                       {/* Метрики за выбранный сезон */}
                       {loadingSeasonalStats ? (
-                        <Box sx={{ textAlign: 'center', my: 4 }}><LinearProgress color="warning" /></Box>
+                        <Box sx={{ textAlign: 'center', my: isMobile ? 1 : 4 }}><LinearProgress color="warning" /></Box>
                       ) : seasons.length > 0 && seasonalStats ? (
-                        <Grid container spacing={2} sx={{ maxWidth: 700, mx: 'auto', mt: 2 }}>
+                        <Grid container spacing={isMobile ? 1 : 2} sx={{ maxWidth: 700, mx: 'auto', mt: isMobile ? 1 : 2 }}>
                           <Grid item xs={12} sm={6} md={4}>
-                            <Box sx={{ textAlign: 'center', p: 2 }}>
+                            <Box sx={{ textAlign: 'center', p: isMobile ? 1 : 2 }}>
                               <TrendingUpIcon sx={{ color: '#ffb347', fontSize: 32, mb: 1 }} />
                               <Typography sx={{ color: '#ffb347', fontWeight: 700 }}>Рейтинг (эло)</Typography>
                               <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{seasonalStats.elo ?? '-'}</Typography>
                             </Box>
                           </Grid>
                           <Grid item xs={12} sm={6} md={4}>
-                            <Box sx={{ textAlign: 'center', p: 2 }}>
+                            <Box sx={{ textAlign: 'center', p: isMobile ? 1 : 2 }}>
                               <SportsKabaddiIcon sx={{ color: '#ffb347', fontSize: 32, mb: 1 }} />
                               <Typography sx={{ color: '#ffb347', fontWeight: 700 }}>Убийства</Typography>
                               <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{seasonalStats.kills ?? '-'}</Typography>
                             </Box>
                           </Grid>
                           <Grid item xs={12} sm={6} md={4}>
-                            <Box sx={{ textAlign: 'center', p: 2 }}>
+                            <Box sx={{ textAlign: 'center', p: isMobile ? 1 : 2 }}>
                               <GroupRemoveIcon sx={{ color: '#ffb347', fontSize: 32, mb: 1 }} />
                               <Typography sx={{ color: '#ffb347', fontWeight: 700 }}>Смерти</Typography>
                               <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{seasonalStats.deaths ?? '-'}</Typography>
                             </Box>
                           </Grid>
                           <Grid item xs={12} sm={6} md={4}>
-                            <Box sx={{ textAlign: 'center', p: 2 }}>
+                            <Box sx={{ textAlign: 'center', p: isMobile ? 1 : 2 }}>
                               <TrendingUpIcon sx={{ color: '#ffb347', fontSize: 32, mb: 1 }} />
                               <Typography sx={{ color: '#ffb347', fontWeight: 700 }}>K/D</Typography>
                               <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{seasonalStats.deaths > 0 ? (seasonalStats.kills / seasonalStats.deaths).toFixed(2) : seasonalStats.kills ?? '-'}</Typography>
                             </Box>
                           </Grid>
                           <Grid item xs={12} sm={6} md={4}>
-                            <Box sx={{ textAlign: 'center', p: 2 }}>
+                            <Box sx={{ textAlign: 'center', p: isMobile ? 1 : 2 }}>
                               <PercentIcon sx={{ color: '#ffb347', fontSize: 32, mb: 1 }} />
                               <Typography sx={{ color: '#ffb347', fontWeight: 700 }}>% побед</Typography>
                               <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>
@@ -729,14 +734,14 @@ const ProfilePage = () => {
                             </Box>
                           </Grid>
                           <Grid item xs={12} sm={6} md={4}>
-                            <Box sx={{ textAlign: 'center', p: 2 }}>
+                            <Box sx={{ textAlign: 'center', p: isMobile ? 1 : 2 }}>
                               <SportsScoreIcon sx={{ color: '#ffb347', fontSize: 32, mb: 1 }} />
                               <Typography sx={{ color: '#ffb347', fontWeight: 700 }}>Матчей</Typography>
                               <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{seasonalStats.matches ?? '-'}</Typography>
                             </Box>
                           </Grid>
                           <Grid item xs={12} sm={6} md={4}>
-                            <Box sx={{ textAlign: 'center', p: 2 }}>
+                            <Box sx={{ textAlign: 'center', p: isMobile ? 1 : 2 }}>
                               <GroupOffIcon sx={{ color: '#ffb347', fontSize: 32, mb: 1 }} />
                               <Typography sx={{ color: '#ffb347', fontWeight: 700 }}>Тимкиллы</Typography>
                               <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{seasonalStats?.teamkills ?? '-'}</Typography>

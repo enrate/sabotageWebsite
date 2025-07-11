@@ -227,4 +227,40 @@
   display: flex;
   align-items: center;
   position: relative;
+}
+/* Кастомный бургер-меню */
+.burger-bar {
+  width: 24px;
+  height: 24px;
+  position: relative;
+  display: block;
+}
+.burger-line {
+  position: absolute;
+  width: 24px;
+  height: 3px;
+  background: #ffb347;
+  border-radius: 2px;
+  left: 0;
+  transition: all 0.3s cubic-bezier(.4,2,.6,1);
+}
+.burger-bar .burger-line:nth-child(1) {
+  top: 4px;
+}
+.burger-bar .burger-line:nth-child(2) {
+  top: 10.5px;
+}
+.burger-bar .burger-line:nth-child(3) {
+  top: 17px;
+}
+.burger-bar.open .burger-line:nth-child(1) {
+  top: 10.5px;
+  transform: rotate(45deg);
+}
+.burger-bar.open .burger-line:nth-child(2) {
+  opacity: 0;
+}
+.burger-bar.open .burger-line:nth-child(3) {
+  top: 10.5px;
+  transform: rotate(-45deg);
 } 

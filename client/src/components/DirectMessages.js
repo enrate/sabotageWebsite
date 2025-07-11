@@ -383,7 +383,7 @@ const DirectMessages = () => {
                       </ListItemAvatar>
                       <ListItemText
                         primary={<span style={{ color: '#ffb347', fontWeight: 600 }}>{other.username}</span>}
-                        secondary={dialog.content.length > 30 ? dialog.content.slice(0, 30) + '...' : dialog.content}
+                        secondary={dialog.content.length > 10 ? dialog.content.slice(0, 10) + '...' : dialog.content}
                         secondaryTypographyProps={{ style: { color: '#fff' } }}
                       />
                       {unreadCount > 0 && (
@@ -490,8 +490,9 @@ const DirectMessages = () => {
                 size="small"
                 placeholder="Введите сообщение..."
                 value={newMessage}
-                onChange={e => setNewMessage(e.target.value)}
+                onChange={e => setNewMessage(e.target.value.slice(0, 256))}
                 onKeyDown={e => { if (e.key === 'Enter') handleSend(); }}
+                inputProps={{ maxLength: 256 }}
                 sx={{
                   bgcolor: 'rgba(0,0,0,0.18)',
                   input: { color: '#fff' },

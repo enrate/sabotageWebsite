@@ -67,8 +67,6 @@ exports.getTopSquads = async (req, res) => {
           kills: s.kills,
           deaths: s.deaths,
           teamkills: s.teamkills,
-          winrate: s.matches ? Math.round((s.wins / s.matches) * 100) : 0,
-          matches: s.matches
         };
       });
       return res.json(result);
@@ -85,8 +83,6 @@ exports.getTopSquads = async (req, res) => {
         kills: stats.kills || 0,
         deaths: stats.deaths || 0,
         teamkills: stats.teamkills || 0,
-        winrate: stats.avg_winRate || 0,
-        matches: stats.matches || 0,
       };
     }).sort((a, b) => b.elo - a.elo).slice(0, 20);
     res.json(enriched);

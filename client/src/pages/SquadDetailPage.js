@@ -57,7 +57,8 @@ import {
   Warning as WarningIcon,
   ManageAccounts as ManageAccountsIcon,
   ChevronLeft as ChevronLeftIcon,
-  ChevronRight as ChevronRightIcon
+  ChevronRight as ChevronRightIcon,
+  WarningAmber as WarningAmberIcon
 } from '@mui/icons-material';
 
 const SquadDetailPage = () => {
@@ -779,6 +780,36 @@ const SquadDetailPage = () => {
           px: 3
         }}
       >
+        {/* Баннер: напоминание про Arma ID */}
+        {currentUser && !currentUser.armaId && (
+          <Box sx={{
+            bgcolor: 'rgba(255, 179, 71, 0.15)',
+            border: '1px solid #ffb347',
+            borderRadius: 2,
+            p: 2,
+            mb: 3,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2,
+            maxWidth: 700,
+            mx: 'auto',
+          }}>
+            <WarningAmberIcon sx={{ color: '#ffb347', fontSize: 32 }} />
+            <Box sx={{ flex: 1 }}>
+              <Typography sx={{ color: '#ffb347', fontWeight: 600, fontSize: '1.1rem' }}>
+                Для полноценного участия в проекте укажите свой Arma ID в настройках профиля.
+              </Typography>
+            </Box>
+            <Button
+              variant="contained"
+              size="small"
+              sx={{ bgcolor: '#ffb347', color: '#232526', fontWeight: 600, '&:hover': { bgcolor: '#ffd580' } }}
+              onClick={() => navigate('/settings')}
+            >
+              В настройки
+            </Button>
+          </Box>
+        )}
         <Grid container spacing={4}>
           {/* Левая панель с вкладками и информацией */}
           <Grid item style={{width: 320, maxWidth: 320, flexShrink: 0}}>

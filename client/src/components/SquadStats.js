@@ -86,18 +86,6 @@ const metricList = [
     icon: <SportsEsportsIcon sx={{ color: '#ffb347', fontSize: 24 }} />,
     value: perf => perf.kills && perf.deaths ? (perf.deaths ? (perf.kills / perf.deaths).toFixed(2) : perf.kills) : '-',
   },
-  {
-    key: 'winrate',
-    label: 'Процент побед',
-    icon: <PercentIcon sx={{ color: '#ffb347', fontSize: 24 }} />,
-    value: perf => perf.avg_winRate ?? '-',
-  },
-  {
-    key: 'matches',
-    label: 'Сыгранных матчей',
-    icon: <SportsEsportsIcon sx={{ color: '#ffb347', fontSize: 24 }} />,
-    value: perf => perf.matches ?? '-',
-  },
 ];
 
 const listContainerStyle = {

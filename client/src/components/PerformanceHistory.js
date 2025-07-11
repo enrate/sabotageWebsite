@@ -38,8 +38,6 @@ const PerformanceHistory = ({ performance }) => {
     season: `Сезон ${item.season}`,
     elo: item.elo ?? null,
     kd: item.kills && item.deaths ? (item.deaths ? (item.kills / item.deaths) : item.kills) : null,
-    winrate: item.avg_winRate ?? null,
-    matches: item.matches ?? null,
   }));
 
   const getPlaceColor = (place) => {
@@ -104,36 +102,6 @@ const PerformanceHistory = ({ performance }) => {
             <Tooltip contentStyle={{ backgroundColor: 'rgba(0,0,0,0.8)', border: '1px solid #ffb347', borderRadius: 8 }} />
             <Line type="monotone" dataKey="kd" stroke="#ffb347" strokeWidth={3} dot={{ fill: '#ffb347', strokeWidth: 2, r: 4 }} />
           </LineChart>
-        </ResponsiveContainer>
-      </Box>
-      {/* График процента побед */}
-      <Box sx={{ mb: 4, p: 2 }}>
-        <Typography variant="h6" sx={{ color: '#ffb347', mb: 2, textAlign: 'center', fontWeight: 600 }}>
-          Процент побед по сезонам
-        </Typography>
-        <ResponsiveContainer width="100%" height={200}>
-          <LineChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-            <XAxis dataKey="season" stroke="#fff" />
-            <YAxis stroke="#fff" />
-            <Tooltip contentStyle={{ backgroundColor: 'rgba(0,0,0,0.8)', border: '1px solid #ffb347', borderRadius: 8 }} />
-            <Line type="monotone" dataKey="winrate" stroke="#ffb347" strokeWidth={3} dot={{ fill: '#ffb347', strokeWidth: 2, r: 4 }} />
-          </LineChart>
-        </ResponsiveContainer>
-      </Box>
-      {/* График количества матчей */}
-      <Box sx={{ mb: 4, p: 2 }}>
-        <Typography variant="h6" sx={{ color: '#ffb347', mb: 2, textAlign: 'center', fontWeight: 600 }}>
-          Количество сыгранных матчей по сезонам
-        </Typography>
-        <ResponsiveContainer width="100%" height={200}>
-          <BarChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-            <XAxis dataKey="season" stroke="#fff" />
-            <YAxis stroke="#fff" />
-            <Tooltip contentStyle={{ backgroundColor: 'rgba(0,0,0,0.8)', border: '1px solid #ffb347', borderRadius: 8 }} />
-            <Bar dataKey="matches" fill="#ffb347" radius={[4, 4, 0, 0]} />
-          </BarChart>
         </ResponsiveContainer>
       </Box>
     </Box>

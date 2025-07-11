@@ -25,11 +25,33 @@ import {
   Group as SquadIcon,
   Mail as MailIcon,
   Notifications as NotificationsIcon,
-  Article as ArticleIcon
+  Article as ArticleIcon,
+  Menu as MenuIcon
 } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
 import Badge from '@mui/material/Badge';
 import axios from 'axios';
+import Drawer from '@mui/material/Drawer';
+
+// Добавляю кастомный компонент BurgerIcon
+const BurgerIcon = ({ open, ...props }) => (
+  <Box {...props} sx={{
+    width: 32,
+    height: 32,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+    zIndex: 1301,
+    ...props.sx
+  }}>
+    <Box className={`burger-bar${open ? ' open' : ''}`} sx={{ position: 'relative', width: 24, height: 24 }}>
+      <Box className="burger-line" sx={{ position: 'absolute', width: 24, height: 3, bgcolor: '#ffb347', borderRadius: 2, top: open ? 10.5 : 4, left: 0, transform: open ? 'rotate(45deg)' : 'none', transition: 'all 0.3s cubic-bezier(.4,2,.6,1)' }} />
+      <Box className="burger-line" sx={{ position: 'absolute', width: 24, height: 3, bgcolor: '#ffb347', borderRadius: 2, top: 10.5, left: 0, opacity: open ? 0 : 1, transition: 'all 0.3s cubic-bezier(.4,2,.6,1)' }} />
+      <Box className="burger-line" sx={{ position: 'absolute', width: 24, height: 3, bgcolor: '#ffb347', borderRadius: 2, top: open ? 10.5 : 17, left: 0, transform: open ? 'rotate(-45deg)' : 'none', transition: 'all 0.3s cubic-bezier(.4,2,.6,1)' }} />
+    </Box>
+  </Box>
+);
 
 const Navbar = ({ onOpenAuthModal, notifications = [], onNotificationClick, markAllNotificationsRead }) => {
   const { currentUser, logout } = useAuth();
@@ -40,6 +62,8 @@ const Navbar = ({ onOpenAuthModal, notifications = [], onNotificationClick, mark
   
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
+
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const handleProfileClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -197,7 +221,7 @@ const Navbar = ({ onOpenAuthModal, notifications = [], onNotificationClick, mark
             </Typography>
           </Box>
 
-          {/* Navigation Links - Centered */}
+          {/* Navigation Links - Centered (desktop only) */}
           <Box sx={{ 
             display: { xs: 'none', md: 'flex' }, 
             alignItems: 'center', 
@@ -347,8 +371,21 @@ const Navbar = ({ onOpenAuthModal, notifications = [], onNotificationClick, mark
             )}
           </Box>
 
-          {/* User Menu / Login Button */}
-          <Box sx={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+          {/* Mobile burger icon */}
+          {isMobile && (
+            <IconButton
+              edge="end"
+              color="inherit"
+              aria-label="menu"
+              onClick={() => setDrawerOpen(true)}
+              sx={{ ml: 1, p: 0 }}
+            >
+              <BurgerIcon open={drawerOpen} />
+            </IconButton>
+          )}
+
+          {/* User Menu / Login Button (desktop only) */}
+          <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', flexShrink: 0 }}>
             {currentUser ? (
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0 }}>
                 {/* Уведомления */}
@@ -634,6 +671,35 @@ const Navbar = ({ onOpenAuthModal, notifications = [], onNotificationClick, mark
               </Button>
             )}
           </Box>
+
+          {/* Drawer для мобильных */}
+          <Drawer
+            anchor="right"
+            open={drawerOpen}
+            onClose={() => setDrawerOpen(false)}
+            PaperProps={{ sx: { bgcolor: 'rgba(0,0,0,0.97)', color: '#fff', width: 270 } }}
+          >
+            <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', height: '100%' }}>
+              {/* Навигация */}
+              <Button component={Link} to="/" startIcon={<HomeIcon />} sx={{ justifyContent: 'flex-start', color: isActive('/') ? '#ffb347' : '#fff', mb: 1 }} onClick={()=>setDrawerOpen(false)}>Главная</Button>
+              <Button component={Link} to="/seasons" startIcon={<ArticleIcon />} sx={{ justifyContent: 'flex-start', color: isActive('/seasons') ? '#ffb347' : '#fff', mb: 1 }} onClick={()=>setDrawerOpen(false)}>Статистика</Button>
+              <Button component={Link} to="/squads" startIcon={<SquadIcon />} sx={{ justifyContent: 'flex-start', color: isActive('/squads') ? '#ffb347' : '#fff', mb: 1 }} onClick={()=>setDrawerOpen(false)}>Отряды</Button>
+              {currentUser?.squadId && <Button component={Link} to={`/squads/${currentUser.squadId}`} startIcon={<SquadIcon />} sx={{ justifyContent: 'flex-start', color: location.pathname === `/squads/${currentUser.squadId}` ? '#ffb347' : '#fff', mb: 1 }} onClick={()=>setDrawerOpen(false)}>Мой отряд</Button>}
+              {currentUser?.role === 'admin' && <Button component={Link} to="/admin" startIcon={<AdminIcon />} sx={{ justifyContent: 'flex-start', color: isActive('/admin') ? '#ffb347' : '#fff', mb: 1 }} onClick={()=>setDrawerOpen(false)}>Админка</Button>}
+              <Divider sx={{ my: 1, bgcolor: 'rgba(255, 179, 71, 0.2)' }} />
+              {/* Действия пользователя */}
+              {currentUser ? (
+                <>
+                  <Button startIcon={<PersonIcon />} sx={{ justifyContent: 'flex-start', color: '#fff', mb: 1 }} onClick={()=>{setDrawerOpen(false); navigate(`/profile/${currentUser.id}`);}}>Профиль</Button>
+                  <Button startIcon={<MailIcon />} sx={{ justifyContent: 'flex-start', color: '#fff', mb: 1 }} onClick={()=>{setDrawerOpen(false); navigate('/messages');}}>Сообщения</Button>
+                  <Button startIcon={<SettingsIcon />} sx={{ justifyContent: 'flex-start', color: '#fff', mb: 1 }} onClick={()=>{setDrawerOpen(false); navigate('/settings');}}>Настройки</Button>
+                  <Button startIcon={<LogoutIcon />} sx={{ justifyContent: 'flex-start', color: '#f44336', mb: 1 }} onClick={()=>{setDrawerOpen(false); handleLogout();}}>Выйти</Button>
+                </>
+              ) : (
+                <Button sx={{ color: '#ffb347', textTransform: 'none', fontSize: '1.1rem', textDecoration: 'underline', mt: 2 }} onClick={()=>{setDrawerOpen(false); onOpenAuthModal && onOpenAuthModal();}}>Войти</Button>
+              )}
+            </Box>
+          </Drawer>
         </Toolbar>
       </Container>
     </AppBar>
