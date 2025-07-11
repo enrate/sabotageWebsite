@@ -48,34 +48,36 @@ const HomePage = () => {
   const [servers, setServers] = useState([]);
   const [news, setNews] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [newsLoading, setNewsLoading] = useState(false);
+  const [hasMoreNews, setHasMoreNews] = useState(true);
   
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { currentUser } = useAuth();
   const navigate = useNavigate();
   const [showArmaIdSnackbar, setShowArmaIdSnackbar] = useState(false);
-  const [newsToShow, setNewsToShow] = useState(4);
   const newsContainerRef = useRef(null);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchInitialData = async () => {
       try {
         // Загрузка статуса серверов
         const serversRes = await axios.get('/api/servers');
         setServers(serversRes.data);
-        
-        // Загрузка последних новостей
-        const newsRes = await axios.get('/api/news/latest');
+        // Загрузка первых новостей
+        setNewsLoading(true);
+        const newsRes = await axios.get('/api/news/latest?limit=4&offset=0');
         setNews(newsRes.data);
-        
+        setHasMoreNews(newsRes.data.length === 4);
         setLoading(false);
+        setNewsLoading(false);
       } catch (err) {
         console.error('Ошибка загрузки данных:', err);
         setLoading(false);
+        setNewsLoading(false);
       }
     };
-    
-    fetchData();
+    fetchInitialData();
   }, []);
 
   useEffect(() => {
@@ -87,23 +89,35 @@ const HomePage = () => {
   // Подгрузка новостей при скролле
   useEffect(() => {
     const handleScroll = () => {
-      if (!newsContainerRef.current) return;
+      if (newsLoading || !hasMoreNews) return;
       const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
       if (scrollTop + clientHeight >= scrollHeight - 100) {
-        setNewsToShow(prev => {
-          if (prev < news.length) return Math.min(prev + 4, news.length);
-          return prev;
-        });
+        loadMoreNews();
       }
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [news.length]);
+  }, [news, newsLoading, hasMoreNews]);
 
-  // Сброс newsToShow при обновлении новостей
-  useEffect(() => {
-    setNewsToShow(4);
-  }, [news]);
+  const loadMoreNews = async () => {
+    setNewsLoading(true);
+    try {
+      const offset = news.length;
+      const newsRes = await axios.get(`/api/news/latest?limit=4&offset=${offset}`);
+      if (newsRes.data.length > 0) {
+        // Исключаем дубли
+        const newNews = newsRes.data.filter(n => !news.some(existing => existing.id === n.id || existing._id === n._id));
+        setNews(prev => [...prev, ...newNews]);
+        setHasMoreNews(newsRes.data.length === 4);
+      } else {
+        setHasMoreNews(false);
+      }
+    } catch (err) {
+      setHasMoreNews(false);
+    } finally {
+      setNewsLoading(false);
+    }
+  };
 
   const SocialBanner = ({ icon: Icon, title, description, link, color, bgColor }) => (
     <Card
@@ -263,159 +277,48 @@ const HomePage = () => {
             </Paper>
           </Grid>
           {/* Центральная колонка — новости */}
-          <Grid item xs style={{flex:1, display:'flex'}}>
-            <Box sx={{ width: '100%', flex: 1, maxWidth: 'none' }}>
-              {/* Заголовок */}
-              <Box sx={{ mb: 4, textAlign: 'center' }}>
-                <Typography 
-                  variant="h3" 
-                  component="h1" 
-                  sx={{ 
-                    color: '#ffb347', 
-                    fontWeight: 700, 
-                    mb: 2,
-                    textShadow: '0 2px 4px rgba(255, 179, 71, 0.3)'
-                  }}
-                >
-                  Новости сообщества
-                </Typography>
-              </Box>
-
-              {/* Список новостей */}
-              {news.length === 0 ? (
-                <Paper
-                  elevation={8}
-                  sx={{
-                    p: 4,
-                    textAlign: 'center',
-                    background: 'rgba(0, 0, 0, 0.3)',
-                    borderRadius: 3,
-                    backdropFilter: 'blur(10px)',
-                    border: '1px solid rgba(255, 179, 71, 0.2)'
-                  }}
-                >
-                  <ArticleIcon sx={{ fontSize: 64, color: 'rgba(255, 179, 71, 0.5)', mb: 2 }} />
-                  <Typography variant="h6" sx={{ color: 'rgba(255, 255, 255, 0.8)', mb: 1 }}>
-                    Пока нет новостей
-                  </Typography>
-                  <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.6)' }}>
-                    Будьте первым, кто поделится новостью с сообществом
-                  </Typography>
-                </Paper>
-              ) : (
-                <Box ref={newsContainerRef} sx={{ display: 'flex', flexDirection: 'column', gap: 3, width: '100%' }}>
-                  {news.slice(0, newsToShow).map((item) => (
-                    <Card
-                      key={item.id}
-                      elevation={8}
-                      sx={{
-                        height: '100%',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        background: 'rgba(0, 0, 0, 0.3)',
-                        borderRadius: 3,
-                        backdropFilter: 'blur(10px)',
-                        border: '1px solid rgba(255, 179, 71, 0.2)',
-                        transition: 'all 0.3s ease',
-                        '&:hover': {
-                          transform: 'translateY(-4px)',
-                          boxShadow: '0 10px 32px 0 rgba(255,179,71,0.22), 0 4px 16px rgba(0,0,0,0.18)',
-                          borderColor: '#ffd580'
-                        }
-                      }}
-                    >
+          <Grid item xs style={{ minWidth: 0, flex: 1, maxWidth: 900, mx: 'auto' }}>
+            <Box ref={newsContainerRef}>
+              <Typography variant="h4" sx={{ color: '#ffb347', fontWeight: 700, mb: 3 }}>
+                Новости
+              </Typography>
+              {news.length === 0 && !loading && (
+                <Typography sx={{ color: 'rgba(255,255,255,0.7)', mb: 2 }}>Нет новостей</Typography>
+              )}
+              <Grid container spacing={4}>
+                {news.map(item => (
+                  <Grid item xs={12} sm={6} md={4} key={item.id || item._id}>
+                    <Card elevation={2} sx={{ height: '100%', display: 'flex', flexDirection: 'column', transition: 'all 0.3s ease', '&:hover': { elevation: 8, transform: 'translateY(-4px)' } }}>
                       <CardContent sx={{ flexGrow: 1, p: 3 }}>
                         {/* Заголовок */}
-                        <Link to={`/news/${item.id}`} style={{ textDecoration: 'none' }}>
-                          <Typography 
-                            variant="h6" 
-                            component="h2" 
-                            sx={{ 
-                              color: '#ffb347',
-                              fontWeight: 600,
-                              mb: 2,
-                              lineHeight: 1.3,
-                              minHeight: '3rem',
-                              display: '-webkit-box',
-                              WebkitLineClamp: 2,
-                              WebkitBoxOrient: 'vertical',
-                              overflow: 'hidden',
-                              transition: 'color 0.2s',
-                              cursor: 'pointer',
-                              '&:hover': { color: '#ffd580' }
-                            }}
-                          >
+                        <Link to={`/news/${item.id || item._id}`} style={{ textDecoration: 'none' }}>
+                          <Typography variant="h6" component="h2" sx={{ color: '#ffb347', fontWeight: 600, mb: 2, lineHeight: 1.3, minHeight: '3rem', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', transition: 'color 0.2s', cursor: 'pointer', '&:hover': { color: '#ffd580' } }}>
                             {item.title}
                           </Typography>
                         </Link>
-                        
                         {/* Контент */}
-                        <Box 
-                          sx={{ 
-                            color: 'rgba(255, 255, 255, 0.8)',
-                            mb: 3,
-                            lineHeight: 1.6,
-                            minHeight: '4.8rem',
-                            display: '-webkit-box',
-                            WebkitLineClamp: 3,
-                            WebkitBoxOrient: 'vertical',
-                            overflow: 'hidden',
-                            '& img': { maxWidth: '100%', height: 'auto' },
-                            '& video': { maxWidth: '100%', height: 'auto' }
-                          }}
-                          dangerouslySetInnerHTML={{
-                            __html: item.content.length > 200 
-                              ? item.content.substring(0, 200) + '...' 
-                              : item.content
-                          }}
-                        />
-                        
+                        <Box sx={{ color: 'rgba(255, 255, 255, 0.8)', mb: 3, lineHeight: 1.6, minHeight: '4.8rem', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden', '& img': { maxWidth: '100%', height: 'auto' }, '& video': { maxWidth: '100%', height: 'auto' } }} dangerouslySetInnerHTML={{ __html: item.content.length > 200 ? item.content.substring(0, 200) + '...' : item.content }} />
                         {/* Метаданные */}
                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <Chip 
-                              icon={<ScheduleIcon />} 
-                              label={new Date(item.createdAt).toLocaleDateString('ru-RU', {
-                                year: 'numeric',
-                                month: 'long',
-                                day: 'numeric'
-                              })}
-                              size="small"
-                              sx={{
-                                bgcolor: 'rgba(255, 179, 71, 0.1)',
-                                color: '#ffb347',
-                                border: '1px solid rgba(255, 179, 71, 0.3)',
-                                '& .MuiChip-icon': {
-                                  color: '#ffb347'
-                                }
-                              }}
-                            />
-                            <Chip 
-                              icon={<PersonIcon />} 
-                              label={item.author?.username || 'Неизвестно'}
-                              size="small"
-                              sx={{
-                                bgcolor: 'rgba(255, 255, 255, 0.1)',
-                                color: 'rgba(255, 255, 255, 0.8)',
-                                border: '1px solid rgba(255, 255, 255, 0.2)',
-                                '& .MuiChip-icon': {
-                                  color: 'rgba(255, 255, 255, 0.6)'
-                                }
-                              }}
-                            />
+                            <Chip icon={<ScheduleIcon />} label={new Date(item.createdAt).toLocaleDateString('ru-RU', { year: 'numeric', month: 'long', day: 'numeric' })} size="small" sx={{ bgcolor: 'rgba(255, 179, 71, 0.1)', color: '#ffb347', border: '1px solid rgba(255, 179, 71, 0.3)', '& .MuiChip-icon': { color: '#ffb347' } }} />
+                            <Chip icon={<PersonIcon />} label={item.author?.username || 'Неизвестно'} size="small" sx={{ bgcolor: 'rgba(255, 255, 255, 0.1)', color: 'rgba(255, 255, 255, 0.8)', border: '1px solid rgba(255, 255, 255, 0.2)', '& .MuiChip-icon': { color: 'rgba(255, 255, 255, 0.6)' } }} />
                           </Box>
                         </Box>
                       </CardContent>
                     </Card>
-                  ))}
-                  {newsToShow < news.length && (
-                    <Box sx={{ display: 'flex', justifyContent: 'center', my: 2 }}>
-                      <Button variant="outlined" onClick={() => setNewsToShow(prev => Math.min(prev + 4, news.length))} sx={{ color: '#ffb347', borderColor: '#ffb347', '&:hover': { bgcolor: 'rgba(255,179,71,0.08)', borderColor: '#ffd580' } }}>
-                        Показать ещё
-                      </Button>
-                    </Box>
-                  )}
+                  </Grid>
+                ))}
+              </Grid>
+              {newsLoading && (
+                <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
+                  <Loader />
                 </Box>
+              )}
+              {!hasMoreNews && news.length > 0 && (
+                <Typography sx={{ color: 'rgba(255,255,255,0.5)', textAlign: 'center', mt: 3 }}>
+                  Все новости загружены
+                </Typography>
               )}
             </Box>
           </Grid>

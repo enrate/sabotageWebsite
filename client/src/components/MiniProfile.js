@@ -56,17 +56,11 @@ const MiniProfile = ({ user, seasonStats, anchorEl, open, onClose, onSendMessage
             </Box>
           </Box>
           <Divider sx={{ my: 1, borderColor: '#ffb347', opacity: 0.3 }} />
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-            {statLabels.map(stat => (
-              <Box key={stat.key} sx={{ minWidth: 90 }}>
-                <Typography variant="caption" sx={{ color: '#ffb347', fontWeight: 600 }}>{stat.label}</Typography>
-                <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                  {seasonStats && seasonStats[stat.key] !== undefined ?
-                    (stat.key === 'winrate' ? `${seasonStats[stat.key]}%` : seasonStats[stat.key]) :
-                    '-'}
-                </Typography>
-              </Box>
-            ))}
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+            <Typography variant="caption" sx={{ color: '#ffb347', fontWeight: 600 }}>Рейтинг в сезоне</Typography>
+            <Typography variant="body2" sx={{ fontWeight: 500 }}>
+              {seasonStats && seasonStats.elo !== undefined ? seasonStats.elo : '-'}
+            </Typography>
           </Box>
         </CardContent>
         {currentUserId !== user.id && (
@@ -77,7 +71,7 @@ const MiniProfile = ({ user, seasonStats, anchorEl, open, onClose, onSendMessage
               sx={{ bgcolor: '#ffb347', color: '#232526', fontWeight: 600, '&:hover': { bgcolor: '#ffd580' } }}
               onClick={() => { onSendMessage && onSendMessage(user); onClose(); }}
             >
-              Отправить ЛС
+              Отправить сообщение
             </Button>
           </Box>
         )}

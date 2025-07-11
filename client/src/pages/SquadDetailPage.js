@@ -330,9 +330,11 @@ const SquadDetailPage = () => {
     setSaveSuccess(false);
     try {
       const token = localStorage.getItem('token');
+      // Обрезаем описание, если оно состоит только из пробелов
+      const cleanDescription = form.description.trim().length === 0 ? '' : form.description;
       await axios.patch(`/api/squads/${id}`, {
         logo: form.logo,
-        description: form.description,
+        description: cleanDescription,
         isJoinRequestOpen: form.isJoinRequestOpen
       }, {
         headers: token ? { Authorization: `Bearer ${token}` } : {}

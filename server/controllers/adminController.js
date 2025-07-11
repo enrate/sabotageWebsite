@@ -128,7 +128,7 @@ exports.issueSquadWarning = async (req, res) => {
       squadId,
       userId: req.user.id,
       eventType: 'warning',
-      description: `Администратор ${req.user.username} выдал предупреждение: ${reason}`,
+      description: `Администратор ${req.user.username} выдал предупреждение: ${reason}${description ? ' — ' + description : ''}`,
       metadata: {
         warningId: warning.id,
         reason: reason,

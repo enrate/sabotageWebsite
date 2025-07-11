@@ -88,21 +88,31 @@ const SquadPage = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const [invitesChecking, setInvitesChecking] = useState(false);
+  const [readyToRender, setReadyToRender] = useState(false);
 
   // Основной useEffect для загрузки данных по табу
   useEffect(() => {
+    setReadyToRender(false); // сбрасываем при смене таба
     if (tab === 0) {
       setLoading(true);
       axios.get('/api/squads').then(res => {
         setSquads(res.data);
         setLoading(false);
-      }).catch(() => setLoading(false));
+        setReadyToRender(true);
+      }).catch(() => {
+        setLoading(false);
+        setReadyToRender(true);
+      });
     } else if (tab === 1) {
       setLoadingUsers(true);
       axios.get('/api/users/looking-for-squad').then(res => {
         setLookingUsers(res.data);
         setLoadingUsers(false);
-      }).catch(() => setLoadingUsers(false));
+        // не выставляем readyToRender — ждём checkExistingInvite
+      }).catch(() => {
+        setLoadingUsers(false);
+        setReadyToRender(true); // даже если ошибка, чтобы не зависло
+      });
     } else if (tab === 2 && currentUser && !currentUser.squadId) {
       setInvitesLoading(true);
       setInvitesError(null);
@@ -112,6 +122,7 @@ const SquadPage = () => {
         .then(res => setInvites(res.data))
         .catch(() => setInvitesError('Ошибка загрузки приглашений'))
         .finally(() => setInvitesLoading(false));
+      setReadyToRender(true);
     }
   }, [tab]);
 
@@ -150,9 +161,11 @@ const SquadPage = () => {
         results.forEach(r => { hasInviteObj[r.userId] = r.hasInvite; });
         setHasInvite(hasInviteObj);
         setInvitesChecking(false);
+        setReadyToRender(true); // теперь можно рендерить
       });
-    } else {
-      setInvitesChecking(false);
+    } else if (tab === 1 && lookingUsers.length > 0) {
+      // если не лидер/зам, но есть пользователи — сразу рендерим
+      setReadyToRender(true);
     }
     // eslint-disable-next-line
   }, [tab, currentUser, lookingUsers]);
@@ -575,7 +588,7 @@ const SquadPage = () => {
           </>
         )}
         {tab === 1 && (
-          (loadingUsers || invitesChecking) ? (
+          !readyToRender ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
               <Loader />
             </Box>
@@ -649,66 +662,39 @@ const SquadPage = () => {
                         }}
                       >
                         {/* Верхняя часть с аватаром и основной информацией */}
-                        <Box sx={{ 
-                          p: 3, 
-                          background: 'linear-gradient(135deg, rgba(255, 179, 71, 0.1) 0%, rgba(0, 0, 0, 0.2) 100%)',
-                          borderBottom: '1px solid rgba(255, 179, 71, 0.1)'
-                        }}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                            <Avatar
-                              src={user.avatar}
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 3, pb: 0 }}>
+                          <Avatar src={user.avatar} sx={{ width: 56, height: 56, bgcolor: user.avatar ? 'transparent' : '#ffb347', color: '#23242a', fontWeight: 700 }}>
+                            {!user.avatar && <PersonIcon sx={{ fontSize: 32 }} />}
+                          </Avatar>
+                          <Box sx={{ flex: 1 }}>
+                            <Typography variant="h6" sx={{ color: '#ffb347', fontWeight: 700, mb: 0.5, fontSize: '1.1rem' }}>
+                              {user.username}
+                            </Typography>
+                            <Chip
+                              label="В поиске отряда"
+                              size="small"
                               sx={{
-                                width: 64,
-                                height: 64,
-                                bgcolor: user.avatar ? 'transparent' : '#ffb347',
-                                color: '#232526',
-                                fontWeight: 700,
-                                border: '3px solid rgba(255, 179, 71, 0.3)',
-                                mr: 2
+                                bgcolor: 'rgba(76, 175, 80, 0.2)',
+                                color: '#4caf50',
+                                fontSize: '0.75rem',
+                                fontWeight: 600
                               }}
-                            >
-                              {!user.avatar && <PersonIcon sx={{ fontSize: 36 }} />}
-                              {user.avatar && (user.username?.charAt(0)?.toUpperCase() || 'U')}
-                            </Avatar>
-                            <Box sx={{ flex: 1 }}>
-                              <Typography
-                                variant="h6"
-                                sx={{
-                                  color: '#ffb347',
-                                  fontWeight: 700,
-                                  mb: 0.5,
-                                  fontSize: '1.1rem'
-                                }}
-                              >
-                                {user.username}
-                              </Typography>
-                              <Chip
-                                label="В поиске отряда"
-                                size="small"
-                                sx={{
-                                  bgcolor: 'rgba(76, 175, 80, 0.2)',
-                                  color: '#4caf50',
-                                  fontSize: '0.75rem',
-                                  fontWeight: 600
-                                }}
-                              />
-                            </Box>
+                            />
                           </Box>
-                          
-                          {/* Описание */}
-                          <Typography
-                            variant="body2"
-                            sx={{
-                              color: 'rgba(255, 255, 255, 0.8)',
-                              lineHeight: 1.6,
-                              mb: 2,
-                              fontStyle: user.description ? 'normal' : 'italic'
-                            }}
-                          >
-                            {user.description || 'Описание отсутствует'}
-                          </Typography>
                         </Box>
-
+                        {/* Описание */}
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            color: 'rgba(255, 255, 255, 0.8)',
+                            lineHeight: 1.6,
+                            mb: 2,
+                            fontStyle: user.description ? 'normal' : 'italic',
+                            px: 3
+                          }}
+                        >
+                          {user.description || 'Описание отсутствует'}
+                        </Typography>
                         {/* Статистика игрока */}
                         <Box sx={{ p: 3 }}>
                           <Box sx={{ 
@@ -719,23 +705,21 @@ const SquadPage = () => {
                           }}>
                             <Box sx={{ textAlign: 'center', p: 2, bgcolor: 'rgba(255, 179, 71, 0.05)', borderRadius: 2 }}>
                               <Typography variant="h5" sx={{ color: '#ffb347', fontWeight: 700, mb: 0.5 }}>
-                                {user.stats?.elo ?? 1000}
+                                {user.stats?.elo ?? '-'}
                               </Typography>
                               <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.75rem' }}>
-                                Рейтинг Эло
+                                Рейтинг Эло (сезон)
                               </Typography>
                             </Box>
                             <Box sx={{ textAlign: 'center', p: 2, bgcolor: 'rgba(79, 140, 255, 0.05)', borderRadius: 2 }}>
                               <Typography variant="h5" sx={{ color: '#4f8cff', fontWeight: 700, mb: 0.5 }}>
-                                {Math.floor((new Date() - new Date(user.createdAt)) / (1000*60*60*24))}
+                                {user.stats?.matches ?? '-'}
                               </Typography>
                               <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.75rem' }}>
-                                Дней на проекте
+                                Матчей (сезон)
                               </Typography>
                             </Box>
                           </Box>
-
-                          {/* Дополнительная статистика */}
                           <Box sx={{ 
                             display: 'flex', 
                             justifyContent: 'space-between', 
@@ -747,7 +731,7 @@ const SquadPage = () => {
                           }}>
                             <Box sx={{ textAlign: 'center' }}>
                               <Typography variant="body2" sx={{ color: '#4caf50', fontWeight: 600 }}>
-                                {user.stats?.kills ?? 0}
+                                {user.stats?.kills ?? '-'}
                               </Typography>
                               <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.6)' }}>
                                 Убийств
@@ -755,7 +739,7 @@ const SquadPage = () => {
                             </Box>
                             <Box sx={{ textAlign: 'center' }}>
                               <Typography variant="body2" sx={{ color: '#f44336', fontWeight: 600 }}>
-                                {user.stats?.deaths ?? 0}
+                                {user.stats?.deaths ?? '-'}
                               </Typography>
                               <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.6)' }}>
                                 Смертей
@@ -763,7 +747,7 @@ const SquadPage = () => {
                             </Box>
                             <Box sx={{ textAlign: 'center' }}>
                               <Typography variant="body2" sx={{ color: '#ff9800', fontWeight: 600 }}>
-                                {user.stats?.teamkills ?? 0}
+                                {user.stats?.teamkills ?? '-'}
                               </Typography>
                               <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.6)' }}>
                                 Тимкиллов
@@ -771,7 +755,7 @@ const SquadPage = () => {
                             </Box>
                             <Box sx={{ textAlign: 'center' }}>
                               <Typography variant="body2" sx={{ color: '#9c27b0', fontWeight: 600 }}>
-                                {user.stats?.winRate ? `${user.stats.winRate}%` : '0%'}
+                                {user.stats?.winRate ? `${user.stats.winRate}%` : '-'}
                               </Typography>
                               <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.6)' }}>
                                 Win Rate
@@ -779,92 +763,21 @@ const SquadPage = () => {
                             </Box>
                             <Box sx={{ textAlign: 'center' }}>
                               <Typography variant="body2" sx={{ color: '#1976d2', fontWeight: 600 }}>
-                                {user.stats?.matches ?? 0}
+                                {user.stats?.wins ?? '-'}
                               </Typography>
                               <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.6)' }}>
-                                Матчей
+                                Побед
+                              </Typography>
+                            </Box>
+                            <Box sx={{ textAlign: 'center' }}>
+                              <Typography variant="body2" sx={{ color: '#bdbdbd', fontWeight: 600 }}>
+                                {user.stats?.losses ?? '-'}
+                              </Typography>
+                              <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.6)' }}>
+                                Поражений
                               </Typography>
                             </Box>
                           </Box>
-
-                          {/* Кнопки действий */}
-                          <Box sx={{ display: 'flex', gap: 1 }}>
-                            <Button
-                              variant="contained"
-                              fullWidth
-                              size="small"
-                              onClick={() => navigate(`/profile/${user.id}`)}
-                              sx={{
-                                bgcolor: '#ffb347',
-                                color: '#232526',
-                                fontWeight: 600,
-                                py: 1,
-                                '&:hover': {
-                                  bgcolor: '#ffd580',
-                                  transform: 'translateY(-1px)'
-                                }
-                              }}
-                            >
-                              Профиль
-                            </Button>
-                            {canInviteToSquad(user) && (
-                              <Button
-                                variant="outlined"
-                                size="small"
-                                disabled={inviteLoading[user.id] || checkingInvite[user.id] || hasInvite[user.id]}
-                                onClick={() => handleInvite(user.id)}
-                                sx={{
-                                  color: hasInvite[user.id] ? '#666' : '#4caf50',
-                                  borderColor: hasInvite[user.id] ? '#666' : '#4caf50',
-                                  minWidth: 'auto',
-                                  px: 2,
-                                  '&:hover': {
-                                    bgcolor: hasInvite[user.id] ? 'transparent' : 'rgba(76, 175, 80, 0.1)',
-                                    borderColor: hasInvite[user.id] ? '#666' : '#66bb6a'
-                                  },
-                                  '&:disabled': {
-                                    color: hasInvite[user.id] ? '#666' : '#90caf9',
-                                    borderColor: hasInvite[user.id] ? '#666' : '#90caf9'
-                                  }
-                                }}
-                              >
-                                {inviteLoading[user.id] ? 'Отправка...' : 
-                                 checkingInvite[user.id] ? 'Проверка...' : 
-                                 hasInvite[user.id] ? 'Приглашён' : 
-                                 'Пригласить'}
-                              </Button>
-                            )}
-                          </Box>
-                          
-                          {/* Сообщения об успехе и ошибках */}
-                          {inviteSuccess[user.id] && (
-                            <Typography 
-                              variant="caption" 
-                              sx={{ 
-                                color: '#4caf50', 
-                                fontSize: '0.75rem',
-                                display: 'block',
-                                mt: 1,
-                                textAlign: 'center'
-                              }}
-                            >
-                              {inviteSuccess[user.id]}
-                            </Typography>
-                          )}
-                          {inviteError[user.id] && (
-                            <Typography 
-                              variant="caption" 
-                              sx={{ 
-                                color: '#f44336', 
-                                fontSize: '0.75rem',
-                                display: 'block',
-                                mt: 1,
-                                textAlign: 'center'
-                              }}
-                            >
-                              {inviteError[user.id]}
-                            </Typography>
-                          )}
                         </Box>
                       </Card>
                     </Box>

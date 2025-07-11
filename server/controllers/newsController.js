@@ -34,7 +34,8 @@ exports.getNews = async (req, res) => {
 // Получение последних новостей
 exports.getLatestNews = async (req, res) => {
   try {
-    const limit = parseInt(req.query.limit) || 3;
+    const limit = parseInt(req.query.limit) || 4;
+    const offset = parseInt(req.query.offset) || 0;
     const news = await News.findAll({
       include: [{
         model: User,
@@ -42,7 +43,8 @@ exports.getLatestNews = async (req, res) => {
         attributes: ['id', 'username']
       }],
       order: [['createdAt', 'DESC']],
-      limit
+      limit,
+      offset
     });
     res.json(news);
   } catch (err) {
