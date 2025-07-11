@@ -690,7 +690,8 @@ const SquadPage = () => {
                             lineHeight: 1.6,
                             mb: 2,
                             fontStyle: user.description ? 'normal' : 'italic',
-                            px: 3
+                            px: 3,
+                            mt: 1 // добавлен отступ сверху
                           }}
                         >
                           {user.description || 'Описание отсутствует'}
@@ -708,7 +709,7 @@ const SquadPage = () => {
                                 {user.stats?.elo ?? '-'}
                               </Typography>
                               <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.75rem' }}>
-                                Рейтинг Эло (сезон)
+                                Рейтинг (сезон)
                               </Typography>
                             </Box>
                             <Box sx={{ textAlign: 'center', p: 2, bgcolor: 'rgba(79, 140, 255, 0.05)', borderRadius: 2 }}>
@@ -778,6 +779,39 @@ const SquadPage = () => {
                               </Typography>
                             </Box>
                           </Box>
+                        </Box>
+                        {/* Кнопки действий */}
+                        <Box sx={{ display: 'flex', gap: 2, px: 3, pb: 3 }}>
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            sx={{ color: '#ffb347', borderColor: '#ffb347', fontWeight: 600, '&:hover': { bgcolor: 'rgba(255,179,71,0.08)', borderColor: '#ffd580', color: '#ffd580' } }}
+                            component={Link}
+                            to={`/profile/${user.id}`}
+                          >
+                            Профиль
+                          </Button>
+                          {canInviteToSquad(user) && !hasInvite[user.id] && (
+                            <Button
+                              variant="contained"
+                              size="small"
+                              sx={{ bgcolor: '#ffb347', color: '#232526', fontWeight: 600, '&:hover': { bgcolor: '#ffd580' } }}
+                              disabled={inviteLoading[user.id]}
+                              onClick={() => handleInvite(user.id)}
+                            >
+                              {inviteLoading[user.id] ? '...' : 'Пригласить'}
+                            </Button>
+                          )}
+                          {canInviteToSquad(user) && hasInvite[user.id] && (
+                            <Button
+                              variant="outlined"
+                              size="small"
+                              sx={{ color: '#bbb', borderColor: '#bbb', fontWeight: 600, cursor: 'default' }}
+                              disabled
+                            >
+                              Приглашение отправлено
+                            </Button>
+                          )}
                         </Box>
                       </Card>
                     </Box>
