@@ -1,6 +1,9 @@
 const { User, SquadRole, Squad } = require('../models');
 const jwt = require('jsonwebtoken');
 const { generateVerificationToken, sendVerificationEmail } = require('../services/emailService');
+const { createClient } = require('redis');
+const redis = createClient({ url: 'redis://localhost:6379' });
+redis.connect();
 
 // Регистрация пользователя
 exports.register = async (req, res) => {
@@ -26,16 +29,15 @@ exports.register = async (req, res) => {
       emailVerificationExpires: verificationExpires
     });
     
-    // Отправка email для подтверждения
-    const emailSent = await sendVerificationEmail(email, username, verificationToken);
+    // Кладём задачу на отправку email в Redis (асинхронно)
+    await redis.publish('send_verification_email', JSON.stringify({
+      email,
+      username,
+      token: verificationToken
+    }));
     
-    if (!emailSent) {
-      // Если email не отправлен, удаляем пользователя
-      await user.destroy();
-      return res.status(500).json({ message: 'Ошибка отправки email подтверждения' });
-    }
-    
-    res.status(201).json({ 
+    // Сразу отвечаем пользователю
+    res.status(200).json({ 
       message: 'Регистрация успешна! Проверьте ваш email для подтверждения аккаунта.',
       user: {
         id: user.id,

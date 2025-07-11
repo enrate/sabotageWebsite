@@ -108,8 +108,14 @@ const sendPasswordResetEmail = async (email, username, token) => {
   }
 };
 
+// Экспортируем отдельную функцию для воркера
+const sendVerificationEmailTask = async ({ email, username, token }) => {
+  return sendVerificationEmail(email, username, token);
+};
+
 module.exports = {
   generateVerificationToken,
   sendVerificationEmail,
+  sendVerificationEmailTask,
   sendPasswordResetEmail
 }; 
