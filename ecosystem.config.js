@@ -17,15 +17,6 @@ module.exports = {
         NODE_ENV: 'production'
       },
       watch: false
-    },
-    {
-      name: 'season-awards-cron',
-      script: './server/cron/issueSeasonAwards.js',
-      env: {
-        NODE_ENV: 'production'
-      },
-      watch: false,
-      cron_restart: '0 0 * * *' // запускать каждый день в полночь
     }
   ]
 }; 
