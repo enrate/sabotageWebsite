@@ -17,7 +17,6 @@ import ErrorIcon from '@mui/icons-material/Error';
 const VerifyEmailPage = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { login, updateUser } = useAuth();
   const [status, setStatus] = useState('loading'); // 'loading' | 'success' | 'error'
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);

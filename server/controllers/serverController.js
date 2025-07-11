@@ -1,4 +1,5 @@
 const {GameDig} = require('gamedig');
+const discordBot = require('../services/discordBot');
 
 const SERVER_IP = '83.136.235.40';
 const SERVER_PORT = 2005;
@@ -31,6 +32,7 @@ function updateServerCache() {
       version: state.raw ? state.raw.version : undefined,
       raw: state
     }];
+    discordBot.setServerInfo(cachedServerData[0]);
   }).catch((err) => {
     console.log('Gamedig error:', err);
     cachedServerData = [{
@@ -40,6 +42,7 @@ function updateServerCache() {
       players: 0,
       error: 'Сервер недоступен'
     }];
+    discordBot.setServerInfo(cachedServerData[0]);
   });
 }
 
@@ -51,6 +54,7 @@ process.on('unhandledRejection', (reason, promise) => {
 // Запуск обновления кэша раз в минуту
 updateServerCache();
 setInterval(updateServerCache, 120 * 1000);
+discordBot.startDiscordBot();
 
 exports.getServers = async (req, res) => {
   try {
