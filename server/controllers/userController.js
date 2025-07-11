@@ -148,17 +148,23 @@ exports.getLookingForSquadUsers = async (req, res) => {
       order: [['username', 'ASC']],
       attributes: ['id', 'username', 'avatar', 'description', 'createdAt', 'armaId']
     });
-    // Определяем текущий сезон
+    // Определяем текущий или последний сезон
     const { Season, PlayerSeasonStats } = require('../models');
     const now = new Date();
-    const currentSeason = await Season.findOne({
+    let season = await Season.findOne({
       where: {
         startDate: { $lte: now },
         endDate: { $gte: now }
       },
       order: [['startDate', 'DESC']]
     });
-    const seasonId = currentSeason ? currentSeason.id : null;
+    if (!season) {
+      // Если нет активного, берём последний по дате старта
+      season = await Season.findOne({
+        order: [['startDate', 'DESC']]
+      });
+    }
+    const seasonId = season ? season.id : null;
     const usersWithStats = await Promise.all(users.map(async user => {
       let stats = null;
       if (user.armaId && seasonId) {
