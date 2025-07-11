@@ -21,6 +21,8 @@ import { useLocation } from 'react-router-dom';
 import axios from 'axios';
 import SeasonsPage from './pages/SeasonsPage';
 import VerifyEmailPage from './pages/VerifyEmailPage';
+import Snackbar from '@mui/material/Snackbar';
+import MuiAlert from '@mui/material/Alert';
 
 console.log('App rendered');
 
@@ -30,6 +32,14 @@ function App() {
   const [notificationsLoaded, setNotificationsLoaded] = useState(false);
   const location = window.location;
   const [activeChatUserId, setActiveChatUserId] = useState(null);
+  // --- Snackbar для уведомлений ---
+  const [snackbar, setSnackbar] = useState({ open: false, message: '' });
+  const handleShowSnackbar = (message) => {
+    setSnackbar({ open: true, message });
+  };
+  const handleCloseSnackbar = () => {
+    setSnackbar({ open: false, message: '' });
+  };
 
   // Загрузка уведомлений с сервера при старте
   useEffect(() => {
@@ -144,7 +154,17 @@ function App() {
               </Routes>
             </main>
             <Footer />
-            {showAuthModal && <AuthModal onClose={() => setShowAuthModal(false)} />}
+            {showAuthModal && <AuthModal onClose={() => setShowAuthModal(false)} onShowSnackbar={handleShowSnackbar} />}
+            <Snackbar
+              open={snackbar.open}
+              autoHideDuration={7000}
+              onClose={handleCloseSnackbar}
+              anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+            >
+              <MuiAlert onClose={handleCloseSnackbar} severity="success" sx={{ width: '100%' }}>
+                {snackbar.message}
+              </MuiAlert>
+            </Snackbar>
           </div>
         </Router>
         </SocketProvider>

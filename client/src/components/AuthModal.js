@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import './CreateSquadModal.css';
 import { register } from '../services/register';
 
-const AuthModal = ({ onClose }) => {
+const AuthModal = ({ onClose, onShowSnackbar }) => {
   const [mode, setMode] = useState('login'); // 'login' | 'register'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -23,9 +23,12 @@ const AuthModal = ({ onClose }) => {
     setLoading(true);
     try {
       const result = await register({ username, email, password });
-      // Показываем сообщение об успешной регистрации
       setError('');
-      alert('Регистрация успешна! Проверьте ваш email для подтверждения аккаунта.');
+      // Закрываем модалку и показываем попап
+      if (onShowSnackbar) {
+        onShowSnackbar('Регистрация успешна! Проверьте ваш email для подтверждения аккаунта.');
+      }
+      onClose();
       setMode('login');
       setEmail('');
       setPassword('');
