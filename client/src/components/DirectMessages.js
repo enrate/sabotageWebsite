@@ -144,6 +144,41 @@ const DirectMessages = () => {
     setSending(false);
   };
 
+  // --- Вставка изображения из буфера обмена ---
+  const handlePaste = async (e) => {
+    if (!selectedUser) return;
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (item.type.indexOf('image') !== -1) {
+        const file = item.getAsFile();
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = async (ev) => {
+            const base64 = ev.target.result;
+            setSending(true);
+            try {
+              const token = localStorage.getItem('token');
+              const res = await axios.post('/api/messages', {
+                receiverId: selectedUser.id,
+                content: base64,
+                type: 'image'
+              }, {
+                headers: { Authorization: `Bearer ${token}` }
+              });
+              setMessages([...messages, res.data]);
+            } catch (err) {}
+            setSending(false);
+          };
+          reader.readAsDataURL(file);
+        }
+        e.preventDefault();
+        break;
+      }
+    }
+  };
+
   // --- SOCKET.IO ---
   useEffect(() => {
     // Создаём сокет только один раз при монтировании
@@ -444,6 +479,56 @@ const DirectMessages = () => {
                 messages.length === 0 ? <Typography sx={{ color: '#fff', mt: 2 }}>Нет сообщений</Typography> :
                   messages.map(msg => {
                     const isOwn = msg.senderId === currentUser.id;
+                    if (msg.type === 'image' && msg.content.startsWith('data:image/')) {
+                      return (
+                        <Box
+                          key={msg.id}
+                          sx={{
+                            display: 'flex',
+                            flexDirection: isOwn ? 'row-reverse' : 'row',
+                            alignItems: 'flex-end',
+                            mb: 1.5,
+                            animation: 'fadeInMsg 0.4s',
+                          }}
+                        >
+                          {!isOwn && (
+                            <Avatar
+                              src={selectedUser?.avatar}
+                              sx={{ width: 32, height: 32, mr: 1, bgcolor: selectedUser?.avatar ? 'transparent' : '#ffb347' }}
+                            />
+                          )}
+                          <Paper
+                            sx={{
+                              p: 1.5,
+                              bgcolor: isOwn ? 'rgba(255,179,71,0.95)' : 'rgba(40,40,45,0.95)',
+                              color: isOwn ? '#232526' : '#fff',
+                              borderRadius: isOwn ? '18px 18px 6px 18px' : '18px 18px 18px 6px',
+                              boxShadow: isOwn ? '0 2px 12px rgba(255,179,71,0.18)' : '0 2px 12px rgba(0,0,0,0.18)',
+                              maxWidth: '70%',
+                              minWidth: 60,
+                              wordBreak: 'break-word',
+                              position: 'relative',
+                              transition: 'background 0.2s',
+                            }}
+                          >
+                            <img src={msg.content} alt="Вложение" style={{ maxWidth: '100%', borderRadius: 8, display: 'block' }} />
+                            <Typography variant="caption" sx={{ color: isOwn ? 'rgba(35,37,38,0.5)' : 'rgba(255,255,255,0.5)', display: 'block', textAlign: isOwn ? 'right' : 'left', mt: 0.5 }}>
+                              {new Date(msg.createdAt).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}
+                              {isOwn && msg.isRead && (
+                                <DoneAllIcon 
+                                  sx={{ 
+                                    color: '#fff', 
+                                    fontSize: 16, 
+                                    marginLeft: 6, 
+                                    verticalAlign: 'middle' 
+                                  }} 
+                                />
+                              )}
+                            </Typography>
+                          </Paper>
+                        </Box>
+                      );
+                    }
                     return (
                       <Box
                         key={msg.id}
@@ -498,31 +583,44 @@ const DirectMessages = () => {
               }
               <div ref={messagesEndRef} />
             </Box>
-            <Box sx={{ p: 2, borderTop: '1px solid #ffb347', display: 'flex', gap: 1, bgcolor: 'rgba(255,179,71,0.07)' }}>
-              <TextField
-                fullWidth
-                size="small"
-                placeholder="Введите сообщение..."
-                value={newMessage}
-                onChange={handleInputChange}
-                onKeyDown={e => { if (e.key === 'Enter') handleSend(); }}
-                inputProps={{ maxLength: 256 }}
-                error={inputError}
-                helperText={inputHelper}
-                sx={{
-                  bgcolor: 'rgba(0,0,0,0.18)',
-                  input: { color: '#fff' },
-                  '& .MuiOutlinedInput-root': {
-                    '& fieldset': { borderColor: inputError ? '#f44336' : '#ffb347' },
-                    '&:hover fieldset': { borderColor: inputError ? '#f44336' : '#ffd580' },
-                    '&.Mui-focused fieldset': { borderColor: inputError ? '#f44336' : '#ffb347' }
-                  }
-                }}
-                disabled={sending}
-              />
-              <IconButton color="primary" onClick={handleSend} disabled={sending || !newMessage.trim()} sx={{ bgcolor: '#ffb347', color: '#000', '&:hover': { bgcolor: '#ffd580' } }}>
-                <SendIcon />
-              </IconButton>
+            <Box sx={{ p: 2, borderTop: '1px solid #ffb347', display: 'flex', flexDirection: 'column', gap: 1, bgcolor: 'rgba(255,179,71,0.07)' }}>
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  placeholder="Введите сообщение..."
+                  value={newMessage}
+                  onChange={handleInputChange}
+                  onKeyDown={e => { if (e.key === 'Enter') handleSend(); }}
+                  inputProps={{ maxLength: 256 }}
+                  error={inputError}
+                  helperText={inputHelper}
+                  sx={{
+                    bgcolor: 'rgba(0,0,0,0.18)',
+                    input: { color: '#fff' },
+                    '& .MuiOutlinedInput-root': {
+                      '& fieldset': { borderColor: inputError ? '#f44336' : '#ffb347' },
+                      '&:hover fieldset': { borderColor: inputError ? '#f44336' : '#ffd580' },
+                      '&.Mui-focused fieldset': { borderColor: inputError ? '#f44336' : '#ffb347' }
+                    }
+                  }}
+                  disabled={sending}
+                  onPaste={handlePaste}
+                />
+                <IconButton color="primary" onClick={handleSend} disabled={sending || !newMessage.trim()} sx={{ bgcolor: '#ffb347', color: '#000', '&:hover': { bgcolor: '#ffd580' } }}>
+                  <SendIcon />
+                </IconButton>
+              </Box>
+              <Box sx={{ textAlign: 'right', mt: 0.5 }}>
+                <Typography variant="caption" sx={{
+                  color:
+                    newMessage.length === 256 ? '#f44336'
+                    : newMessage.length >= 236 ? '#ff9800'
+                    : 'rgba(255,255,255,0.7)'
+                }}>
+                  {newMessage.length}/256 символов
+                </Typography>
+              </Box>
             </Box>
           </>
         ) : (

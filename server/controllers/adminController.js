@@ -120,7 +120,7 @@ exports.issueSquadWarning = async (req, res) => {
       squadId,
       adminId: req.user.id,
       reason,
-      description
+      description: description ? description.slice(0, 150) : null
     });
     
     // Создаем запись в истории отряда
@@ -213,7 +213,7 @@ exports.issueUserWarning = async (req, res) => {
       userId,
       adminId: req.user.id,
       reason,
-      description
+      description: description ? description.slice(0, 150) : null
     });
     // Создать уведомление
     if (Notification) {

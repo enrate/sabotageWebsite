@@ -267,7 +267,7 @@ const AdminUsers = ({ users, setUsers }) => {
       const token = localStorage.getItem('token');
       await axios.post(`/api/admin/users/${warningDialog.userId}/warnings`, {
         reason: warningReason,
-        description: warningDescription
+        description: warningDescription.slice(0, 150)
       }, {
         headers: token ? { Authorization: `Bearer ${token}` } : {}
       });
@@ -751,10 +751,12 @@ const AdminUsers = ({ users, setUsers }) => {
           <TextField
             label="Описание (необязательно)"
             value={warningDescription}
-            onChange={(e) => setWarningDescription(e.target.value)}
+            onChange={e => setWarningDescription(e.target.value.slice(0, 150))}
             multiline
             rows={3}
             fullWidth
+            inputProps={{ maxLength: 150 }}
+            helperText={`${warningDescription.length}/150 символов`}
           />
           {warningError && <Alert severity="error" sx={{ mt: 2 }}>{warningError}</Alert>}
           {warningSuccess && <Alert severity="success" sx={{ mt: 2 }}>{warningSuccess}</Alert>}
@@ -791,7 +793,7 @@ const AdminUsers = ({ users, setUsers }) => {
                     primary={w.reason + (!w.isActive ? ' (снято)' : '')}
                     secondary={
                       <>
-                        {w.description && <span>{w.description}<br /></span>}
+                        {w.description && <span style={{wordBreak: 'break-word', overflowWrap: 'anywhere', whiteSpace: 'pre-line', display: 'block'}}>{w.description}<br /></span>}
                         <span style={{ color: '#888', fontSize: 13 }}>
                           Выдано: {w.admin?.username || '—'} | {new Date(w.createdAt).toLocaleString()}
                           {!w.isActive && w.canceledByAdmin && (

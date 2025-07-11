@@ -163,7 +163,7 @@ const AdminSquads = ({ squads, setSquads }) => {
       const token = localStorage.getItem('token');
       await axios.post(`/api/admin/squads/${warningDialog.squadId}/warnings`, {
         reason: warningReason,
-        description: warningDescription
+        description: warningDescription.slice(0, 150)
       }, {
         headers: token ? { Authorization: `Bearer ${token}` } : {}
       });
@@ -663,10 +663,12 @@ const AdminSquads = ({ squads, setSquads }) => {
             <TextField
               label="Описание (необязательно)"
               value={warningDescription}
-              onChange={(e) => setWarningDescription(e.target.value)}
+              onChange={e => setWarningDescription(e.target.value.slice(0, 150))}
               multiline
               rows={3}
               fullWidth
+              inputProps={{ maxLength: 150 }}
+              helperText={`${warningDescription.length}/150 символов`}
               sx={{
                 '& .MuiOutlinedInput-root': {
                   '& fieldset': {

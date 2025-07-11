@@ -505,7 +505,7 @@ const ProfilePage = () => {
                           Причина: {w.reason || '—'}
                         </Typography>
                         {w.description && (
-                          <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)', mb: 0.5 }}>
+                          <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)', mb: 0.5, wordBreak: 'break-all' }}>
                             {w.description}
                           </Typography>
                         )}

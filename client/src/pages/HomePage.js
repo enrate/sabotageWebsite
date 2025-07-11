@@ -20,7 +20,8 @@ import {
   useTheme,
   useMediaQuery,
   Chip,
-  Avatar
+  Avatar,
+  Divider
 } from '@mui/material';
 import {
   Chat as ChatIcon,
@@ -279,7 +280,7 @@ const HomePage = () => {
           {/* Центральная колонка — новости */}
           <Grid item xs style={{ minWidth: 0, flex: 1, maxWidth: 900, mx: 'auto' }}>
             <Box ref={newsContainerRef}>
-              <Typography variant="h4" sx={{ color: '#ffb347', fontWeight: 700, mb: 3 }}>
+              <Typography variant="h4" sx={{ color: '#ffb347', fontWeight: 700, mb: 4, textAlign: 'center' }}>
                 Новости
               </Typography>
               {news.length === 0 && !loading && (
@@ -288,25 +289,110 @@ const HomePage = () => {
               {/* Список новостей в столбец */}
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, width: '100%', maxWidth: 900, mx: 'auto' }}>
                 {news.map(item => (
-                  <Card key={item.id} elevation={2} sx={{ width: '100%', maxWidth: 900, mx: 'auto', display: 'flex', flexDirection: 'column', transition: 'all 0.3s ease', '&:hover': { elevation: 8, transform: 'translateY(-4px)' } }}>
-                    <CardContent sx={{ flexGrow: 1, p: 3 }}>
-                      {/* Заголовок */}
-                      <Link to={`/news/${item.id}`} style={{ textDecoration: 'none' }}>
-                        <Typography variant="h6" component="h2" sx={{ color: '#ffb347', fontWeight: 600, mb: 2, lineHeight: 1.3, minHeight: '3rem', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', transition: 'color 0.2s', cursor: 'pointer', '&:hover': { color: '#ffd580' } }}>
+                  <Paper
+                    key={item.id}
+                    elevation={8}
+                    sx={{
+                      p: 4,
+                      mb: 2,
+                      background: 'rgba(0, 0, 0, 0.3)',
+                      borderRadius: 3,
+                      backdropFilter: 'blur(10px)',
+                      border: '1px solid rgba(255, 179, 71, 0.2)',
+                      transition: 'all 0.3s ease',
+                      boxShadow: '0 8px 32px 0 rgba(255,179,71,0.18), 0 2px 10px rgba(0,0,0,0.16)',
+                      '&:hover': {
+                        boxShadow: '0 12px 40px 0 rgba(255,179,71,0.22), 0 4px 16px rgba(0,0,0,0.18)',
+                        borderColor: '#ffd580',
+                        transform: 'translateY(-4px) scale(1.01)'
+                      }
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 3 }}>
+                      <Avatar
+                        sx={{
+                          mr: 3,
+                          bgcolor: '#ffb347',
+                          width: 56,
+                          height: 56
+                        }}
+                      >
+                        <PersonIcon sx={{ fontSize: 28 }} />
+                      </Avatar>
+                      <Box sx={{ flex: 1 }}>
+                        <Typography
+                          variant="h5"
+                          component="h2"
+                          sx={{
+                            color: '#ffb347',
+                            fontWeight: 700,
+                            mb: 1.5,
+                            lineHeight: 1.2
+                          }}
+                        >
                           {item.title}
                         </Typography>
-                      </Link>
-                      {/* Контент */}
-                      <Box sx={{ color: 'rgba(255, 255, 255, 0.8)', mb: 3, lineHeight: 1.6, minHeight: '4.8rem', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden', '& img': { maxWidth: '100%', height: 'auto' }, '& video': { maxWidth: '100%', height: 'auto' } }} dangerouslySetInnerHTML={{ __html: item.content.length > 200 ? item.content.substring(0, 200) + '...' : item.content }} />
-                      {/* Метаданные */}
-                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Chip icon={<ScheduleIcon />} label={new Date(item.createdAt).toLocaleDateString('ru-RU', { year: 'numeric', month: 'long', day: 'numeric' })} size="small" sx={{ bgcolor: 'rgba(255, 179, 71, 0.1)', color: '#ffb347', border: '1px solid rgba(255, 179, 71, 0.3)', '& .MuiChip-icon': { color: '#ffb347' } }} />
-                          <Chip icon={<PersonIcon />} label={item.author?.username || 'Неизвестно'} size="small" sx={{ bgcolor: 'rgba(255, 255, 255, 0.1)', color: 'rgba(255, 255, 255, 0.8)', border: '1px solid rgba(255, 255, 255, 0.2)', '& .MuiChip-icon': { color: 'rgba(255, 255, 255, 0.6)' } }} />
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+                          <Chip
+                            icon={<ScheduleIcon />}
+                            label={new Date(item.createdAt).toLocaleDateString('ru-RU', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                            size="small"
+                            sx={{
+                              bgcolor: 'rgba(255, 179, 71, 0.1)',
+                              color: '#ffb347',
+                              border: '1px solid rgba(255, 179, 71, 0.3)',
+                              '& .MuiChip-icon': { color: '#ffb347' }
+                            }}
+                          />
+                          <Chip
+                            icon={<PersonIcon />}
+                            label={item.author?.username || 'Неизвестно'}
+                            size="small"
+                            sx={{
+                              bgcolor: 'rgba(255, 255, 255, 0.1)',
+                              color: 'rgba(255, 255, 255, 0.8)',
+                              border: '1px solid rgba(255, 255, 255, 0.2)',
+                              '& .MuiChip-icon': { color: 'rgba(255, 255, 255, 0.6)' }
+                            }}
+                          />
                         </Box>
                       </Box>
-                    </CardContent>
-                  </Card>
+                    </Box>
+                    <Divider sx={{ mb: 3, borderColor: 'rgba(255, 179, 71, 0.2)' }} />
+                    <Box
+                      sx={{
+                        mb: 2,
+                        lineHeight: 1.7,
+                        color: 'rgba(255, 255, 255, 0.9)',
+                        fontSize: '1.08rem',
+                        minHeight: '4.8rem',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 6, // было 4, теперь 6 строк
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                        '& img': { maxWidth: '100%', height: 'auto', borderRadius: 2, my: 2 },
+                        '& video': { maxWidth: '100%', height: 'auto', borderRadius: 2, my: 2 }
+                      }}
+                      dangerouslySetInnerHTML={{ __html: item.content }}
+                    />
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                      <Button
+                        component={Link}
+                        to={`/news/${item.id}`}
+                        size="small"
+                        variant="outlined"
+                        sx={{ color: '#ffb347', borderColor: '#ffb347', fontWeight: 600, '&:hover': { bgcolor: 'rgba(255,179,71,0.08)', borderColor: '#ffd580', color: '#ffd580' } }}
+                      >
+                        Читать полностью
+                      </Button>
+                    </Box>
+                  </Paper>
                 ))}
               </Box>
               {newsLoading && (

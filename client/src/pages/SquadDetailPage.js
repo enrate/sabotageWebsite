@@ -1294,7 +1294,7 @@ const SquadDetailPage = () => {
                           >
                             <ListItemText
                               primary={
-                                <Typography sx={{ color: '#fff', fontWeight: 600 }}>
+                                <Typography sx={{ color: '#fff', fontWeight: 600, wordBreak: 'break-all' }}>
                                   {event.description}
                                   {event.metadata?.actionByUsername && (
                                     <Typography component="span" sx={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '0.875rem', ml: 1 }}>
