@@ -20,7 +20,8 @@ const generateVerificationToken = () => {
 // Отправка email для подтверждения
 const sendVerificationEmail = async (email, username, token) => {
   const verificationUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/verify-email?token=${token}`;
-  
+  console.log(verificationUrl);
+
   const mailOptions = {
     from: `"Sabotage Group" <${process.env.SMTP_USER}>`,
     to: email,
