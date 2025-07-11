@@ -9,6 +9,14 @@ module.exports = {
         SOCKET_PORT: 5001
       },
       watch: false
+    },
+    {
+      name: 'email-worker',
+      script: './server/cron/emailWorker.js',
+      env: {
+        NODE_ENV: 'production'
+      },
+      watch: false
     }
   ]
 }; 
