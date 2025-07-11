@@ -87,6 +87,9 @@ const SquadPage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
+  const [invitesChecking, setInvitesChecking] = useState(false);
+
+  // Основной useEffect для загрузки данных по табу
   useEffect(() => {
     if (tab === 0) {
       setLoading(true);
@@ -99,16 +102,6 @@ const SquadPage = () => {
       axios.get('/api/users/looking-for-squad').then(res => {
         setLookingUsers(res.data);
         setLoadingUsers(false);
-        
-        // Проверяем приглашения для всех пользователей
-        if (currentUser && currentUser.squadId && currentUser.squadRole && 
-            (currentUser.squadRole === 'leader' || currentUser.squadRole === 'deputy')) {
-          res.data.forEach(user => {
-            if (canInviteToSquad(user)) {
-              checkExistingInvite(currentUser.squadId, user.id);
-            }
-          });
-        }
       }).catch(() => setLoadingUsers(false));
     } else if (tab === 2 && currentUser && !currentUser.squadId) {
       setInvitesLoading(true);
@@ -120,7 +113,26 @@ const SquadPage = () => {
         .catch(() => setInvitesError('Ошибка загрузки приглашений'))
         .finally(() => setInvitesLoading(false));
     }
-  }, [tab, currentUser]);
+  }, [tab]);
+
+  // useEffect для проверки приглашений только после загрузки lookingUsers и если пользователь лидер/заместитель
+  useEffect(() => {
+    if (
+      tab === 1 &&
+      currentUser &&
+      currentUser.squadId &&
+      (currentUser.squadRole === 'leader' || currentUser.squadRole === 'deputy') &&
+      lookingUsers.length > 0
+    ) {
+      setInvitesChecking(true);
+      Promise.all(
+        lookingUsers.map(user => canInviteToSquad(user) ? checkExistingInvite(currentUser.squadId, user.id) : Promise.resolve())
+      ).then(() => setInvitesChecking(false));
+    } else {
+      setInvitesChecking(false);
+    }
+    // eslint-disable-next-line
+  }, [tab, currentUser, lookingUsers]);
 
   // --- Новый useEffect для открытия таба приглашений по state ---
   useEffect(() => {
@@ -559,32 +571,32 @@ const SquadPage = () => {
           </>
         )}
         {tab === 1 && (
-          <Box>
-            {/* Поиск игроков */}
-            <Box sx={{ display: 'flex', justifyContent: 'center', mb: 4 }}>
-              <input
-                type="text"
-                placeholder="Поиск игрока..."
-                value={searchPlayer}
-                onChange={e => setSearchPlayer(e.target.value)}
-                style={{
-                  width: '100%',
-                  maxWidth: 400,
-                  padding: '12px',
-                  borderRadius: '4px',
-                  border: '1px solid rgba(255, 179, 71, 0.3)',
-                  background: 'rgba(0, 0, 0, 0.3)',
-                  color: '#fff',
-                  fontSize: '1rem',
-                  outline: 'none'
-                }}
-              />
+          (loadingUsers || invitesChecking) ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+              <Loader />
             </Box>
-            {loadingUsers ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-                <Loader />
+          ) : (
+            <Box>
+              {/* Поиск игроков */}
+              <Box sx={{ display: 'flex', justifyContent: 'center', mb: 4 }}>
+                <input
+                  type="text"
+                  placeholder="Поиск игрока..."
+                  value={searchPlayer}
+                  onChange={e => setSearchPlayer(e.target.value)}
+                  style={{
+                    width: '100%',
+                    maxWidth: 400,
+                    padding: '12px',
+                    borderRadius: '4px',
+                    border: '1px solid rgba(255, 179, 71, 0.3)',
+                    background: 'rgba(0, 0, 0, 0.3)',
+                    color: '#fff',
+                    fontSize: '1rem',
+                    outline: 'none'
+                  }}
+                />
               </Box>
-            ) : (
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, width: '100%' }}>
                 {lookingUsers.filter(user =>
                   !searchPlayer ||
@@ -604,7 +616,7 @@ const SquadPage = () => {
                       Игроки, ищущие отряд, появятся здесь
                     </Typography>
                   </Box>
-                ) : (
+                ) :
                   lookingUsers.filter(user =>
                     !searchPlayer ||
                     (user.username && user.username.toLowerCase().includes(searchPlayer.toLowerCase())) ||
@@ -652,9 +664,9 @@ const SquadPage = () => {
                               }}
                             >
                               {!user.avatar && <PersonIcon sx={{ fontSize: 36 }} />}
-                        {user.avatar && (user.username?.charAt(0)?.toUpperCase() || 'U')}
-                      </Avatar>
-                      <Box sx={{ flex: 1 }}>
+                              {user.avatar && (user.username?.charAt(0)?.toUpperCase() || 'U')}
+                            </Avatar>
+                            <Box sx={{ flex: 1 }}>
                               <Typography
                                 variant="h6"
                                 sx={{
@@ -665,7 +677,7 @@ const SquadPage = () => {
                                 }}
                               >
                                 {user.username}
-                          </Typography>
+                              </Typography>
                               <Chip
                                 label="В поиске отряда"
                                 size="small"
@@ -849,14 +861,14 @@ const SquadPage = () => {
                               {inviteError[user.id]}
                             </Typography>
                           )}
-                      </Box>
-                    </Card>
+                        </Box>
+                      </Card>
                     </Box>
                   ))
-                )}
+                }
               </Box>
-            )}
-          </Box>
+            </Box>
+          )
         )}
         {tab === 2 && currentUser && !currentUser.squadId && (
           <Box sx={{ mt: 2 }}>
