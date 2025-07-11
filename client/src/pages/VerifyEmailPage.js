@@ -17,7 +17,7 @@ import ErrorIcon from '@mui/icons-material/Error';
 const VerifyEmailPage = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, updateUser } = useAuth();
   const [status, setStatus] = useState('loading'); // 'loading' | 'success' | 'error'
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
@@ -42,6 +42,13 @@ const VerifyEmailPage = () => {
       // Автоматический вход после подтверждения
       if (response.data.token) {
         localStorage.setItem('token', response.data.token);
+        // Получаем пользователя с новым токеном
+        try {
+          const userRes = await axios.get('/api/auth/user', {
+            headers: { Authorization: `Bearer ${response.data.token}` }
+          });
+          updateUser(userRes.data);
+        } catch {}
         navigate('/');
       }
       
