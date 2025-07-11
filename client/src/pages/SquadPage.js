@@ -502,7 +502,12 @@ const SquadPage = () => {
                           sx={{
                             color: 'rgba(255, 255, 255, 0.8)',
                             mb: 2,
-                            lineHeight: 1.5
+                            lineHeight: 1.5,
+                            wordBreak: 'break-word', // перенос длинных слов
+                            display: '-webkit-box',
+                            WebkitLineClamp: 1,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden'
                           }}
                         >
                           {squad.description || 'Описание отряда отсутствует'}

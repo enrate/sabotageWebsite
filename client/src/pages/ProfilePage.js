@@ -23,7 +23,8 @@ import {
   Card,
   CardContent,
   LinearProgress,
-  Button
+  Button,
+  Popover
 } from '@mui/material';
 import {
   Person as PersonIcon,
@@ -73,7 +74,8 @@ const ProfilePage = () => {
   const [userStats, setUserStats] = useState(null);
   const [seasonalStats, setSeasonalStats] = useState(null);
   const [loadingSeasonalStats, setLoadingSeasonalStats] = useState(false);
-  
+  const [warningsAnchor, setWarningsAnchor] = useState(null);
+
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const navigate = useNavigate();
@@ -201,6 +203,14 @@ const ProfilePage = () => {
       setCheckingInvite(false);
     }
   };
+
+  const handleWarningsClick = (event) => {
+    setWarningsAnchor(event.currentTarget);
+  };
+  const handleWarningsClose = () => {
+    setWarningsAnchor(null);
+  };
+  const warningsOpen = Boolean(warningsAnchor);
 
   if (loading) return (
     <Container maxWidth="lg" sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -472,9 +482,40 @@ const ProfilePage = () => {
 
               {userWarnings.length > 0 && (
                 <Box sx={{ mt: isMobile ? 1 : 3, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Typography variant="caption" sx={{ color: '#ff9800', fontWeight: 500, fontSize: '0.92rem' }}>
+                  <Button
+                    variant="text"
+                    onClick={handleWarningsClick}
+                    sx={{ color: '#ff9800', fontWeight: 500, fontSize: '0.92rem', textTransform: 'none', p: 0, minWidth: 0, '&:hover': { bgcolor: 'rgba(255,152,0,0.08)' } }}
+                  >
                     Активных предупреждений: {userWarnings.length}
-                  </Typography>
+                  </Button>
+                  <Popover
+                    open={warningsOpen}
+                    anchorEl={warningsAnchor}
+                    onClose={handleWarningsClose}
+                    disableScrollLock={true}
+                    anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+                    transformOrigin={{ vertical: 'top', horizontal: 'center' }}
+                    PaperProps={{ sx: { p: 2, bgcolor: 'rgba(30,30,30,0.98)', color: '#fff', borderRadius: 3, minWidth: 270, maxWidth: 350, boxShadow: '0 6px 32px 0 rgba(255,179,71,0.18), 0 2px 12px rgba(0,0,0,0.18)', border: '1px solid #ff9800' } }}
+                  >
+                    <Typography sx={{ color: '#ff9800', fontWeight: 700, mb: 1 }}>Активные предупреждения</Typography>
+                    {userWarnings.map((w, idx) => (
+                      <Box key={w.id || idx} sx={{ mb: 2, pb: 1, borderBottom: idx < userWarnings.length-1 ? '1px solid #444' : 'none' }}>
+                        <Typography variant="body2" sx={{ color: '#fff', fontWeight: 600, mb: 0.5 }}>
+                          Причина: {w.reason || '—'}
+                        </Typography>
+                        {w.description && (
+                          <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)', mb: 0.5 }}>
+                            {w.description}
+                          </Typography>
+                        )}
+                        <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.7)' }}>
+                          Выдал: {w.admin?.username || '—'}<br/>
+                          Дата: {w.createdAt ? new Date(w.createdAt).toLocaleString('ru-RU', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}
+                        </Typography>
+                      </Box>
+                    ))}
+                  </Popover>
                 </Box>
               )}
             </Box>
@@ -505,9 +546,10 @@ const ProfilePage = () => {
             <Paper 
               elevation={0}
               sx={{
-                background: 'rgba(0, 0, 0, 0.2)',
-                borderRadius: '32px 32px 0 0',
-                borderBottom: '1px solid rgba(255, 179, 71, 0.2)',
+                background: 'rgba(0, 0, 0, 0.1)',
+                //borderRadius: '32px 32px 0 0',
+                border: 0,
+                //borderBottom: '1px solid rgba(255, 179, 71, 0.2)',
                 overflow: 'hidden'
               }}
             >
@@ -518,14 +560,14 @@ const ProfilePage = () => {
                 sx={{
                   '& .MuiTab-root': {
                     color: 'rgba(255, 255, 255, 0.7)',
-                    textAlign: 'left',
-                    alignItems: 'flex-start',
-                    justifyContent: 'flex-start',
+                    textAlign: 'center', // центрируем текст
+                    alignItems: 'center', // центрируем иконку и текст
+                    justifyContent: 'center', // центрируем содержимое таба
                     minHeight: 48,
                     fontSize: '1rem',
                     fontWeight: 500,
-                    paddingLeft: 3,
-                    borderRadius: '32px 32px 0 0',
+                    paddingLeft: 0, // убираем лишний отступ
+                    borderRadius: 0,
                     '&.Mui-selected': {
                       color: '#ffb347',
                       fontWeight: 600

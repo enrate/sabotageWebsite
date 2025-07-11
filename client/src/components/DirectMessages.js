@@ -28,6 +28,8 @@ const DirectMessages = () => {
   const selectedUserRef = React.useRef(selectedUser);
   const currentUserRef = React.useRef(currentUser);
   const pendingReadIds = React.useRef(new Set());
+  const [inputError, setInputError] = useState(false);
+  const [inputHelper, setInputHelper] = useState('');
 
   useEffect(() => { selectedUserRef.current = selectedUser; }, [selectedUser]);
   useEffect(() => { currentUserRef.current = currentUser; }, [currentUser]);
@@ -296,6 +298,18 @@ const DirectMessages = () => {
     }
   }, [messages]);
 
+  const handleInputChange = (e) => {
+    const val = e.target.value;
+    if (val.length > 256) {
+      setInputError(true);
+      setInputHelper('Максимум 256 символов');
+      setTimeout(() => setInputError(false), 1500);
+      setTimeout(() => setInputHelper(''), 2000);
+      return;
+    }
+    setNewMessage(val);
+  };
+
   return (
     <Box sx={{
       display: 'flex',
@@ -490,16 +504,18 @@ const DirectMessages = () => {
                 size="small"
                 placeholder="Введите сообщение..."
                 value={newMessage}
-                onChange={e => setNewMessage(e.target.value.slice(0, 256))}
+                onChange={handleInputChange}
                 onKeyDown={e => { if (e.key === 'Enter') handleSend(); }}
                 inputProps={{ maxLength: 256 }}
+                error={inputError}
+                helperText={inputHelper}
                 sx={{
                   bgcolor: 'rgba(0,0,0,0.18)',
                   input: { color: '#fff' },
                   '& .MuiOutlinedInput-root': {
-                    '& fieldset': { borderColor: '#ffb347' },
-                    '&:hover fieldset': { borderColor: '#ffd580' },
-                    '&.Mui-focused fieldset': { borderColor: '#ffb347' }
+                    '& fieldset': { borderColor: inputError ? '#f44336' : '#ffb347' },
+                    '&:hover fieldset': { borderColor: inputError ? '#f44336' : '#ffd580' },
+                    '&.Mui-focused fieldset': { borderColor: inputError ? '#f44336' : '#ffb347' }
                   }
                 }}
                 disabled={sending}

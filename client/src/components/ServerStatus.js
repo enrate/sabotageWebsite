@@ -127,33 +127,6 @@ const ServerStatus = ({ server }) => {
                 fontSize: '0.85rem'
               }}
             >
-              Карта:
-            </Typography>
-            <Typography
-              variant="body2"
-              sx={{
-                color: '#ffb347',
-                fontWeight: 600,
-                fontSize: '0.85rem',
-                maxWidth: '60%',
-                textAlign: 'right',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap'
-              }}
-            >
-              {server.map || 'Не указан'}
-            </Typography>
-          </Box>
-          
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography
-              variant="body2"
-              sx={{
-                color: 'rgba(255, 255, 255, 0.8)',
-                fontSize: '0.85rem'
-              }}
-            >
               Игроков:
             </Typography>
             <Typography

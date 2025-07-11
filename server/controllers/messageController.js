@@ -85,7 +85,8 @@ exports.sendMessage = async (req, res) => {
         senderUsername: fullMessage.sender.username,
         messageId: fullMessage.id
       },
-      isRead: false
+      isRead: false,
+      message: 'Вам пришло новое сообщение'
     });
     res.status(201).json(fullMessage);
   } catch (err) {

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 import { useNavigate, Link } from 'react-router-dom';
 import ServerStatus from '../components/ServerStatus';
@@ -54,6 +54,8 @@ const HomePage = () => {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
   const [showArmaIdSnackbar, setShowArmaIdSnackbar] = useState(false);
+  const [newsToShow, setNewsToShow] = useState(4);
+  const newsContainerRef = useRef(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -81,6 +83,27 @@ const HomePage = () => {
       setShowArmaIdSnackbar(true);
     }
   }, [currentUser]);
+
+  // Подгрузка новостей при скролле
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!newsContainerRef.current) return;
+      const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+      if (scrollTop + clientHeight >= scrollHeight - 100) {
+        setNewsToShow(prev => {
+          if (prev < news.length) return Math.min(prev + 4, news.length);
+          return prev;
+        });
+      }
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [news.length]);
+
+  // Сброс newsToShow при обновлении новостей
+  useEffect(() => {
+    setNewsToShow(4);
+  }, [news]);
 
   const SocialBanner = ({ icon: Icon, title, description, link, color, bgColor }) => (
     <Card
@@ -280,13 +303,8 @@ const HomePage = () => {
                   </Typography>
                 </Paper>
               ) : (
-                <Box sx={{ 
-                  display: 'flex', 
-                  flexDirection: 'column',
-                  gap: 3,
-                  width: '100%'
-                }}>
-                  {news.map((item) => (
+                <Box ref={newsContainerRef} sx={{ display: 'flex', flexDirection: 'column', gap: 3, width: '100%' }}>
+                  {news.slice(0, newsToShow).map((item) => (
                     <Card
                       key={item.id}
                       elevation={8}
@@ -390,6 +408,13 @@ const HomePage = () => {
                       </CardContent>
                     </Card>
                   ))}
+                  {newsToShow < news.length && (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', my: 2 }}>
+                      <Button variant="outlined" onClick={() => setNewsToShow(prev => Math.min(prev + 4, news.length))} sx={{ color: '#ffb347', borderColor: '#ffb347', '&:hover': { bgcolor: 'rgba(255,179,71,0.08)', borderColor: '#ffd580' } }}>
+                        Показать ещё
+                      </Button>
+                    </Box>
+                  )}
                 </Box>
               )}
             </Box>

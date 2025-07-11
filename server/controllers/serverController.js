@@ -27,7 +27,6 @@ function updateServerCache() {
       status: 'online',
       players: state.players.length,
       maxPlayers: state.maxplayers,
-      map: state.map,
       game: state.raw ? state.raw.game : undefined,
       version: state.raw ? state.raw.version : undefined,
       raw: state

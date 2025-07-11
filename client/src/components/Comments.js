@@ -26,6 +26,7 @@ import {
   Person as PersonIcon
 } from '@mui/icons-material';
 import Loader from './Loader';
+import MiniProfile from './MiniProfile';
 
 const Comments = ({ newsId }) => {
   const { currentUser } = useAuth();
@@ -38,6 +39,18 @@ const Comments = ({ newsId }) => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [miniProfile, setMiniProfile] = useState({ open: false, anchorEl: null, user: null, stats: null });
+  const [loadingStats, setLoadingStats] = useState(false);
+  const [seasonId, setSeasonId] = useState(null);
+
+  // Получаем id текущего сезона для новостей (один раз при монтировании)
+  useEffect(() => {
+    axios.get('/api/seasons').then(res => {
+      if (res.data && res.data.length) {
+        setSeasonId(res.data[res.data.length - 1].id);
+      }
+    });
+  }, []);
 
   // Эмодзи для быстрого вставки
   const emojis = [
@@ -204,6 +217,27 @@ const Comments = ({ newsId }) => {
     return currentUser && (comment.user.id === currentUser.id || currentUser.role === 'admin');
   };
 
+  const handleMiniProfileOpen = async (event, user) => {
+    if (!user) return;
+    setMiniProfile({ open: true, anchorEl: event.currentTarget, user, stats: null });
+    if (!seasonId) return;
+    setLoadingStats(true);
+    try {
+      const res = await axios.get(`/api/seasons/player-stats`, { params: { userId: user.id, seasonId } });
+      setMiniProfile(prev => ({ ...prev, stats: res.data }));
+    } catch {
+      setMiniProfile(prev => ({ ...prev, stats: null }));
+    } finally {
+      setLoadingStats(false);
+    }
+  };
+  const handleMiniProfileClose = () => {
+    setMiniProfile({ open: false, anchorEl: null, user: null, stats: null });
+  };
+  const handleSendMessage = (user) => {
+    window.location.href = `/messages?user=${user.id}`;
+  };
+
   return (
     <Paper
       elevation={8}
@@ -326,15 +360,22 @@ const Comments = ({ newsId }) => {
               sx={{
                 bgcolor: comment.user.avatar ? 'transparent' : '#ffb347',
                 width: 40,
-                height: 40
+                height: 40,
+                cursor: 'pointer'
               }}
+              onClick={e => handleMiniProfileOpen(e, comment.user)}
             >
               {!comment.user.avatar && <PersonIcon />}
             </Avatar>
 
             <Box sx={{ flex: 1 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                <Typography variant="subtitle2" sx={{ color: '#ffb347', fontWeight: 600 }}>
+                <Typography variant="subtitle2" sx={{ color: '#ffb347', fontWeight: 600, cursor: 'pointer' }}
+                  onClick={e => handleMiniProfileOpen(e, comment.user)}
+                  tabIndex={0}
+                  onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') handleMiniProfileOpen(e, comment.user); }}
+                  aria-label={`Мини-профиль пользователя ${comment.user.username}`}
+                >
                   {comment.user.username}
                 </Typography>
                 <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.6)' }}>
@@ -528,15 +569,22 @@ const Comments = ({ newsId }) => {
                           sx={{
                             bgcolor: reply.user.avatar ? 'transparent' : '#ffb347',
                             width: 32,
-                            height: 32
+                            height: 32,
+                            cursor: 'pointer'
                           }}
+                          onClick={e => handleMiniProfileOpen(e, reply.user)}
                         >
                           {!reply.user.avatar && <PersonIcon />}
                         </Avatar>
 
                         <Box sx={{ flex: 1 }}>
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                            <Typography variant="caption" sx={{ color: '#ffb347', fontWeight: 600 }}>
+                            <Typography variant="caption" sx={{ color: '#ffb347', fontWeight: 600, cursor: 'pointer' }}
+                              onClick={e => handleMiniProfileOpen(e, reply.user)}
+                              tabIndex={0}
+                              onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') handleMiniProfileOpen(e, reply.user); }}
+                              aria-label={`Мини-профиль пользователя ${reply.user.username}`}
+                            >
                               {reply.user.username}
                             </Typography>
                             <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.6)' }}>
@@ -645,6 +693,15 @@ const Comments = ({ newsId }) => {
           </Typography>
         </Paper>
       )}
+      <MiniProfile
+        user={miniProfile.user}
+        seasonStats={miniProfile.stats}
+        anchorEl={miniProfile.anchorEl}
+        open={miniProfile.open}
+        onClose={handleMiniProfileClose}
+        onSendMessage={handleSendMessage}
+        currentUserId={currentUser?.id}
+      />
       </>}
     </Paper>
   );

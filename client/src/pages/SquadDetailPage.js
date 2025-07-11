@@ -1109,7 +1109,7 @@ const SquadDetailPage = () => {
                     </Typography>
                     <Divider sx={{ bgcolor: '#ffb347', height: 2, borderRadius: 1, mb: 3 }} />
                     
-                    <Typography variant="body1" sx={{ color: 'rgba(255, 255, 255, 0.8)', mb: 4 }}>
+                    <Typography variant="body1" sx={{ color: 'rgba(255, 255, 255, 0.8)', mb: 4, wordBreak: 'break-word', whiteSpace: 'pre-line', maxWidth: 600, mx: 'auto' }}>
                       {squad.description || 'Нет описания'}
                     </Typography>
                   </Box>
@@ -1290,9 +1290,6 @@ const SquadDetailPage = () => {
                               border: '1px solid rgba(255, 179, 71, 0.2)'
                             }}
                           >
-                            <ListItemAvatar>
-                              <Avatar src={event.user?.avatar || '/logo.png'} />
-                            </ListItemAvatar>
                             <ListItemText
                               primary={
                                 <Typography sx={{ color: '#fff', fontWeight: 600 }}>
