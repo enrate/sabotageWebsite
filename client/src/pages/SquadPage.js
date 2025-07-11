@@ -115,6 +115,20 @@ const SquadPage = () => {
     }
   }, [tab]);
 
+  // Изменённая функция checkExistingInvite
+  const checkExistingInvite = async (squadId, userId) => {
+    if (!currentUser) return { userId, hasInvite: false };
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`/api/squads/${squadId}/invite/check/${userId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      return { userId, hasInvite: response.data.hasInvite };
+    } catch (err) {
+      return { userId, hasInvite: false };
+    }
+  };
+
   // useEffect для проверки приглашений только после загрузки lookingUsers и если пользователь лидер/заместитель
   useEffect(() => {
     if (
@@ -126,8 +140,17 @@ const SquadPage = () => {
     ) {
       setInvitesChecking(true);
       Promise.all(
-        lookingUsers.map(user => canInviteToSquad(user) ? checkExistingInvite(currentUser.squadId, user.id) : Promise.resolve())
-      ).then(() => setInvitesChecking(false));
+        lookingUsers.map(user =>
+          canInviteToSquad(user)
+            ? checkExistingInvite(currentUser.squadId, user.id)
+            : Promise.resolve({ userId: user.id, hasInvite: false })
+        )
+      ).then(results => {
+        const hasInviteObj = {};
+        results.forEach(r => { hasInviteObj[r.userId] = r.hasInvite; });
+        setHasInvite(hasInviteObj);
+        setInvitesChecking(false);
+      });
     } else {
       setInvitesChecking(false);
     }
@@ -175,25 +198,6 @@ const SquadPage = () => {
         : squad
     ));
     setShowJoinModal(false);
-  };
-
-  // Функция проверки существующего приглашения
-  const checkExistingInvite = async (squadId, userId) => {
-    if (!currentUser) return;
-    
-    setCheckingInvite(prev => ({ ...prev, [userId]: true }));
-    try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(`/api/squads/${squadId}/invite/check/${userId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setHasInvite(prev => ({ ...prev, [userId]: response.data.hasInvite }));
-    } catch (err) {
-      console.error('Ошибка проверки приглашения:', err);
-      setHasInvite(prev => ({ ...prev, [userId]: false }));
-    } finally {
-      setCheckingInvite(prev => ({ ...prev, [userId]: false }));
-    }
   };
 
   // Функция приглашения пользователя в отряд
