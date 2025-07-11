@@ -781,7 +781,7 @@ const SquadPage = () => {
                           </Box>
                         </Box>
                         {/* Кнопки действий */}
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, px: 3, pb: 3 }}>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pb: 3 }}>
                           <Button
                             variant="outlined"
                             size="small"
@@ -811,11 +811,12 @@ const SquadPage = () => {
                               fullWidth
                               disabled
                               sx={{
-                                color: '#888',
-                                borderColor: '#bbb',
-                                background: 'rgba(255,255,255,0.08)',
-                                fontWeight: 600,
-                                opacity: 1
+                                color: '#fff',
+                                borderColor: '#ffb347',
+                                background: '#ffb347',
+                                fontWeight: 700,
+                                opacity: 1,
+                                boxShadow: '0 2px 8px 0 rgba(255,179,71,0.18)'
                               }}
                             >
                               Приглашение отправлено
