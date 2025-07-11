@@ -42,7 +42,7 @@ const VerifyEmailPage = () => {
       // Автоматический вход после подтверждения
       if (response.data.token) {
         localStorage.setItem('token', response.data.token);
-        window.location.reload();
+        navigate('/');
       }
       
       setStatus('success');
