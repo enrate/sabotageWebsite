@@ -9,6 +9,7 @@ import { useLocation } from 'react-router-dom';
 import { io as socketIO } from 'socket.io-client';
 import DoneAllIcon from '@mui/icons-material/DoneAll';
 import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
+import { useSocket } from '../context/SocketContext';
 
 const DirectMessages = () => {
   const { currentUser } = useAuth();
@@ -31,6 +32,7 @@ const DirectMessages = () => {
   const [inputError, setInputError] = useState(false);
   const [inputHelper, setInputHelper] = useState('');
   const [unreadCounts, setUnreadCounts] = useState({});
+  const socket = useSocket();
 
   useEffect(() => { selectedUserRef.current = selectedUser; }, [selectedUser]);
   useEffect(() => { currentUserRef.current = currentUser; }, [currentUser]);
@@ -202,14 +204,7 @@ const DirectMessages = () => {
 
   // --- SOCKET.IO ---
   useEffect(() => {
-    // Создаём сокет только один раз при монтировании
-    if (!socketRef.current) {
-      socketRef.current = socketIO(process.env.NODE_ENV === 'production' ? 'wss://sabotage-games.ru/socket.io' :'http://localhost:5001', {
-        auth: { token: localStorage.getItem('token') },
-        transports: ['websocket']
-      });
-    }
-    const socket = socketRef.current;
+    if (!socket) return;
     socket.on('connect', () => {
       console.log('[SOCKET] connected', socket.id);
     });
@@ -325,10 +320,11 @@ const DirectMessages = () => {
       }
     });
     return () => {
+      socket.off('connect');
       socket.off('new_message');
       socket.off('messages_read');
     };
-  }, []);
+  }, [socket]);
 
   useEffect(() => {
     if (pendingReadIds.current.size > 0 && messages.length > 0) {
