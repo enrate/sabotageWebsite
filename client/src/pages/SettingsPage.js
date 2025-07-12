@@ -389,6 +389,43 @@ const SettingsPage = () => {
               Для активации функции необходимо пройти верификацию (указать Arma ID)
             </Typography>
           )}
+          <Divider sx={{ my: 2, bgcolor: 'rgba(255,255,255,0.12)' }} />
+          <Box sx={{ width: '100%', mb: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
+            {/* Discord */}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, bgcolor: 'rgba(88,101,242,0.08)', borderRadius: 2, p: 1.5, border: '1px solid #5865f2', width: '100%' }}>
+              <img src="/discord-icon.png" alt="Discord" style={{ width: 28, height: 28 }} />
+              <Box sx={{ flex: 1 }}>
+                <Typography sx={{ color: '#fff', fontWeight: 500, fontSize: 16 }}>Discord</Typography>
+                {currentUser?.discordId ? (
+                  <Typography sx={{ color: '#b5baff', fontSize: 14 }}>Привязан: {currentUser.discordUsername}</Typography>
+                ) : (
+                  <Typography sx={{ color: '#b5baff', fontSize: 14 }}>Не привязан</Typography>
+                )}
+              </Box>
+              {currentUser?.discordId ? (
+                <Button variant="outlined" color="secondary" onClick={handleDiscordUnlink} sx={{ borderColor: '#5865f2', color: '#5865f2', minWidth: 120, '&:hover': { borderColor: '#7a88fa', color: '#7a88fa' } }}>
+                  Отвязать
+                </Button>
+              ) : (
+                <Button variant="contained" onClick={handleDiscordLink} sx={{ bgcolor: '#5865f2', color: '#fff', fontWeight: 600, minWidth: 120, '&:hover': { bgcolor: '#7a88fa' } }}>
+                  Привязать
+                </Button>
+              )}
+            </Box>
+            {/* YouTube */}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, bgcolor: 'rgba(255,0,0,0.08)', borderRadius: 2, p: 1.5, border: '1px solid #ff0000', width: '100%' }}>
+              <img src="/youtube-icon.png" alt="YouTube" style={{ width: 28, height: 28 }} />
+              <img src="/youtube-logo.png" alt="YouTube Logo" style={{ height: 22, marginLeft: 4 }} />
+              <Box sx={{ flex: 1 }}>
+                <Typography sx={{ color: '#fff', fontWeight: 500, fontSize: 16 }}>YouTube</Typography>
+                <Typography sx={{ color: '#ffb3b3', fontSize: 14 }}>Не привязан</Typography>
+              </Box>
+              <Button variant="contained" onClick={handleYoutubeLink} sx={{ bgcolor: '#ff0000', color: '#fff', fontWeight: 600, minWidth: 120, '&:hover': { bgcolor: '#ff4444' } }}>
+                Привязать
+              </Button>
+            </Box>
+          </Box>
+          <Divider sx={{ my: 2, bgcolor: 'rgba(255,255,255,0.12)' }} />
           <Box sx={{ display: 'flex', gap: 2, mt: 2, justifyContent: 'flex-end' }}>
             <Button variant="contained" color="primary" type="submit" startIcon={saving ? <CircularProgress size={18} /> : <SaveIcon />} disabled={saving} sx={{ bgcolor: '#ffb347', color: '#232526', '&:hover': { bgcolor: '#ffd580' } }}>
               Сохранить
@@ -487,34 +524,6 @@ const SettingsPage = () => {
         </div>
       )}
         </Container>
-      </Box>
-
-      {/* Секция Discord */}
-      <Box sx={{ width: '100%', mb: 2, mt: 2, display: 'flex', alignItems: 'center', gap: 2, bgcolor: 'rgba(88,101,242,0.08)', borderRadius: 2, p: 2, border: '1px solid #5865f2' }}>
-        <img src="/discord-icon.png" alt="Discord" style={{ width: 32, height: 32 }} />
-        {currentUser?.discordId ? (
-          <>
-            <Typography sx={{ color: '#fff', fontWeight: 500 }}>
-              Discord: {currentUser.discordUsername || 'Привязан'}
-            </Typography>
-            <Button variant="outlined" color="secondary" onClick={handleDiscordUnlink} sx={{ borderColor: '#5865f2', color: '#5865f2', ml: 2, '&:hover': { borderColor: '#7a88fa', color: '#7a88fa' } }}>
-              Отвязать
-            </Button>
-          </>
-        ) : (
-          <Button variant="contained" onClick={handleDiscordLink} sx={{ bgcolor: '#5865f2', color: '#fff', fontWeight: 600, ml: 2, '&:hover': { bgcolor: '#7a88fa' } }}>
-            Привязать Discord
-          </Button>
-        )}
-      </Box>
-
-      {/* Секция YouTube */}
-      <Box sx={{ width: '100%', mb: 2, display: 'flex', alignItems: 'center', gap: 2, bgcolor: 'rgba(255,0,0,0.08)', borderRadius: 2, p: 2, border: '1px solid #ff0000' }}>
-        <img src="/youtube-icon.png" alt="YouTube" style={{ width: 32, height: 32 }} />
-        <img src="/youtube-logo.png" alt="YouTube Logo" style={{ height: 28, marginLeft: 4 }} />
-        <Button variant="contained" onClick={handleYoutubeLink} sx={{ bgcolor: '#ff0000', color: '#fff', fontWeight: 600, ml: 2, '&:hover': { bgcolor: '#ff4444' } }}>
-          Привязать YouTube
-        </Button>
       </Box>
     </Box>
   );
