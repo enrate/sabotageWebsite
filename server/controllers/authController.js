@@ -87,6 +87,8 @@ exports.login = async (req, res) => {
     // Создание JWT токена
     const payload = { userId: user.id };
     const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1d' });
+    // Сохраняем userId в сессию для cookie-авторизации
+    if (req.session) req.session.userId = user.id;
     
     res.json({ 
       token, 

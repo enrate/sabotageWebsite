@@ -14,6 +14,7 @@ const utc = require('dayjs/plugin/utc');
 const path = require('path');
 const { processKillEvent } = require('./controllers/killLogController');
 const { processMatchResults } = require('./controllers/matchResultController');
+const session = require('express-session');
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -23,6 +24,12 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'supersecret',
+  resave: false,
+  saveUninitialized: false,
+  cookie: { maxAge: 7 * 24 * 60 * 60 * 1000 } // 7 дней
+}));
 
 // Подключение к PostgreSQL
 sequelize.authenticate()

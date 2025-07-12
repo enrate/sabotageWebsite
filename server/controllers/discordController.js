@@ -9,7 +9,8 @@ const DISCORD_SCOPE = 'identify';
 
 // 1. Редирект на Discord OAuth2
 exports.startOAuth = (req, res) => {
-  const userId = req.user.id;
+  const userId = req.session && req.session.userId;
+  if (!userId) return res.status(401).send('Not authorized');
   const state = userId; // Можно добавить CSRF protection
   const url = `https://discord.com/api/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&redirect_uri=${encodeURIComponent(DISCORD_REDIRECT_URI)}&response_type=code&scope=${DISCORD_SCOPE}&state=${state}`;
   res.redirect(url);
@@ -18,7 +19,8 @@ exports.startOAuth = (req, res) => {
 // 2. Callback от Discord
 exports.handleCallback = async (req, res) => {
   const { code, state } = req.query;
-  if (!code || !state) return res.status(400).json({ error: 'Нет кода авторизации или state' });
+  const userId = req.session && req.session.userId;
+  if (!code || !state || !userId) return res.status(400).json({ error: 'Нет кода авторизации, state или userId' });
   try {
     // Получаем access_token
     const tokenRes = await axios.post('https://discord.com/api/oauth2/token', null, {
@@ -42,7 +44,7 @@ exports.handleCallback = async (req, res) => {
     await User.update({
       discordId: id,
       discordUsername: `${username}#${discriminator}`
-    }, { where: { id: req.user.id } });
+    }, { where: { id: userId } });
     // Можно редиректить на фронт с успехом
     res.redirect('/settings?discord=success');
   } catch (err) {
