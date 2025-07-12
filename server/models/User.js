@@ -117,6 +117,17 @@ module.exports = (sequelize) => {
       type: DataTypes.DATE,
       allowNull: true,
       comment: 'Срок действия токена подтверждения email'
+    },
+    discordId: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      unique: true,
+      comment: 'Discord ID пользователя'
+    },
+    discordUsername: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'Discord username пользователя'
     }
   }, {
     tableName: 'users',

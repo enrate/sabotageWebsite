@@ -11,6 +11,7 @@ const commentRoutes = require('./commentRoutes');
 const messageRoutes = require('./messageRoutes');
 const notificationRoutes = require('./notificationRoutes');
 const seasonRoutes = require('./seasonRoutes');
+const discordRoutes = require('./discordRoutes');
 
 router.use('/auth', authRoutes);
 router.use('/news', newsRoutes);
@@ -23,5 +24,6 @@ router.use('/comments', commentRoutes);
 router.use('/messages', messageRoutes);
 router.use('/notifications', notificationRoutes);
 router.use('/seasons', seasonRoutes);
+router.use('/discord', discordRoutes);
 
 module.exports = router;

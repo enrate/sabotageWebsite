@@ -395,6 +395,14 @@ const ProfilePage = () => {
                   fontWeight: 600
                 }}
               />
+              {user.discordId && (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
+                  <img src="/discord-icon.png" alt="Discord" style={{ width: 22, height: 22 }} />
+                  <Typography sx={{ color: '#fff', fontWeight: 500, fontSize: '1rem' }}>
+                    {user.discordUsername || 'Discord привязан'}
+                  </Typography>
+                </Box>
+              )}
               {/* Информация о пользователе: верификация, отряд/статус, дни */}
               <Box sx={{ mt: isMobile ? 1 : 2, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: isMobile ? 0.5 : 1, color: 'rgba(255,255,255,0.85)', fontSize: '1rem', fontWeight: 500 }}>
                 <Divider sx={{ width: '100%', bgcolor: 'rgba(255,179,71,0.5)', my: isMobile ? 0.5 : 1 }} />
