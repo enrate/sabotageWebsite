@@ -9,6 +9,7 @@ const DISCORD_SCOPE = 'identify';
 
 // 1. Редирект на Discord OAuth2
 exports.startOAuth = (req, res) => {
+  console.log('SESSION DEBUG:', req.session);
   res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   res.set('Pragma', 'no-cache');
   res.set('Expires', '0');
