@@ -1,8 +1,8 @@
 .news-preview {
   background: rgba(35, 37, 38, 0.8);
   border-radius: 16px;
-  box-shadow: 0 6px 24px 0 rgba(255,179,71,0.16), 0 2px 10px rgba(0,0,0,0.14);
-  border: 2px solid #ffb347;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.14);
+  border: 1.5px solid #444;
   padding: 20px 18px;
   margin-bottom: 18px;
   max-width: 320px;
@@ -18,8 +18,8 @@
 }
 
 .news-preview:hover {
-  box-shadow: 0 10px 32px 0 rgba(255,179,71,0.22), 0 4px 16px rgba(0,0,0,0.18);
-  border-color: #ffd580;
+  box-shadow: 0 6px 24px 0 rgba(255,179,71,0.10), 0 4px 16px rgba(0,0,0,0.18);
+  border-color: #888;
 }
 
 .news-preview h3 {

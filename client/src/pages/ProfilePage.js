@@ -396,12 +396,20 @@ const ProfilePage = () => {
                 }}
               />
               {user.discordId && (
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
-                  <img src="/discord-icon.png" alt="Discord" style={{ width: 22, height: 22 }} />
-                  <Typography sx={{ color: '#fff', fontWeight: 500, fontSize: '1rem' }}>
-                    {user.discordUsername || 'Discord привязан'}
-                  </Typography>
-                </Box>
+                <a
+                  href={`https://discord.com/users/${user.discordId}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ textDecoration: 'none' }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
+                    <img src="/discord-icon.png" alt="Discord" style={{ width: 22, height: 22 }} />
+                    <Typography sx={{ color: '#fff', fontWeight: 500, fontSize: '1rem' }}>
+                      {/* Обрезаем # и цифры после него */}
+                      {user.discordUsername ? user.discordUsername.replace(/#\d{4,}$/,'') : 'Discord привязан'}
+                    </Typography>
+                  </Box>
+                </a>
               )}
               {/* Информация о пользователе: верификация, отряд/статус, дни */}
               <Box sx={{ mt: isMobile ? 1 : 2, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: isMobile ? 0.5 : 1, color: 'rgba(255,255,255,0.85)', fontSize: '1rem', fontWeight: 500 }}>

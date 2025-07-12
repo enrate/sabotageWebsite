@@ -23,18 +23,18 @@ const sendVerificationEmail = async (email, username, token) => {
   const verificationUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/verify-email?token=${token}`;
 
   const mailOptions = {
-    from: `"Sabotage Group" <${process.env.SMTP_USER}>`,
+    from: `"Sabotage Games" <${process.env.SMTP_USER}>`,
     to: email,
-    subject: 'Подтверждение регистрации - Sabotage Group',
+    subject: 'Подтверждение регистрации - Sabotage Games',
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f4f4f4;">
         <div style="background-color: #232526; color: #ffb347; padding: 20px; text-align: center; border-radius: 10px 10px 0 0;">
-          <h1 style="margin: 0; font-size: 24px;">Sabotage Group</h1>
+          <h1 style="margin: 0; font-size: 24px;">Sabotage Games</h1>
         </div>
         <div style="background-color: white; padding: 30px; border-radius: 0 0 10px 10px;">
           <h2 style="color: #333; margin-bottom: 20px;">Добро пожаловать, ${username}!</h2>
           <p style="color: #666; line-height: 1.6; margin-bottom: 20px;">
-            Спасибо за регистрацию на сайте Sabotage Group. Для завершения регистрации необходимо подтвердить ваш email адрес.
+            Спасибо за регистрацию на сайте Sabotage Games. Для завершения регистрации необходимо подтвердить ваш email адрес.
           </p>
           <div style="text-align: center; margin: 30px 0;">
             <a href="${verificationUrl}" 
@@ -70,13 +70,13 @@ const sendPasswordResetEmail = async (email, username, token) => {
   const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password?token=${token}`;
   
   const mailOptions = {
-    from: `"Sabotage Group" <${process.env.SMTP_USER}>`,
+    from: `"Sabotage Games" <${process.env.SMTP_USER}>`,
     to: email,
-    subject: 'Сброс пароля - Sabotage Group',
+    subject: 'Сброс пароля - Sabotage Games',
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f4f4f4;">
         <div style="background-color: #232526; color: #ffb347; padding: 20px; text-align: center; border-radius: 10px 10px 0 0;">
-          <h1 style="margin: 0; font-size: 24px;">Sabotage Group</h1>
+          <h1 style="margin: 0; font-size: 24px;">Sabotage Games</h1>
         </div>
         <div style="background-color: white; padding: 30px; border-radius: 0 0 10px 10px;">
           <h2 style="color: #333; margin-bottom: 20px;">Сброс пароля</h2>

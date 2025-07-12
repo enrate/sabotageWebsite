@@ -199,7 +199,7 @@ const Navbar = ({ onOpenAuthModal, notifications = [], onNotificationClick, mark
             <Box
               component="img"
               src="/logo.png"
-              alt="Sabotage Group Logo"
+              alt="Sabotage Games Logo"
               sx={{
                 height: 40,
                 width: 'auto',
@@ -227,7 +227,7 @@ const Navbar = ({ onOpenAuthModal, notifications = [], onNotificationClick, mark
                 }
               }}
             >
-              Sabotage Group
+              Sabotage Games
             </Typography>
           </Box>
 

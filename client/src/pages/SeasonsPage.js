@@ -324,7 +324,7 @@ const SeasonsPage = () => {
             borderRadius: 3,
             backdropFilter: 'blur(10px)',
             border: '1px solid rgba(255, 179, 71, 0.2)',
-            boxShadow: '0 6px 32px 0 rgba(255,179,71,0.18), 0 2px 12px rgba(0,0,0,0.18)',
+            boxShadow: '0 2px 10px rgba(0,0,0,0.18)',
             color: '#fff',
             position: 'relative'
           }}>
@@ -347,7 +347,7 @@ const SeasonsPage = () => {
           borderRadius: 3,
           backdropFilter: 'blur(10px)',
           border: '1px solid rgba(255, 179, 71, 0.2)',
-          boxShadow: '0 6px 32px 0 rgba(255,179,71,0.18), 0 2px 12px rgba(0,0,0,0.18)',
+          boxShadow: '0 2px 10px rgba(0,0,0,0.18)',
           color: '#fff',
           minHeight: 400,
           overflow: 'hidden',
