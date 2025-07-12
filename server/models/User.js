@@ -128,6 +128,17 @@ module.exports = (sequelize) => {
       type: DataTypes.STRING,
       allowNull: true,
       comment: 'Discord username пользователя'
+    },
+    twitchId: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      unique: true,
+      comment: 'Twitch ID пользователя'
+    },
+    twitchUsername: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'Twitch username пользователя'
     }
   }, {
     tableName: 'users',

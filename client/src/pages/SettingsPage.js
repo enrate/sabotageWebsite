@@ -83,6 +83,33 @@ const SettingsPage = () => {
     }
   }, [currentUser]);
 
+  // Обработка URL параметров для OAuth2
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const discordStatus = urlParams.get('discord');
+    const twitchStatus = urlParams.get('twitch');
+    
+    if (discordStatus === 'success') {
+      setSuccess('Discord успешно привязан!');
+      // Обновляем пользователя
+      if (currentUser) {
+        updateUser({ ...currentUser, discordId: 'temp', discordUsername: 'temp' });
+      }
+    } else if (discordStatus === 'error') {
+      setError('Ошибка привязки Discord');
+    }
+    
+    if (twitchStatus === 'success') {
+      setSuccess('Twitch успешно привязан!');
+      // Обновляем пользователя
+      if (currentUser) {
+        updateUser({ ...currentUser, twitchId: 'temp', twitchUsername: 'temp' });
+      }
+    } else if (twitchStatus === 'error') {
+      setError('Ошибка привязки Twitch');
+    }
+  }, [currentUser, updateUser]);
+
   const handleFormChange = (e) => {
     const { name, value, type, checked } = e.target;
     setForm(prev => ({ 
@@ -199,6 +226,21 @@ const SettingsPage = () => {
       setSuccess('Discord отвязан');
     } catch (err) {
       setError('Ошибка при отвязке Discord');
+    }
+  };
+
+  const handleTwitchLink = () => {
+    window.location.href = '/twitch/start';
+  };
+
+  const handleTwitchUnlink = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post('/twitch/unlink', {}, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+      updateUser({ ...currentUser, twitchId: null, twitchUsername: null });
+      setSuccess('Twitch отвязан');
+    } catch (err) {
+      setError('Ошибка при отвязке Twitch');
     }
   };
 
@@ -408,6 +450,27 @@ const SettingsPage = () => {
                 </Button>
               ) : (
                 <Button variant="contained" onClick={handleDiscordLink} sx={{ bgcolor: '#5865f2', color: '#fff', fontWeight: 600, minWidth: 120, '&:hover': { bgcolor: '#7a88fa' } }}>
+                  Привязать
+                </Button>
+              )}
+            </Box>
+            {/* Twitch */}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, bgcolor: 'rgba(147,51,234,0.08)', borderRadius: 2, p: 1.5, border: '1px solid #9333ea', width: '100%' }}>
+              <img src="/twitch-icon.png" alt="Twitch" style={{ width: 28, height: 28 }} />
+              <Box sx={{ flex: 1 }}>
+                <Typography sx={{ color: '#fff', fontWeight: 500, fontSize: 16 }}>Twitch</Typography>
+                {currentUser?.twitchId ? (
+                  <Typography sx={{ color: '#c4b5fd', fontSize: 14 }}>Привязан: {currentUser.twitchUsername}</Typography>
+                ) : (
+                  <Typography sx={{ color: '#c4b5fd', fontSize: 14 }}>Не привязан</Typography>
+                )}
+              </Box>
+              {currentUser?.twitchId ? (
+                <Button variant="outlined" color="secondary" onClick={handleTwitchUnlink} sx={{ borderColor: '#9333ea', color: '#9333ea', minWidth: 120, '&:hover': { borderColor: '#a855f7', color: '#a855f7' } }}>
+                  Отвязать
+                </Button>
+              ) : (
+                <Button variant="contained" onClick={handleTwitchLink} sx={{ bgcolor: '#9333ea', color: '#fff', fontWeight: 600, minWidth: 120, '&:hover': { bgcolor: '#a855f7' } }}>
                   Привязать
                 </Button>
               )}

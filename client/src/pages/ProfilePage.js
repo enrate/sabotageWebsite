@@ -410,6 +410,21 @@ const ProfilePage = () => {
                   </Box>
                 </a>
               )}
+              {user.twitchId && (
+                <a
+                  href={`https://twitch.tv/${user.twitchUsername}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ textDecoration: 'none' }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mt: 1 }}>
+                    <img src="/twitch-icon.png" alt="Twitch" style={{ width: 22, height: 22 }} />
+                    <Typography sx={{ color: '#fff', fontWeight: 500, fontSize: '1rem', textAlign: 'center' }}>
+                      {user.twitchUsername || 'Twitch привязан'}
+                    </Typography>
+                  </Box>
+                </a>
+              )}
               {/* Информация о пользователе: верификация, отряд/статус, дни */}
               <Box sx={{ mt: isMobile ? 1 : 2, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: isMobile ? 0.5 : 1, color: 'rgba(255,255,255,0.85)', fontSize: '1rem', fontWeight: 500 }}>
                 <Divider sx={{ width: '100%', bgcolor: 'rgba(255,179,71,0.5)', my: isMobile ? 0.5 : 1 }} />

@@ -133,8 +133,8 @@ exports.getUser = async (req, res) => {
       }
     }
     // Возвращаем только основные поля пользователя (без armaId, stats, verified)
-    const { id, username, email, role, squadId, avatar, description, isLookingForSquad, createdAt, armaId, discordId, discordUsername } = user;
-    res.json({ id, username, email, role, squadId, avatar, description, isLookingForSquad, createdAt, squadRole, armaId, discordId, discordUsername });
+    const { id, username, email, role, squadId, avatar, description, isLookingForSquad, createdAt, armaId, discordId, discordUsername, twitchId, twitchUsername } = user;
+res.json({ id, username, email, role, squadId, avatar, description, isLookingForSquad, createdAt, squadRole, armaId, discordId, discordUsername, twitchId, twitchUsername });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Ошибка сервера' });

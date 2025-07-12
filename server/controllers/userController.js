@@ -3,7 +3,7 @@ const { User } = require('../models');
 exports.getUserById = async (req, res) => {
   try {
     const user = await User.findByPk(req.params.id, {
-      attributes: ['id', 'username', 'avatar', 'role', 'description', 'email', 'squadId', 'createdAt', 'isLookingForSquad', 'armaId', 'discordId', 'discordUsername']
+      attributes: ['id', 'username', 'avatar', 'role', 'description', 'email', 'squadId', 'createdAt', 'isLookingForSquad', 'armaId', 'discordId', 'discordUsername', 'twitchId', 'twitchUsername']
     });
     if (!user) return res.status(404).json({ message: 'Пользователь не найден' });
     // Скрывать email, если не свой профиль и не админ
