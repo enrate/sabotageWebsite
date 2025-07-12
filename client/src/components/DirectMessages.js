@@ -30,6 +30,7 @@ const DirectMessages = () => {
   const pendingReadIds = React.useRef(new Set());
   const [inputError, setInputError] = useState(false);
   const [inputHelper, setInputHelper] = useState('');
+  const [unreadCounts, setUnreadCounts] = useState({});
 
   useEffect(() => { selectedUserRef.current = selectedUser; }, [selectedUser]);
   useEffect(() => { currentUserRef.current = currentUser; }, [currentUser]);
@@ -44,6 +45,21 @@ const DirectMessages = () => {
           headers: { Authorization: `Bearer ${token}` }
         });
         setDialogs(res.data);
+        
+        // Загружаем количество непрочитанных сообщений для каждого диалога
+        const unreadData = {};
+        for (const dialog of res.data) {
+          const otherId = dialog.sender.id === currentUser.id ? dialog.receiver.id : dialog.sender.id;
+          try {
+            const unreadRes = await axios.get(`/api/messages/unread/${otherId}`, {
+              headers: { Authorization: `Bearer ${token}` }
+            });
+            unreadData[otherId] = unreadRes.data.count;
+          } catch (err) {
+            unreadData[otherId] = 0;
+          }
+        }
+        setUnreadCounts(unreadData);
       } catch (err) {
         setDialogs([]);
       } finally {
@@ -51,7 +67,7 @@ const DirectMessages = () => {
       }
     };
     fetchDialogs();
-  }, []);
+  }, [currentUser.id]);
 
   // Открыть диалог по query-параметру user
   useEffect(() => {
@@ -105,6 +121,11 @@ const DirectMessages = () => {
       setMessages(prev => prev.map(m =>
         m.receiverId === currentUser.id ? { ...m, isRead: true } : m
       ));
+      // Сбросить счетчик непрочитанных для этого пользователя
+      setUnreadCounts(prev => ({
+        ...prev,
+        [user.id]: 0
+      }));
     } catch (err) {
       console.error('[DM] openChat: error loading chat', err);
       setMessages([]);
@@ -206,6 +227,11 @@ const DirectMessages = () => {
         axios.post(`/api/messages/read/${selectedUser.id}`, {}, {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         });
+        // Сбрасываем счетчик непрочитанных для открытого чата
+        setUnreadCounts(prev => ({
+          ...prev,
+          [msg.senderId]: 0
+        }));
       }
       // Обновлять только если сообщение связано с текущим пользователем
       if (
@@ -256,6 +282,14 @@ const DirectMessages = () => {
             ];
           }
         });
+        
+        // Обновить счетчики непрочитанных сообщений
+        if (msg.receiverId === currentUser?.id && !msg.isRead) {
+          setUnreadCounts(prev => ({
+            ...prev,
+            [msg.senderId]: (prev[msg.senderId] || 0) + 1
+          }));
+        }
       }
     });
     // Реактивное обновление статуса прочтения
@@ -275,6 +309,19 @@ const DirectMessages = () => {
             ? { ...m, isRead: true }
             : m
         ));
+      }
+    });
+    
+    // Обновление счетчиков непрочитанных при прочтении
+    socket.on('messages_read', ({ readerId, senderId, messageIds }) => {
+      if (readerId === currentUserRef.current?.id && messageIds.length > 0) {
+        setUnreadCounts(prev => {
+          const newCounts = { ...prev };
+          if (newCounts[senderId] !== undefined) {
+            newCounts[senderId] = Math.max(0, newCounts[senderId] - messageIds.length);
+          }
+          return newCounts;
+        });
       }
     });
     return () => {
@@ -378,9 +425,26 @@ const DirectMessages = () => {
             borderBottom: '1px solid #ffd580',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'flex-start',
+            justifyContent: 'space-between',
           }}>
             <Typography variant="h6" sx={{ color: '#fff', fontWeight: 700, letterSpacing: 1, fontSize: '1.25rem', m: 0 }}>Диалоги</Typography>
+            {Object.values(unreadCounts).reduce((sum, count) => sum + count, 0) > 0 && (
+              <Box sx={{
+                bgcolor: '#ffb347',
+                color: '#000',
+                borderRadius: '50%',
+                minWidth: 24,
+                height: 24,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '0.8rem',
+                fontWeight: 'bold',
+                px: 0.5
+              }}>
+                {Object.values(unreadCounts).reduce((sum, count) => sum + count, 0)}
+              </Box>
+            )}
           </Box>
           {loadingDialogs ? <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}><CircularProgress /></Box> :
             <List>
@@ -410,12 +474,7 @@ const DirectMessages = () => {
               )}
               {dialogs.map(dialog => {
                 const other = dialog.sender.id === currentUser.id ? dialog.receiver : dialog.sender;
-                // Индикатор непрочитанных
-                const unreadCount = messages.filter(m =>
-                  m.senderId === other.id &&
-                  m.receiverId === currentUser.id &&
-                  !m.isRead
-                ).length;
+                const unreadCount = unreadCounts[other.id] || 0;
                 return (
                   <React.Fragment key={other.id}>
                     <ListItem button selected={selectedUser?.id === other.id} onClick={() => openChat(other)} alignItems="flex-start"
@@ -425,19 +484,41 @@ const DirectMessages = () => {
                         '&:hover': {
                           background: 'rgba(255, 179, 71, 0.10)',
                         },
+                        ...(unreadCount > 0 && {
+                          background: 'rgba(255, 179, 71, 0.15)',
+                          borderLeft: '3px solid #ffb347',
+                        }),
                       }}
                     >
                       <ListItemAvatar>
                         <Avatar src={other.avatar} sx={{ bgcolor: other.avatar ? 'transparent' : '#ffb347' }} />
                       </ListItemAvatar>
                       <ListItemText
-                        primary={<span style={{ color: '#ffb347', fontWeight: 600 }}>{other.username}</span>}
+                        primary={
+                          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                            <span style={{ color: '#ffb347', fontWeight: 600 }}>{other.username}</span>
+                            {unreadCount > 0 && (
+                              <Box sx={{
+                                bgcolor: '#ffb347',
+                                color: '#000',
+                                borderRadius: '50%',
+                                minWidth: 20,
+                                height: 20,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '0.75rem',
+                                fontWeight: 'bold',
+                                px: 0.5
+                              }}>
+                                {unreadCount > 99 ? '99+' : unreadCount}
+                              </Box>
+                            )}
+                          </Box>
+                        }
                         secondary={dialog.content.length > 10 ? dialog.content.slice(0, 10) + '...' : dialog.content}
                         secondaryTypographyProps={{ style: { color: '#fff' } }}
                       />
-                      {unreadCount > 0 && (
-                        <FiberManualRecordIcon sx={{ color: '#ffb347', fontSize: 16, ml: 1 }} />
-                      )}
                     </ListItem>
                     <Divider component="li" sx={{ borderColor: 'rgba(255, 179, 71, 0.2)' }} />
                   </React.Fragment>

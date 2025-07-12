@@ -77,7 +77,7 @@ exports.sendMessage = async (req, res) => {
     console.log('[REDIS] publish new_message', fullMessage);
     await redis.publish('new_message', JSON.stringify(fullMessage));
     // --- Создать уведомление для получателя ---
-    await Notification.create({
+    const notification = await Notification.create({
       userId: receiverId,
       type: 'message',
       data: {
@@ -88,6 +88,9 @@ exports.sendMessage = async (req, res) => {
       isRead: false,
       message: 'Вам пришло новое сообщение'
     });
+    
+    // Публикация уведомления в Redis для real-time
+    await redis.publish('new_notification', JSON.stringify(notification));
     res.status(201).json(fullMessage);
   } catch (err) {
     console.error('SEND MESSAGE ERROR:', err);
@@ -124,5 +127,23 @@ exports.markAsRead = async (req, res) => {
     res.json({ message: 'Сообщения помечены как прочитанные' });
   } catch (err) {
     res.status(500).json({ message: 'Ошибка при обновлении статуса' });
+  }
+};
+
+// Получить количество непрочитанных сообщений от пользователя
+exports.getUnreadCount = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const otherId = req.params.userId;
+    const count = await Message.count({
+      where: {
+        senderId: otherId,
+        receiverId: userId,
+        isRead: false
+      }
+    });
+    res.json({ count });
+  } catch (err) {
+    res.status(500).json({ message: 'Ошибка при получении количества непрочитанных сообщений' });
   }
 }; 

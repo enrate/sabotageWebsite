@@ -100,11 +100,39 @@ function App() {
     }
   };
 
+  // Глобальный обработчик новых уведомлений
+  const handleGlobalNewNotification = (notification) => {
+    setNotifications(prev => [notification, ...prev]);
+    
+    // Показать toast уведомление
+    let message = '';
+    if (notification.type === 'message') {
+      message = `Новое сообщение от ${notification.data?.senderUsername || 'пользователя'}`;
+    } else if (notification.type === 'squad_invite') {
+      message = `Приглашение в отряд "${notification.data?.squadName || 'отряд'}"`;
+    } else if (notification.type === 'user_warning') {
+      message = `Вам выдано предупреждение: ${notification.data?.reason || 'нарушение правил'}`;
+    } else {
+      message = notification.message || 'Новое уведомление';
+    }
+    
+    handleShowSnackbar(message);
+    
+    // Воспроизвести звук уведомления
+    try {
+      const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT');
+      audio.volume = 0.3;
+      audio.play();
+    } catch (e) {
+      // Игнорируем ошибки воспроизведения звука
+    }
+  };
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <AuthProvider>
-        <SocketProvider onNewMessage={handleGlobalNewMessage}>
+        <SocketProvider onNewMessage={handleGlobalNewMessage} onNewNotification={handleGlobalNewNotification}>
         <Router>
           <div className="app-container">
               <Navbar onOpenAuthModal={() => setShowAuthModal(true)} notifications={notifications.filter(n => !n.isRead)} onNotificationClick={handleNotificationClick} markAllNotificationsRead={markAllNotificationsRead} />

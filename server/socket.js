@@ -43,6 +43,13 @@ function initSocket(server) {
     io.emit('new_message', data);
     console.log('[SOCKET] emit new_message from Redis', data);
   });
+  
+  // Подписка на Redis канал для новых уведомлений
+  redisSub.subscribe('new_notification', (message) => {
+    const data = JSON.parse(message);
+    io.emit('new_notification', data);
+    console.log('[SOCKET] emit new_notification from Redis', data);
+  });
   return io;
 }
 

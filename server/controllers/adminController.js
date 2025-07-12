@@ -218,13 +218,20 @@ exports.issueUserWarning = async (req, res) => {
     // Создать уведомление
     if (Notification) {
       const notifMessage = `Вам выдано предупреждение за "${reason}" от ${req.user.username}`;
-      await Notification.create({
+      const notification = await Notification.create({
         userId: userId,
         type: 'user_warning',
         data: { warningId: warning.id, reason, description },
         message: notifMessage,
         isRead: false
       });
+      
+      // Публикация уведомления в Redis для real-time
+      const { createClient } = require('redis');
+      const redis = createClient({ url: 'redis://localhost:6379' });
+      await redis.connect();
+      await redis.publish('new_notification', JSON.stringify(notification));
+      await redis.disconnect();
     }
     res.status(201).json(warning);
   } catch (err) {

@@ -11,5 +11,7 @@ router.get('/chat/:userId', protect, messageController.getChat);
 router.post('/', protect, messageController.sendMessage);
 // Пометить сообщения как прочитанные
 router.post('/read/:userId', protect, messageController.markAsRead);
+// Получить количество непрочитанных сообщений от пользователя
+router.get('/unread/:userId', protect, messageController.getUnreadCount);
 
 module.exports = router; 

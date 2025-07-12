@@ -6,7 +6,7 @@ const SocketContext = createContext(null);
 
 export const useSocket = () => useContext(SocketContext);
 
-export const SocketProvider = ({ onNewMessage, children }) => {
+export const SocketProvider = ({ onNewMessage, onNewNotification, children }) => {
   const { currentUser } = useAuth();
   const socketRef = useRef(null);
 
@@ -19,16 +19,27 @@ export const SocketProvider = ({ onNewMessage, children }) => {
     }
     const socket = socketRef.current;
     if (!socket) return;
+    
     const handleNewMessage = (msg) => {
       if (onNewMessage && msg.receiverId === currentUser?.id) {
         onNewMessage(msg);
       }
     };
+    
+    const handleNewNotification = (notification) => {
+      if (onNewNotification && notification.userId === currentUser?.id) {
+        onNewNotification(notification);
+      }
+    };
+    
     socket.on('new_message', handleNewMessage);
+    socket.on('new_notification', handleNewNotification);
+    
     return () => {
       socket.off('new_message', handleNewMessage);
+      socket.off('new_notification', handleNewNotification);
     };
-  }, [currentUser, onNewMessage]);
+  }, [currentUser, onNewMessage, onNewNotification]);
 
   return (
     <SocketContext.Provider value={socketRef.current}>

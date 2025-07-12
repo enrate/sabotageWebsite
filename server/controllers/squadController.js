@@ -876,7 +876,7 @@ exports.inviteToSquad = async (req, res) => {
 
     // Создать уведомление (если есть модель Notification)
     if (Notification) {
-      await Notification.create({
+      const notification = await Notification.create({
         userId: userId,
         type: 'squad_invite',
         data: {
@@ -889,6 +889,13 @@ exports.inviteToSquad = async (req, res) => {
         message: `Вас пригласили в отряд "${squad.name}"`,
         isRead: false
       });
+      
+      // Публикация уведомления в Redis для real-time
+      const { createClient } = require('redis');
+      const redis = createClient({ url: 'redis://localhost:6379' });
+      await redis.connect();
+      await redis.publish('new_notification', JSON.stringify(notification));
+      await redis.disconnect();
     }
 
     // Добавить в историю отряда

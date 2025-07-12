@@ -62,8 +62,18 @@ const Navbar = ({ onOpenAuthModal, notifications = [], onNotificationClick, mark
   
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
+  const [notificationAnimation, setNotificationAnimation] = useState(false);
 
   const [drawerOpen, setDrawerOpen] = useState(false);
+
+  // Анимация при получении новых уведомлений
+  useEffect(() => {
+    if (notifications.length > 0) {
+      setNotificationAnimation(true);
+      const timer = setTimeout(() => setNotificationAnimation(false), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [notifications.length]);
 
   const handleProfileClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -396,7 +406,15 @@ const Navbar = ({ onOpenAuthModal, notifications = [], onNotificationClick, mark
                     borderRadius: '50%',
                     '&:hover': {
                       bgcolor: 'rgba(255, 179, 71, 0.1)'
-                    }
+                    },
+                    ...(notificationAnimation && {
+                      animation: 'notificationPulse 1s ease-in-out',
+                      '@keyframes notificationPulse': {
+                        '0%': { transform: 'scale(1)' },
+                        '50%': { transform: 'scale(1.2)' },
+                        '100%': { transform: 'scale(1)' }
+                      }
+                    })
                   }}
                   aria-label="notifications"
                   onClick={handleNotifClick}
