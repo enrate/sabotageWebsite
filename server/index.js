@@ -20,6 +20,7 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 
 const app = express();
+app.set('trust proxy', 1); // доверять первому прокси для secure cookie
 
 // Middleware
 const corsOptions = {
