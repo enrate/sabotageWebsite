@@ -21,14 +21,22 @@ dayjs.extend(timezone);
 const app = express();
 
 // Middleware
-app.use(cors());
+const corsOptions = {
+  origin: 'https://sabotage-games.ru', // Укажи точный домен фронта
+  credentials: true
+};
+app.use(cors(corsOptions));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(session({
   secret: process.env.SESSION_SECRET || 'supersecret',
   resave: false,
   saveUninitialized: false,
-  cookie: { maxAge: 7 * 24 * 60 * 60 * 1000 } // 7 дней
+  cookie: {
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+    sameSite: 'none', // для работы между доменами по HTTPS
+    secure: true      // только по HTTPS
+  }
 }));
 
 // Подключение к PostgreSQL
