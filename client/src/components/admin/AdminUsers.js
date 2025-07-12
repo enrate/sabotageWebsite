@@ -562,7 +562,6 @@ const AdminUsers = ({ users, setUsers }) => {
                     sx={{ bgcolor: getRoleColor(user.role), color: '#fff', fontSize: '0.75rem' }}
                   />
                 </TableCell>
-                <TableCell sx={{ color: '#fff' }}>{user.elo || 1000}</TableCell>
                 <TableCell>
                   {user.isBanned ? (
                     <Chip icon={<BlockIcon />} label="Заблокирован" size="small" sx={{ bgcolor: '#f44336', color: '#fff', fontSize: '0.75rem' }} />

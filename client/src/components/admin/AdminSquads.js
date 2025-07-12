@@ -19,7 +19,12 @@ import {
   Chip,
   Avatar,
   Divider,
-  InputAdornment
+  InputAdornment,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody
 } from '@mui/material';
 import {
   Edit as EditIcon,
@@ -389,179 +394,75 @@ const AdminSquads = ({ squads, setSquads }) => {
       )}
 
       {/* Список отрядов */}
-      <Grid container spacing={3}>
-        {filteredSquads.map(squad => (
-          <Grid item xs={12} md={6} lg={4} key={squad.id}>
-            <Card sx={{ 
-              bgcolor: 'rgba(0, 0, 0, 0.2)', 
-              border: '1px solid rgba(255, 179, 71, 0.2)',
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column'
-            }}>
-              <CardContent sx={{ flexGrow: 1 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                  <Avatar
-                    src={squad.logo}
-                    sx={{ 
-                      width: 48, 
-                      height: 48, 
-                      border: '2px solid #ffb347',
-                      bgcolor: squad.logo ? 'transparent' : '#ffb347'
-                    }}
-                  >
+      <Box sx={{ mt: 3 }}>
+        <Table sx={{ minWidth: 900, background: 'rgba(0,0,0,0.15)', borderRadius: 2 }}>
+          <TableHead>
+            <TableRow>
+              <TableCell sx={{ color: '#ffb347', fontWeight: 700 }}>Логотип</TableCell>
+              <TableCell sx={{ color: '#ffb347', fontWeight: 700 }}>Название</TableCell>
+              <TableCell sx={{ color: '#ffb347', fontWeight: 700 }}>Описание</TableCell>
+              <TableCell sx={{ color: '#ffb347', fontWeight: 700 }}>Лидер</TableCell>
+              <TableCell sx={{ color: '#ffb347', fontWeight: 700 }}>Участников</TableCell>
+              <TableCell sx={{ color: '#ffb347', fontWeight: 700 }}>Статус</TableCell>
+              <TableCell sx={{ color: '#ffb347', fontWeight: 700 }}>Действия</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {filteredSquads.map(squad => (
+              <TableRow key={squad.id}>
+                <TableCell>
+                  <Avatar src={squad.logo} sx={{ width: 40, height: 40, bgcolor: squad.logo ? 'transparent' : '#ffb347' }}>
                     {!squad.logo && <GroupIcon />}
                   </Avatar>
-                  <Box sx={{ flexGrow: 1 }}>
-                    <Typography 
-                      variant="h6" 
-                      sx={{ 
-                        color: '#ffb347',
-                        cursor: 'pointer',
-                        '&:hover': {
-                          color: '#ffd700',
-                          textDecoration: 'underline'
-                        }
-                      }}
-                      onClick={() => handleSquadClick(squad.id)}
-                    >
-                      {squad.name}
-                    </Typography>
-                    <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
-                      {squad.description || 'Нет описания'}
-                    </Typography>
-                  </Box>
-                </Box>
-                
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 2 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <PersonIcon sx={{ fontSize: 16, color: '#4f8cff' }} />
-                    <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.8)' }}>
-                      Лидер: {squad.leader?.username || 'Неизвестно'}
-                    </Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <GroupIcon sx={{ fontSize: 16, color: '#4f8cff' }} />
-                    <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.8)' }}>
-                      Участников: {squad.members?.length || 0}
-                    </Typography>
-                  </Box>
-                  {squad.createdAt && (
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <SecurityIcon sx={{ fontSize: 16, color: '#4f8cff' }} />
-                      <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.8)' }}>
-                        Создан: {formatDate(squad.createdAt)}
-                      </Typography>
-                    </Box>
-                  )}
-                </Box>
-
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                  <Chip 
-                    label={squad.isJoinRequestOpen ? 'Набор открыт' : 'Набор закрыт'} 
-                    size="small"
-                    color={squad.isJoinRequestOpen ? "success" : "error"}
-                    sx={{ fontSize: '0.75rem' }}
-                  />
-                  {squad.tag && (
-                    <Chip 
-                      icon={<TagIcon />}
-                      label={squad.tag}
-                      size="small"
-                      sx={{
-                        bgcolor: 'rgba(156, 39, 176, 0.1)',
-                        color: '#9c27b0',
-                        fontSize: '0.75rem'
-                      }}
-                    />
-                  )}
-                  {squad.performance && squad.performance.length > 0 && (
-                    <Chip 
-                      label={`S${squad.performance[0].season}`}
-                      size="small"
-                      sx={{
-                        bgcolor: 'rgba(255, 179, 71, 0.1)',
-                        color: '#ffb347',
-                        fontSize: '0.75rem'
-                      }}
-                    />
-                  )}
-                  {warnings[squad.id] && warnings[squad.id].length > 0 && (
-                    <Chip 
-                      label={`${warnings[squad.id].length} предупреждений`}
-                      size="small"
-                      sx={{
-                        bgcolor: 'rgba(244, 67, 54, 0.1)',
-                        color: '#f44336',
-                        fontSize: '0.75rem'
-                      }}
-                    />
-                  )}
-                </Box>
-              </CardContent>
-              <Divider sx={{ borderColor: 'rgba(255, 179, 71, 0.2)' }} />
-              <CardActions sx={{ justifyContent: 'space-between', p: 2 }}>
-                <Box sx={{ display: 'flex', gap: 1 }}>
-                  <Button
-                    size="small"
+                </TableCell>
+                <TableCell>
+                  <Typography 
+                    sx={{ color: '#ffb347', fontWeight: 600, cursor: 'pointer', '&:hover': { color: '#ffd700', textDecoration: 'underline' } }}
                     onClick={() => handleSquadClick(squad.id)}
-                    startIcon={<OpenInNewIcon />}
-                    sx={{
-                      color: '#4caf50',
-                      '&:hover': {
-                        bgcolor: 'rgba(76, 175, 80, 0.1)'
-                      }
-                    }}
                   >
-                    Перейти
-                  </Button>
-                  <Button
-                    size="small"
-                    onClick={() => handleEdit(squad)}
-                    startIcon={<EditIcon />}
-                    sx={{
-                      color: '#4f8cff',
-                      '&:hover': {
-                        bgcolor: 'rgba(79, 140, 255, 0.1)'
-                      }
-                    }}
-                  >
-                    Редактировать
-                  </Button>
-                  <Button
-                    size="small"
-                    onClick={() => {
-                      setWarningDialog({ open: true, squadId: squad.id });
-                      loadSquadWarnings(squad.id);
-                    }}
-                    startIcon={<WarningIcon />}
-                    sx={{
-                      color: '#f44336',
-                      '&:hover': {
-                        bgcolor: 'rgba(244, 67, 54, 0.1)'
-                      }
-                    }}
-                  >
-                    Предупреждение
-                  </Button>
-                </Box>
-                <IconButton
-                  size="small"
-                  onClick={() => setDeleteDialog({ open: true, id: squad.id })}
-                  sx={{
-                    color: '#f44336',
-                    '&:hover': {
-                      bgcolor: 'rgba(244, 67, 54, 0.1)'
-                    }
-                  }}
-                >
-                  <DeleteIcon />
-                </IconButton>
-              </CardActions>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
+                    {squad.name}
+                  </Typography>
+                </TableCell>
+                <TableCell sx={{ color: '#fff', maxWidth: 200 }}>
+                  <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {squad.description || 'Нет описания'}
+                  </Typography>
+                </TableCell>
+                <TableCell sx={{ color: '#fff' }}>{squad.leader?.username || 'Неизвестно'}</TableCell>
+                <TableCell sx={{ color: '#fff' }}>{squad.members?.length || 0}</TableCell>
+                <TableCell>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                    <Chip 
+                      label={squad.isJoinRequestOpen ? 'Набор открыт' : 'Набор закрыт'} 
+                      size="small"
+                      color={squad.isJoinRequestOpen ? "success" : "error"}
+                      sx={{ fontSize: '0.75rem' }}
+                    />
+                    {squad.tag && (
+                      <Chip 
+                        icon={<TagIcon />}
+                        label={squad.tag}
+                        size="small"
+                        sx={{ bgcolor: 'rgba(156, 39, 176, 0.1)', color: '#9c27b0', fontSize: '0.75rem' }}
+                      />
+                    )}
+                  </Box>
+                </TableCell>
+                <TableCell>
+                  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                    <Button size="small" onClick={() => handleSquadClick(squad.id)} startIcon={<OpenInNewIcon />} sx={{ color: '#4caf50', '&:hover': { bgcolor: 'rgba(76, 175, 80, 0.1)' } }}>Перейти</Button>
+                    <Button size="small" onClick={() => handleEdit(squad)} startIcon={<EditIcon />} sx={{ color: '#4f8cff', '&:hover': { bgcolor: 'rgba(79, 140, 255, 0.1)' } }}>Редактировать</Button>
+                    <Button size="small" onClick={() => { setWarningDialog({ open: true, squadId: squad.id }); loadSquadWarnings(squad.id); }} startIcon={<WarningIcon />} sx={{ color: '#f44336', '&:hover': { bgcolor: 'rgba(244, 67, 54, 0.1)' } }}>Предупреждение</Button>
+                    <IconButton size="small" onClick={() => setDeleteDialog({ open: true, id: squad.id })} sx={{ color: '#f44336', '&:hover': { bgcolor: 'rgba(244, 67, 54, 0.1)' } }}>
+                      <DeleteIcon />
+                    </IconButton>
+                  </Box>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </Box>
 
       {/* Диалог подтверждения удаления */}
       <Dialog open={deleteDialog.open} onClose={() => setDeleteDialog({ open: false, id: null })}>

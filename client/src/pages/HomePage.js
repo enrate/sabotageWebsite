@@ -240,9 +240,9 @@ const HomePage = () => {
                       backdropFilter: 'blur(10px)',
                       border: '1px solid rgba(255, 179, 71, 0.2)',
                       transition: 'all 0.3s ease',
-                      boxShadow: '0 8px 32px 0 rgba(255,179,71,0.18), 0 2px 10px rgba(0,0,0,0.16)',
+                      //boxShadow: '0 8px 32px 0 rgba(255,179,71,0.18), 0 2px 10px rgba(0,0,0,0.16)',
                       '&:hover': {
-                        boxShadow: '0 12px 40px 0 rgba(255,179,71,0.22), 0 4px 16px rgba(0,0,0,0.18)',
+                        //boxShadow: '0 12px 40px 0 rgba(255,179,71,0.22), 0 4px 16px rgba(0,0,0,0.18)',
                         borderColor: '#ffd580',
                         transform: 'translateY(-4px) scale(1.01)'
                       }
