@@ -102,6 +102,13 @@ function App() {
 
   // Глобальный обработчик новых уведомлений
   const handleGlobalNewNotification = (notification) => {
+    // Не добавлять новое уведомление, если уже есть хотя бы одно непрочитанное сообщение
+    if (
+      notification.type === 'message' &&
+      notifications.some(n => n.type === 'message' && !n.isRead)
+    ) {
+      return;
+    }
     setNotifications(prev => [notification, ...prev]);
     
     // Показать toast уведомление
@@ -117,15 +124,6 @@ function App() {
     }
     
     handleShowSnackbar(message);
-    
-    // Воспроизвести звук уведомления
-    try {
-      const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT');
-      audio.volume = 0.3;
-      audio.play();
-    } catch (e) {
-      // Игнорируем ошибки воспроизведения звука
-    }
   };
 
   return (

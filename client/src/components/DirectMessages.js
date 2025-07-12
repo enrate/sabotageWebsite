@@ -512,7 +512,7 @@ const DirectMessages = () => {
                             )}
                           </Box>
                         }
-                        secondary={dialog.content.length > 10 ? dialog.content.slice(0, 10) + '...' : dialog.content}
+                        secondary={dialog.content.startsWith('data:image/') ? 'изображение' : (dialog.content.length > 10 ? dialog.content.slice(0, 10) + '...' : dialog.content)}
                         secondaryTypographyProps={{ style: { color: '#fff' } }}
                       />
                     </ListItem>

@@ -404,9 +404,8 @@ const ProfilePage = () => {
                 >
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
                     <img src="/discord-icon.png" alt="Discord" style={{ width: 22, height: 22 }} />
-                    <Typography sx={{ color: '#fff', fontWeight: 500, fontSize: '1rem' }}>
-                      {/* Обрезаем # и цифры после него */}
-                      {user.discordUsername ? user.discordUsername.replace(/#\d{4,}$/,'') : 'Discord привязан'}
+                    <Typography sx={{ color: '#fff', fontWeight: 500, fontSize: '1rem', textAlign: 'center' }}>
+                      {user.discordUsername ? user.discordUsername.replace(/#\d+$/, '') : 'Discord привязан'}
                     </Typography>
                   </Box>
                 </a>
