@@ -9,6 +9,10 @@ const DISCORD_SCOPE = 'identify';
 
 // 1. Редирект на Discord OAuth2
 exports.startOAuth = (req, res) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '0');
+  res.set('Surrogate-Control', 'no-store');
   const userId = req.session && req.session.userId;
   if (!userId) return res.status(401).send('Not authorized');
   const state = userId; // Можно добавить CSRF protection
