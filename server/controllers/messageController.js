@@ -75,7 +75,7 @@ exports.sendMessage = async (req, res) => {
     });
     // --- Публикация события в Redis ---
     console.log('[REDIS] publish new_message', fullMessage);
-    await redis.publish('new_message', JSON.stringify(fullMessage));
+    await redis.publish('new_message', JSON.stringify(fullMessage.toJSON()));
     // --- Создать уведомление для получателя ---
     const notification = await Notification.create({
       userId: receiverId,
