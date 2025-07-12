@@ -1,6 +1,7 @@
 require('dotenv').config();
 const axios = require('axios');
 const { User } = require('../models');
+const qs = require('querystring');
 
 const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID || 'YOUR_CLIENT_ID';
 const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET || 'YOUR_CLIENT_SECRET';
@@ -28,17 +29,19 @@ exports.handleCallback = async (req, res) => {
   if (!code || !state || !userId) return res.status(400).json({ error: 'Нет кода авторизации, state или userId' });
   try {
     // Получаем access_token
-    const tokenRes = await axios.post('https://discord.com/api/oauth2/token', null, {
-      params: {
+    const tokenRes = await axios.post('https://discord.com/api/oauth2/token',
+      qs.stringify({
         client_id: DISCORD_CLIENT_ID,
         client_secret: DISCORD_CLIENT_SECRET,
         grant_type: 'authorization_code',
         code,
         redirect_uri: DISCORD_REDIRECT_URI,
         scope: DISCORD_SCOPE
-      },
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-    });
+      }),
+      {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+      }
+    );
     const { access_token } = tokenRes.data;
     // Получаем инфу о пользователе
     const userRes = await axios.get('https://discord.com/api/users/@me', {
