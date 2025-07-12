@@ -188,26 +188,8 @@ const SettingsPage = () => {
     setSuccess(null);
   };
 
-  const handleDiscordLink = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      const res = await fetch('/discord/start', {
-        method: 'GET',
-        headers: token ? { Authorization: `Bearer ${token}` } : {}
-      });
-      if (res.redirected) {
-        window.location.href = res.url;
-      } else if (res.status === 200) {
-        const data = await res.json();
-        if (data.url) {
-          window.location.href = data.url;
-        }
-      } else {
-        setError('Ошибка при попытке привязать Discord');
-      }
-    } catch (err) {
-      setError('Ошибка при попытке привязать Discord');
-    }
+  const handleDiscordLink = () => {
+    window.location.href = '/discord/start';
   };
   const handleDiscordUnlink = async () => {
     try {
