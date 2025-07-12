@@ -28,7 +28,12 @@ import {
   ListItem,
   ListItemText,
   Switch,
-  FormControlLabel
+  FormControlLabel,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody
 } from '@mui/material';
 import {
   Edit as EditIcon,
@@ -519,161 +524,68 @@ const AdminUsers = ({ users, setUsers }) => {
       )}
 
       {/* Список пользователей */}
-      <Grid container spacing={3}>
-        {filteredUsers.map(user => (
-          <Grid item xs={12} md={6} lg={4} key={user.id}>
-            <Card sx={{ 
-              bgcolor: 'rgba(0, 0, 0, 0.2)', 
-              border: user.isBanned ? '1px solid #f44336' : '1px solid rgba(255, 179, 71, 0.2)',
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              opacity: user.isBanned ? 0.7 : 1
-            }}>
-              <CardContent sx={{ flexGrow: 1 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                  <Avatar
-                    src={user.avatar}
-                    sx={{ 
-                      width: 48, 
-                      height: 48, 
-                      border: '2px solid #ffb347',
-                      bgcolor: user.avatar ? 'transparent' : '#ffb347'
-                    }}
-                  >
+      <Box sx={{ mt: 3 }}>
+        <Table sx={{ minWidth: 900, background: 'rgba(0,0,0,0.15)', borderRadius: 2 }}>
+          <TableHead>
+            <TableRow>
+              <TableCell sx={{ color: '#ffb347', fontWeight: 700 }}>Аватар</TableCell>
+              <TableCell sx={{ color: '#ffb347', fontWeight: 700 }}>Имя</TableCell>
+              <TableCell sx={{ color: '#ffb347', fontWeight: 700 }}>Email</TableCell>
+              <TableCell sx={{ color: '#ffb347', fontWeight: 700 }}>Роль</TableCell>
+              <TableCell sx={{ color: '#ffb347', fontWeight: 700 }}>Рейтинг</TableCell>
+              <TableCell sx={{ color: '#ffb347', fontWeight: 700 }}>Статус</TableCell>
+              <TableCell sx={{ color: '#ffb347', fontWeight: 700 }}>Действия</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {filteredUsers.map(user => (
+              <TableRow key={user.id} sx={{ opacity: user.isBanned ? 0.7 : 1 }}>
+                <TableCell>
+                  <Avatar src={user.avatar} sx={{ width: 40, height: 40, bgcolor: user.avatar ? 'transparent' : '#ffb347' }}>
                     {!user.avatar && <PersonIcon />}
                   </Avatar>
-                  <Box sx={{ flexGrow: 1 }}>
-                    <Typography 
-                      variant="h6" 
-                      sx={{ 
-                        color: '#ffb347',
-                        cursor: 'pointer',
-                        '&:hover': {
-                          color: '#ffd700',
-                          textDecoration: 'underline'
-                        }
-                      }}
-                      onClick={() => handleUserClick(user.id)}
-                    >
-                      {user.username}
-                    </Typography>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
-                      <Chip
-                        icon={getRoleIcon(user.role)}
-                        label={getRoleLabel(user.role)}
-                        size="small"
-                        sx={{
-                          bgcolor: getRoleColor(user.role),
-                          color: '#fff',
-                          fontSize: '0.75rem'
-                        }}
-                      />
-                      {user.isBanned && (
-                        <Chip
-                          icon={<BlockIcon />}
-                          label="Заблокирован"
-                          size="small"
-                          sx={{
-                            bgcolor: '#f44336',
-                            color: '#fff',
-                            fontSize: '0.75rem'
-                          }}
-                        />
-                      )}
-                    </Box>
-                  </Box>
-                </Box>
-                
-                <Box sx={{ mb: 2 }}>
-                  <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
-                    {user.description || 'Нет описания'}
+                </TableCell>
+                <TableCell>
+                  <Typography 
+                    sx={{ color: '#ffb347', fontWeight: 600, cursor: 'pointer', '&:hover': { color: '#ffd700', textDecoration: 'underline' } }}
+                    onClick={() => handleUserClick(user.id)}
+                  >
+                    {user.username}
                   </Typography>
-                </Box>
-
-                <Divider sx={{ my: 2, borderColor: 'rgba(255, 179, 71, 0.2)' }} />
-
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <SecurityIcon sx={{ fontSize: 16, color: '#4f8cff' }} />
-                    <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.8)' }}>
-                      Email: {user.email || 'Не указан'}
-                    </Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <PersonIcon sx={{ fontSize: 16, color: '#4f8cff' }} />
-                    <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.8)' }}>
-                      Рейтинг: {user.elo || 1000}
-                    </Typography>
-                  </Box>
-                  {user.createdAt && (
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <SecurityIcon sx={{ fontSize: 16, color: '#4f8cff' }} />
-                      <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.8)' }}>
-                        Регистрация: {formatDate(user.createdAt)}
-                      </Typography>
-                    </Box>
+                </TableCell>
+                <TableCell sx={{ color: '#fff' }}>{user.email || '—'}</TableCell>
+                <TableCell>
+                  <Chip
+                    icon={getRoleIcon(user.role)}
+                    label={getRoleLabel(user.role)}
+                    size="small"
+                    sx={{ bgcolor: getRoleColor(user.role), color: '#fff', fontSize: '0.75rem' }}
+                  />
+                </TableCell>
+                <TableCell sx={{ color: '#fff' }}>{user.elo || 1000}</TableCell>
+                <TableCell>
+                  {user.isBanned ? (
+                    <Chip icon={<BlockIcon />} label="Заблокирован" size="small" sx={{ bgcolor: '#f44336', color: '#fff', fontSize: '0.75rem' }} />
+                  ) : (
+                    <Chip label="Активен" size="small" sx={{ bgcolor: '#4caf50', color: '#fff', fontSize: '0.75rem' }} />
                   )}
-                  {user.isBanned && user.banReason && (
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <WarningIcon sx={{ fontSize: 16, color: '#f44336' }} />
-                      <Typography variant="body2" sx={{ color: '#f44336' }}>
-                        Причина: {user.banReason}
-                      </Typography>
-                    </Box>
-                  )}
-                </Box>
-              </CardContent>
-
-              <CardActions sx={{ justifyContent: 'space-between', p: 2 }}>
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, width: '100%' }}>
-                  {/* Первый ряд */}
-                  <Box sx={{ display: 'flex', gap: 1, width: '100%' }}>
+                </TableCell>
+                <TableCell>
+                  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                     {user.isBanned ? (
-                      <Button
-                        size="small"
-                        onClick={() => handleUnban(user.id)}
-                        startIcon={<CheckCircleIcon />}
-                        sx={{ color: '#4caf50', '&:hover': { bgcolor: 'rgba(76, 175, 80, 0.1)' } }}
-                      >
-                        Разблокировать
-                      </Button>
+                      <Button size="small" onClick={() => handleUnban(user.id)} startIcon={<CheckCircleIcon />} sx={{ color: '#4caf50', '&:hover': { bgcolor: 'rgba(76, 175, 80, 0.1)' } }}>Разблокировать</Button>
                     ) : (
-                      <Button
-                        size="small"
-                        onClick={() => { setBanDialog({ open: true, userId: user.id }); }}
-                        startIcon={<BlockIcon />}
-                        sx={{ color: '#f44336', '&:hover': { bgcolor: 'rgba(244, 67, 54, 0.1)' } }}
-                      >
-                        Заблокировать
-                      </Button>
+                      <Button size="small" onClick={() => { setBanDialog({ open: true, userId: user.id }); }} startIcon={<BlockIcon />} sx={{ color: '#f44336', '&:hover': { bgcolor: 'rgba(244, 67, 54, 0.1)' } }}>Заблокировать</Button>
                     )}
-                    <Button
-                      size="small"
-                      onClick={() => { setWarningsDialog({ open: true, userId: user.id, username: user.username }); setShowAllWarnings(false); loadUserWarnings(user.id, false); }}
-                      startIcon={<WarningIcon />}
-                      sx={{ color: '#ff9800', '&:hover': { bgcolor: 'rgba(255, 152, 0, 0.1)' } }}
-                    >
-                      Предупреждения
-                    </Button>
+                    <Button size="small" onClick={() => { setWarningsDialog({ open: true, userId: user.id, username: user.username }); setShowAllWarnings(false); loadUserWarnings(user.id, false); }} startIcon={<WarningIcon />} sx={{ color: '#ff9800', '&:hover': { bgcolor: 'rgba(255, 152, 0, 0.1)' } }}>Предупреждения</Button>
+                    <Button size="small" onClick={() => setWarningDialog({ open: true, userId: user.id })} startIcon={<WarningIcon />} sx={{ color: '#ffb347', '&:hover': { bgcolor: 'rgba(255, 179, 71, 0.1)' } }}>Выдать предупреждение</Button>
                   </Box>
-                  {/* Второй ряд */}
-                  <Box sx={{ display: 'flex', gap: 1, width: '100%' }}>
-                    <Button
-                      size="small"
-                      onClick={() => setWarningDialog({ open: true, userId: user.id })}
-                      startIcon={<WarningIcon />}
-                      sx={{ color: '#ffb347', '&:hover': { bgcolor: 'rgba(255, 179, 71, 0.1)' } }}
-                    >
-                      Выдать предупреждение
-                    </Button>
-                  </Box>
-                </Box>
-              </CardActions>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </Box>
 
       {/* Диалог подтверждения удаления */}
       <Dialog open={deleteDialog.open} onClose={() => setDeleteDialog({ open: false, id: null })}>
