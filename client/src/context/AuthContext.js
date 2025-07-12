@@ -46,7 +46,10 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
+    try {
+      await axios.post('/api/auth/logout', {}, { withCredentials: true });
+    } catch (e) {}
     localStorage.removeItem('token');
     setCurrentUser(null);
   };
