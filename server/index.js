@@ -170,16 +170,13 @@ app.listen(REST_PORT, () => {
 });
 
 // --- SOCKET.IO ---
-const { Server } = require('socket.io');
-const io = new Server({
-  cors: { origin: '*' },
-});
+const { initSocket } = require('./socket');
 const SOCKET_PORT = process.env.SOCKET_PORT || 5001;
-io.listen(SOCKET_PORT);
-console.log(`Socket.io running on port ${SOCKET_PORT}`);
-
-io.on('connection', (socket) => {
-  console.log('Socket connected');
+const http = require('http');
+const socketServer = http.createServer();
+initSocket(socketServer);
+socketServer.listen(SOCKET_PORT, () => {
+  console.log(`Socket.io running on port ${SOCKET_PORT}`);
 });
 
 cron.schedule('0 3 * * *', async () => {
