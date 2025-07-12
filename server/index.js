@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const { sequelize } = require('./models');
 const routes = require('./routes');
+const discordRoutes = require('./routes/discordRoutes');
 const { protect, admin } = require('./middleware/authMiddleware');
 const jwt = require('jsonwebtoken');
 const cron = require('node-cron');
@@ -150,6 +151,7 @@ app.post('/api/server/data', async (req, res) => {
 
 // Роуты
 app.use('/api', routes);
+app.use('/discord', discordRoutes);
 
 // Production static
 if (process.env.NODE_ENV === 'production') {
