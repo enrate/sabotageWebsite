@@ -88,21 +88,25 @@ exports.login = async (req, res) => {
     const payload = { userId: user.id };
     const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1d' });
     // Сохраняем userId в сессию для cookie-авторизации
-    if (req.session) req.session.userId = user.id;
-    
-    res.json({ 
-      token, 
-      user: {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        role: user.role,
-        squadId: user.squadId,
-        avatar: user.avatar,
-        description: user.description,
-        armaId: user.armaId
-      }
-    });
+    if (req.session) {
+      req.session.userId = user.id;
+      req.session.save(() => {
+        res.json({ 
+          token, 
+          user: {
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            role: user.role,
+            squadId: user.squadId,
+            avatar: user.avatar,
+            description: user.description,
+            armaId: user.armaId
+          }
+        });
+      });
+      return;
+    }
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Ошибка сервера' });
