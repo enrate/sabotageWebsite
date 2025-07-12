@@ -8,8 +8,12 @@ module.exports = {
       await queryInterface.addColumn('users', 'discordId', {
         type: Sequelize.STRING,
         allowNull: true,
-        unique: true,
         comment: 'Discord ID пользователя'
+      });
+      await queryInterface.addConstraint('users', {
+        fields: ['discordId'],
+        type: 'unique',
+        name: 'users_discordid_unique'
       });
     }
     if (!table.discordUsername) {
@@ -22,7 +26,13 @@ module.exports = {
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.removeColumn('users', 'discordId');
-    await queryInterface.removeColumn('users', 'discordUsername');
+    const table = await queryInterface.describeTable('users');
+    if (table.discordId) {
+      await queryInterface.removeConstraint('users', 'users_discordid_unique');
+      await queryInterface.removeColumn('users', 'discordId');
+    }
+    if (table.discordUsername) {
+      await queryInterface.removeColumn('users', 'discordUsername');
+    }
   }
 }; 
