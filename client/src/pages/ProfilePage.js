@@ -393,7 +393,7 @@ const ProfilePage = () => {
                       width: 40,
                       height: 40,
                       position: 'absolute',
-                      right: -15,
+                      right: -25,
                       bottom: 0,
                       boxShadow: 2,
                       zIndex: 2,
@@ -417,50 +417,40 @@ const ProfilePage = () => {
                 }}
               />
             </Box>
-              {user.discordId && (
-                <a
-                  href={`https://discord.com/users/${user.discordId}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ textDecoration: 'none' }}
-                >
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mt: 1 }}>
-                    <img src="/discord-icon.png" alt="Discord" style={{ width: 22, height: 22 }} />
-                    <Typography sx={{ color: '#fff', fontWeight: 500, fontSize: '1rem', textAlign: 'center' }}>
-                      {user.discordUsername ? user.discordUsername.replace(/#\d+$/, '') : 'Discord привязан'}
-                    </Typography>
-                  </Box>
-                </a>
-              )}
-              {user.twitchId && (
-                <a
-                  href={`https://twitch.tv/${user.twitchUsername}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ textDecoration: 'none' }}
-                >
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mt: 1 }}>
-                    <img src="/twitch-icon.png" alt="Twitch" style={{ width: 22, height: 22 }} />
-                    <Typography sx={{ color: '#fff', fontWeight: 500, fontSize: '1rem', textAlign: 'center' }}>
-                      {user.twitchUsername || 'Twitch привязан'}
-                    </Typography>
-                  </Box>
-                </a>
-              )}
-              {user.youtubeId && (
-                <a
-                  href={user.youtubeUrl || `https://youtube.com/channel/${user.youtubeId}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ textDecoration: 'none' }}
-                >
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mt: 1 }}>
-                    <img src="/youtube-icon.png" alt="YouTube" style={{ width: 22, height: 22 }} />
-                    <Typography sx={{ color: '#fff', fontWeight: 500, fontSize: '1rem', textAlign: 'center' }}>
-                      {user.youtubeUsername || 'YouTube привязан'}
-                    </Typography>
-                  </Box>
-                </a>
+              {/* Социальные сети */}
+              {(user.discordId || user.twitchId || user.youtubeId) && (
+                <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mt: 2 }}>
+                  {user.discordId && (
+                    <a
+                      href={`https://discord.com/users/${user.discordId}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ textDecoration: 'none' }}
+                    >
+                      <img src="/discord-icon.png" alt="Discord" style={{ width: 32, height: 32, cursor: 'pointer' }} />
+                    </a>
+                  )}
+                  {user.twitchId && (
+                    <a
+                      href={`https://twitch.tv/${user.twitchUsername}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ textDecoration: 'none' }}
+                    >
+                      <img src="/twitch-icon.png" alt="Twitch" style={{ width: 32, height: 32, cursor: 'pointer' }} />
+                    </a>
+                  )}
+                  {user.youtubeId && (
+                    <a
+                      href={user.youtubeUrl || `https://youtube.com/channel/${user.youtubeId}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ textDecoration: 'none' }}
+                    >
+                      <img src="/youtube-icon.png" alt="YouTube" style={{ width: 32, height: 32, cursor: 'pointer' }} />
+                    </a>
+                  )}
+                </Box>
               )}
               {/* Информация о пользователе: верификация, отряд/статус, дни */}
               <Box sx={{ mt: isMobile ? 1 : 2, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: isMobile ? 0.5 : 1, color: 'rgba(255,255,255,0.85)', fontSize: '1rem', fontWeight: 500 }}>
