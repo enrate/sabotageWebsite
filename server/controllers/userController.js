@@ -107,13 +107,17 @@ exports.updateProfile = async (req, res) => {
     // Обновляем профиль
     let newArmaId = armaId !== undefined ? armaId : user.armaId;
     if (newArmaId === '') newArmaId = null;
+
+    // Добавлено: обработка activeAwardId
+    let newActiveAwardId = activeAwardId !== undefined ? activeAwardId : user.activeAwardId;
+    if (newActiveAwardId === '' || newActiveAwardId === undefined) newActiveAwardId = null;
     
     console.log('[UserController] Обновление профиля:', {
       userId,
       oldArmaId,
       newArmaId,
       armaIdFromBody: armaId,
-      activeAwardId
+      activeAwardId: newActiveAwardId
     });
     
     await user.update({
@@ -123,7 +127,7 @@ exports.updateProfile = async (req, res) => {
       avatar: avatar !== undefined ? avatar : user.avatar,
       armaId: newArmaId, // Сохраняем null вместо пустой строки
       isLookingForSquad: isLookingForSquad !== undefined ? isLookingForSquad : user.isLookingForSquad,
-      activeAwardId: activeAwardId !== undefined ? activeAwardId : user.activeAwardId
+      activeAwardId: newActiveAwardId
     });
 
     // Если установлен новый armaId, привязываем статистику
