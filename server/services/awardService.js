@@ -67,6 +67,7 @@ class AwardService {
               await UserAward.create({
                 userId: user.id,
                 awardId: award.id,
+                issuedBy: 1, // Системный пользователь для автоматических наград
                 issuedAt: new Date(),
                 seasonId: award.seasonId
               });
@@ -140,6 +141,7 @@ class AwardService {
               await UserAward.create({
                 userId: user.id,
                 awardId: award.id,
+                issuedBy: 1, // Системный пользователь для автоматических наград
                 issuedAt: new Date(),
                 seasonId: award.seasonId
               });
@@ -196,6 +198,7 @@ class AwardService {
               await UserAward.create({
                 userId: user.id,
                 awardId: award.id,
+                issuedBy: 1, // Системный пользователь для автоматических наград
                 issuedAt: new Date(),
                 seasonId: award.seasonId
               });

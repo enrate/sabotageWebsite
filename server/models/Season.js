@@ -60,6 +60,7 @@ module.exports = (sequelize, DataTypes) => {
             await UserAward.create({
               userId: user.id,
               awardId: award.id,
+              issuedBy: 1, // Системный пользователь для автоматических наград сезона
               issuedAt: new Date(),
               seasonId: this.id
             });

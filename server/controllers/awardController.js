@@ -258,7 +258,8 @@ exports.deleteAward = async (req, res) => {
 // Назначить награду пользователю
 exports.assignAwardToUser = async (req, res) => {
   try {
-    const { userId, awardId } = req.body;
+    const { userId, awardId, comment } = req.body;
+    const issuedBy = req.user.id; // ID текущего пользователя (админа)
 
     // Проверяем существование пользователя и награды
     const [user, award] = await Promise.all([
@@ -296,8 +297,10 @@ exports.assignAwardToUser = async (req, res) => {
     const userAward = await UserAward.create({
       userId,
       awardId,
+      issuedBy,
       issuedAt: new Date(),
-      seasonId: award.seasonId
+      seasonId: award.seasonId,
+      comment: comment || null
     });
 
     res.status(201).json({
@@ -374,6 +377,7 @@ exports.getUserAwards = async (req, res) => {
 exports.autoAssignAwards = async (req, res) => {
   try {
     const { awardId } = req.params;
+    const issuedBy = req.user.id; // ID текущего пользователя (админа)
 
     const award = await Award.findByPk(awardId);
     if (!award) {
@@ -404,6 +408,7 @@ exports.autoAssignAwards = async (req, res) => {
           await UserAward.create({
             userId: user.id,
             awardId: award.id,
+            issuedBy,
             issuedAt: new Date(),
             seasonId: award.seasonId
           });
