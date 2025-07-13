@@ -369,7 +369,7 @@ const ProfilePage = () => {
             }}
           >
             {/* Аватар и имя */}
-            <Box sx={{ textAlign: 'center', mb: isMobile ? 1 : 3, position: 'relative', display: 'inline-block' }}>
+            <Box sx={{ textAlign: 'center', mb: isMobile ? 1 : 3, position: 'relative', display: 'block' }}>
               <Avatar
                 src={user.avatar}
                 sx={{
