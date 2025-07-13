@@ -406,6 +406,7 @@ const ProfilePage = () => {
                 </Tooltip>
               )}
             </Box>
+            <Box sx={{ textAlign: 'center', mb: isMobile ? 1 : 2 }}>
               <Typography variant={isMobile ? 'h6' : 'h4'} sx={{ color: '#ffb347', fontWeight: 700, mb: isMobile ? 1 : 1, fontSize: isMobile ? '1.2rem' : undefined }}>
                 {user.username}
               </Typography>
@@ -417,6 +418,7 @@ const ProfilePage = () => {
                   fontWeight: 600
                 }}
               />
+            </Box>
               {user.discordId && (
                 <a
                   href={`https://discord.com/users/${user.discordId}`}
@@ -673,18 +675,16 @@ const ProfilePage = () => {
                           {userAwards.map(award => (
                             <Grid item xs={12} sm={6} md={4} key={award.id}>
                               <Paper sx={{ p: isMobile ? 1 : 2, display: 'flex', alignItems: 'center', gap: 2, bgcolor: 'rgba(255,255,255,0.03)' }} elevation={2}>
-                                <Avatar src={award.Award?.image} sx={{ bgcolor: '#ffb347', width: 56, height: 56 }}>
-                                  {!award.Award?.image && <EmojiEventsIcon />}
+                                <Avatar src={award.image} sx={{ bgcolor: '#ffb347', width: 56, height: 56 }}>
+                                  {!award.image && <EmojiEventsIcon />}
                                 </Avatar>
                                 <Box sx={{ flex: 1 }}>
-                                  <Typography variant="h6" sx={{ color: '#ffb347', fontWeight: 600 }}>{award.Award?.name}</Typography>
-                                  <Typography variant="body2" sx={{ color: '#fff' }}>{award.Award?.type}</Typography>
-                                  <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.7)' }}>{award.Award?.description}</Typography>
+                                  <Typography variant="h6" sx={{ color: '#ffb347', fontWeight: 600 }}>{award.name}</Typography>
+                                  <Typography variant="body2" sx={{ color: '#fff' }}>{award.type}</Typography>
+                                  <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.7)' }}>{award.description}</Typography>
                                   <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.5)' }}>
+                                    {award.isActive && <span style={{ color: '#4caf50', fontWeight: 600 }}>Активная награда | </span>}
                                     Выдано: {award.issuedAt ? new Date(award.issuedAt).toLocaleDateString() : '-'}
-                                    {award.issuer && (
-                                      <span> | Админ: {award.issuer.username}</span>
-                                    )}
                                   </Typography>
                                 </Box>
                               </Paper>

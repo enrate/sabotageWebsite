@@ -367,7 +367,8 @@ exports.getUserAwards = async (req, res) => {
       description: ua.Award.description,
       image: ua.Award.image,
       type: ua.Award.type,
-      isActive: user.activeAwardId === ua.Award.id
+      isActive: user.activeAwardId === ua.Award.id,
+      issuedAt: ua.issuedAt
     }));
 
     res.json(simplifiedAwards);
