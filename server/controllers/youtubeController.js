@@ -203,7 +203,7 @@ exports.linkYoutubeByUrl = async (req, res) => {
     }
 
     // Извлекаем ID канала из ссылки
-    const channelId = extractChannelId(youtubeUrl);
+    const channelId = exports.extractChannelId(youtubeUrl);
     
     if (!channelId) {
       return res.status(400).json({ error: 'Неверный формат ссылки на YouTube канал' });
