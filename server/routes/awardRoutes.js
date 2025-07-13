@@ -7,17 +7,17 @@ const { uploadImage, handleUploadError } = require('../middleware/uploadMiddlewa
 // Получить все награды (публичный доступ)
 router.get('/', awardController.getAllAwards);
 
-// Получить награду по ID (публичный доступ)
-router.get('/:id', awardController.getAwardById);
-
-// Получить статистику награды (только админ)
-router.get('/:id/statistics', protect, admin, awardController.getAwardStatistics);
-
 // Получить награды пользователя (публичный доступ)
 router.get('/user/:userId', awardController.getUserAwards);
 
 // Получить награды сезона (публичный доступ)
 router.get('/season/:seasonId', awardController.getSeasonAwards);
+
+// Получить статистику награды (только админ)
+router.get('/:id/statistics', protect, admin, awardController.getAwardStatistics);
+
+// Получить награду по ID (публичный доступ)
+router.get('/:id', awardController.getAwardById);
 
 // Админские маршруты (требуют авторизации и прав администратора)
 router.use(protect, admin);
