@@ -90,8 +90,8 @@ const SettingsPage = () => {
       });
       setAvatarPreview(currentUser.avatar || '');
       // Загружаем награды пользователя
-      axios.get(`/awards/user/${currentUser.id}`)
-        .then(res => setUserAwards(res.data.map(ua => ua.award)))
+      axios.get(`/api/awards/user/${currentUser.id}`)
+        .then(res => setUserAwards(res.data.map(ua => ua.Award)))
         .catch(() => setUserAwards([]));
     }
   }, [currentUser]);

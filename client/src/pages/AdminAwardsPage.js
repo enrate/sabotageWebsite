@@ -37,7 +37,7 @@ export default function AdminAwardsPage() {
       if (filter.category) params.category = filter.category;
       if (filter.isSeasonAward !== '') params.isSeasonAward = filter.isSeasonAward;
       if (filter.isActive !== '') params.isActive = filter.isActive;
-      const res = await axios.get('/awards', { params });
+      const res = await axios.get('/api/awards', { params });
       setAwards(res.data);
     } catch (err) {
       setError('Ошибка при загрузке наград');
