@@ -1,108 +1,472 @@
-const { Award, UserAward, SquadAward, User, Squad } = require('../models');
+const { Award, User, UserAward, Season } = require('../models');
 
-// --- CRUD для Award ---
+// Получить все награды
 exports.getAllAwards = async (req, res) => {
-  const awards = await Award.findAll();
-  res.json(awards);
-};
+  try {
+    const { category, isSeasonAward, isActive } = req.query;
+    
+    const whereClause = {};
+    
+    if (category) whereClause.category = category;
+    if (isSeasonAward !== undefined) whereClause.isSeasonAward = isSeasonAward === 'true';
+    if (isActive !== undefined) whereClause.isActive = isActive === 'true';
 
-exports.getAward = async (req, res) => {
-  const award = await Award.findByPk(req.params.id);
-  if (!award) return res.status(404).json({ message: 'Награда не найдена' });
-  res.json(award);
-};
+    const awards = await Award.findAll({
+      where: whereClause,
+      include: [
+        {
+          model: Season,
+          as: 'season',
+          attributes: ['id', 'name', 'startDate', 'endDate']
+        }
+      ],
+      order: [['priority', 'DESC'], ['name', 'ASC']]
+    });
 
-exports.createAward = async (req, res) => {
-  const { type, name, description, image } = req.body;
-  const award = await Award.create({ type, name, description, image });
-  res.status(201).json(award);
-};
-
-exports.updateAward = async (req, res) => {
-  const { type, name, description, image } = req.body;
-  const award = await Award.findByPk(req.params.id);
-  if (!award) return res.status(404).json({ message: 'Награда не найдена' });
-  await award.update({ type, name, description, image });
-  res.json(award);
-};
-
-exports.deleteAward = async (req, res) => {
-  const award = await Award.findByPk(req.params.id);
-  if (!award) return res.status(404).json({ message: 'Награда не найдена' });
-  // Проверка: не выдана ли награда кому-либо
-  const userCount = await UserAward.count({ where: { awardId: award.id } });
-  const squadCount = await SquadAward.count({ where: { awardId: award.id } });
-  if (userCount > 0 || squadCount > 0) {
-    return res.status(400).json({ message: 'Нельзя удалить награду, которая уже выдана пользователям или отрядам' });
+    res.json(awards);
+  } catch (err) {
+    console.error('Ошибка при получении наград:', err);
+    res.status(500).json({ error: 'Ошибка при получении наград' });
   }
-  await award.destroy();
-  res.json({ message: 'Награда удалена' });
 };
 
-// --- Выдача награды пользователю ---
-exports.giveAwardToUser = async (req, res) => {
-  const { userId, awardId, comment } = req.body;
-  const issuedBy = req.user.id;
-  const issuedAt = new Date();
-  const userAward = await UserAward.create({ userId, awardId, issuedBy, issuedAt, comment });
-  res.status(201).json(userAward);
+// Получить награду по ID
+exports.getAwardById = async (req, res) => {
+  try {
+    const award = await Award.findByPk(req.params.id, {
+      include: [
+        {
+          model: Season,
+          as: 'season',
+          attributes: ['id', 'name', 'startDate', 'endDate']
+        }
+      ]
+    });
+
+    if (!award) {
+      return res.status(404).json({ error: 'Награда не найдена' });
+    }
+
+    res.json(award);
+  } catch (err) {
+    console.error('Ошибка при получении награды:', err);
+    res.status(500).json({ error: 'Ошибка при получении награды' });
+  }
 };
 
-// --- Выдача награды отряду ---
-exports.giveAwardToSquad = async (req, res) => {
-  const { squadId, awardId, comment } = req.body;
-  const issuedBy = req.user.id;
-  const issuedAt = new Date();
-  const squadAward = await SquadAward.create({ squadId, awardId, issuedBy, issuedAt, comment });
-  res.status(201).json(squadAward);
+// Создать новую награду
+exports.createAward = async (req, res) => {
+  try {
+    const {
+      type,
+      name,
+      description,
+      image,
+      category = 'general',
+      isSeasonAward = false,
+      assignmentType = 'manual',
+      assignmentConditions,
+      registrationDeadline,
+      minMatches,
+      minWins,
+      minKills,
+      minElo,
+      seasonId,
+      maxRecipients,
+      priority = 0
+    } = req.body;
+
+    // Валидация
+    if (!type || !name) {
+      return res.status(400).json({ error: 'Тип и название награды обязательны' });
+    }
+
+    // Проверка для наград сезона
+    if (isSeasonAward && !seasonId) {
+      return res.status(400).json({ error: 'Для наград сезона необходимо указать ID сезона' });
+    }
+
+    // Проверка существования сезона
+    if (seasonId) {
+      const season = await Season.findByPk(seasonId);
+      if (!season) {
+        return res.status(404).json({ error: 'Сезон не найден' });
+      }
+    }
+
+    const award = await Award.create({
+      type,
+      name,
+      description,
+      image,
+      category,
+      isSeasonAward,
+      assignmentType,
+      assignmentConditions,
+      registrationDeadline: registrationDeadline ? new Date(registrationDeadline) : null,
+      minMatches,
+      minWins,
+      minKills,
+      minElo,
+      seasonId,
+      maxRecipients,
+      priority
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Награда успешно создана',
+      award
+    });
+  } catch (err) {
+    console.error('Ошибка при создании награды:', err);
+    res.status(500).json({ error: 'Ошибка при создании награды' });
+  }
 };
 
-// --- Получить награды пользователя ---
+// Обновить награду
+exports.updateAward = async (req, res) => {
+  try {
+    const award = await Award.findByPk(req.params.id);
+    
+    if (!award) {
+      return res.status(404).json({ error: 'Награда не найдена' });
+    }
+
+    const updateData = req.body;
+    
+    // Обработка даты дедлайна
+    if (updateData.registrationDeadline) {
+      updateData.registrationDeadline = new Date(updateData.registrationDeadline);
+    }
+
+    await award.update(updateData);
+
+    res.json({
+      success: true,
+      message: 'Награда успешно обновлена',
+      award
+    });
+  } catch (err) {
+    console.error('Ошибка при обновлении награды:', err);
+    res.status(500).json({ error: 'Ошибка при обновлении награды' });
+  }
+};
+
+// Удалить награду
+exports.deleteAward = async (req, res) => {
+  try {
+    const award = await Award.findByPk(req.params.id);
+    
+    if (!award) {
+      return res.status(404).json({ error: 'Награда не найдена' });
+    }
+
+    // Проверяем, есть ли получатели у награды
+    const recipientsCount = await UserAward.count({
+      where: { awardId: award.id }
+    });
+
+    if (recipientsCount > 0) {
+      return res.status(400).json({ 
+        error: 'Нельзя удалить награду, которая уже была выдана пользователям' 
+      });
+    }
+
+    await award.destroy();
+
+    res.json({
+      success: true,
+      message: 'Награда успешно удалена'
+    });
+  } catch (err) {
+    console.error('Ошибка при удалении награды:', err);
+    res.status(500).json({ error: 'Ошибка при удалении награды' });
+  }
+};
+
+// Назначить награду пользователю
+exports.assignAwardToUser = async (req, res) => {
+  try {
+    const { userId, awardId } = req.body;
+
+    // Проверяем существование пользователя и награды
+    const [user, award] = await Promise.all([
+      User.findByPk(userId),
+      Award.findByPk(awardId)
+    ]);
+
+    if (!user) {
+      return res.status(404).json({ error: 'Пользователь не найден' });
+    }
+
+    if (!award) {
+      return res.status(404).json({ error: 'Награда не найдена' });
+    }
+
+    if (!award.isActive) {
+      return res.status(400).json({ error: 'Награда неактивна' });
+    }
+
+    // Проверяем, не получил ли пользователь уже эту награду
+    const existingAward = await UserAward.findOne({
+      where: { userId, awardId }
+    });
+
+    if (existingAward) {
+      return res.status(400).json({ error: 'Пользователь уже получил эту награду' });
+    }
+
+    // Проверяем лимит получателей
+    if (!(await award.canAssignToUser())) {
+      return res.status(400).json({ error: 'Достигнут лимит получателей награды' });
+    }
+
+    // Создаем запись о выдаче награды
+    const userAward = await UserAward.create({
+      userId,
+      awardId,
+      issuedAt: new Date(),
+      seasonId: award.seasonId
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Награда успешно назначена пользователю',
+      userAward
+    });
+  } catch (err) {
+    console.error('Ошибка при назначении награды:', err);
+    res.status(500).json({ error: 'Ошибка при назначении награды' });
+  }
+};
+
+// Отозвать награду у пользователя
+exports.revokeAwardFromUser = async (req, res) => {
+  try {
+    const { userId, awardId } = req.params;
+
+    const userAward = await UserAward.findOne({
+      where: { userId, awardId }
+    });
+
+    if (!userAward) {
+      return res.status(404).json({ error: 'Награда не найдена у пользователя' });
+    }
+
+    await userAward.destroy();
+
+    res.json({
+      success: true,
+      message: 'Награда успешно отозвана у пользователя'
+    });
+  } catch (err) {
+    console.error('Ошибка при отзыве награды:', err);
+    res.status(500).json({ error: 'Ошибка при отзыве награды' });
+  }
+};
+
+// Получить награды пользователя
 exports.getUserAwards = async (req, res) => {
-  const userAwards = await UserAward.findAll({
-    where: { userId: req.params.userId },
-    include: [ { model: Award }, { model: User, as: 'issuer' } ]
-  });
-  res.json(userAwards);
+  try {
+    const userId = req.params.userId;
+
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'Пользователь не найден' });
+    }
+
+    const userAwards = await UserAward.findAll({
+      where: { userId },
+      include: [
+        {
+          model: Award,
+          as: 'award',
+          include: [
+            {
+              model: Season,
+              as: 'season',
+              attributes: ['id', 'name']
+            }
+          ]
+        }
+      ],
+      order: [['issuedAt', 'DESC']]
+    });
+
+    res.json(userAwards);
+  } catch (err) {
+    console.error('Ошибка при получении наград пользователя:', err);
+    res.status(500).json({ error: 'Ошибка при получении наград пользователя' });
+  }
 };
 
-// --- Получить награды отряда ---
-exports.getSquadAwards = async (req, res) => {
-  const squadAwards = await SquadAward.findAll({
-    where: { squadId: req.params.squadId },
-    include: [ { model: Award }, { model: User, as: 'issuer' } ]
-  });
-  res.json(squadAwards);
+// Автоматически назначить награды по условиям
+exports.autoAssignAwards = async (req, res) => {
+  try {
+    const { awardId } = req.params;
+
+    const award = await Award.findByPk(awardId);
+    if (!award) {
+      return res.status(404).json({ error: 'Награда не найдена' });
+    }
+
+    if (award.assignmentType === 'manual') {
+      return res.status(400).json({ error: 'Автоматическое назначение недоступно для ручных наград' });
+    }
+
+    // Получаем всех пользователей
+    const users = await User.findAll();
+
+    let assignedCount = 0;
+    const results = [];
+
+    for (const user of users) {
+      // Проверяем, соответствует ли пользователь условиям
+      const isEligible = await award.checkEligibility(user);
+      
+      if (isEligible) {
+        // Проверяем, не получил ли пользователь уже эту награду
+        const existingAward = await UserAward.findOne({
+          where: { userId: user.id, awardId: award.id }
+        });
+
+        if (!existingAward && await award.canAssignToUser()) {
+          await UserAward.create({
+            userId: user.id,
+            awardId: award.id,
+            issuedAt: new Date(),
+            seasonId: award.seasonId
+          });
+
+          assignedCount++;
+          results.push({
+            userId: user.id,
+            username: user.username,
+            assigned: true
+          });
+        } else {
+          results.push({
+            userId: user.id,
+            username: user.username,
+            assigned: false,
+            reason: existingAward ? 'Уже получена' : 'Достигнут лимит'
+          });
+        }
+      } else {
+        results.push({
+          userId: user.id,
+          username: user.username,
+          assigned: false,
+          reason: 'Не соответствует условиям'
+        });
+      }
+    }
+
+    res.json({
+      success: true,
+      message: `Автоматическое назначение завершено. Назначено: ${assignedCount}`,
+      assignedCount,
+      results
+    });
+  } catch (err) {
+    console.error('Ошибка при автоматическом назначении наград:', err);
+    res.status(500).json({ error: 'Ошибка при автоматическом назначении наград' });
+  }
 };
 
-// --- Забрать награду у пользователя ---
-exports.removeAwardFromUser = async (req, res) => {
-  const { userAwardId } = req.params;
-  const userAward = await UserAward.findByPk(userAwardId);
-  if (!userAward) return res.status(404).json({ message: 'Запись о награде не найдена' });
-  await userAward.destroy();
-  res.json({ message: 'Награда у пользователя отозвана' });
+// Получить статистику награды
+exports.getAwardStatistics = async (req, res) => {
+  try {
+    const awardId = req.params.id;
+
+    const award = await Award.findByPk(awardId);
+    if (!award) {
+      return res.status(404).json({ error: 'Награда не найдена' });
+    }
+
+    const recipientsCount = await UserAward.count({
+      where: { awardId }
+    });
+
+    const recipients = await UserAward.findAll({
+      where: { awardId },
+      include: [
+        {
+          model: User,
+          as: 'user',
+          attributes: ['id', 'username', 'email']
+        }
+      ],
+      order: [['issuedAt', 'DESC']]
+    });
+
+    res.json({
+      award,
+      statistics: {
+        recipientsCount,
+        maxRecipients: award.maxRecipients,
+        isLimited: award.maxRecipients !== null,
+        canAssignMore: award.maxRecipients ? recipientsCount < award.maxRecipients : true
+      },
+      recipients
+    });
+  } catch (err) {
+    console.error('Ошибка при получении статистики награды:', err);
+    res.status(500).json({ error: 'Ошибка при получении статистики награды' });
+  }
 };
 
-// --- Забрать награду у отряда ---
-exports.removeAwardFromSquad = async (req, res) => {
-  const { squadAwardId } = req.params;
-  const squadAward = await SquadAward.findByPk(squadAwardId);
-  if (!squadAward) return res.status(404).json({ message: 'Запись о награде не найдена' });
-  await squadAward.destroy();
-  res.json({ message: 'Награда у отряда отозвана' });
+// Получить награды сезона
+exports.getSeasonAwards = async (req, res) => {
+  try {
+    const seasonId = req.params.seasonId;
+
+    const season = await Season.findByPk(seasonId);
+    if (!season) {
+      return res.status(404).json({ error: 'Сезон не найден' });
+    }
+
+    const awards = await Award.findAll({
+      where: {
+        seasonId,
+        isSeasonAward: true,
+        isActive: true
+      },
+      order: [['priority', 'DESC'], ['name', 'ASC']]
+    });
+
+    res.json(awards);
+  } catch (err) {
+    console.error('Ошибка при получении наград сезона:', err);
+    res.status(500).json({ error: 'Ошибка при получении наград сезона' });
+  }
 };
 
-// --- Получить всех получателей награды ---
-exports.getAwardRecipients = async (req, res) => {
-  const { awardId } = req.params;
-  const userRecipients = await UserAward.findAll({
-    where: { awardId },
-    include: [ { model: Award }, { model: require('../models').User, as: 'issuer' }, { model: require('../models').User } ]
-  });
-  const squadRecipients = await SquadAward.findAll({
-    where: { awardId },
-    include: [ { model: Award }, { model: require('../models').User, as: 'issuer' }, { model: require('../models').Squad } ]
-  });
-  res.json({ users: userRecipients, squads: squadRecipients });
+// Выдать награды сезона
+exports.issueSeasonAwards = async (req, res) => {
+  try {
+    const seasonId = req.params.seasonId;
+
+    const season = await Season.findByPk(seasonId);
+    if (!season) {
+      return res.status(404).json({ error: 'Сезон не найден' });
+    }
+
+    if (!season.canIssueAwards()) {
+      return res.status(400).json({ 
+        error: 'Награды сезона можно выдавать только после его окончания и только один раз' 
+      });
+    }
+
+    await season.issueSeasonAwards();
+
+    res.json({
+      success: true,
+      message: 'Награды сезона успешно выданы'
+    });
+  } catch (err) {
+    console.error('Ошибка при выдаче наград сезона:', err);
+    res.status(500).json({ error: 'Ошибка при выдаче наград сезона' });
+  }
 }; 

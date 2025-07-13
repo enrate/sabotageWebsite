@@ -182,6 +182,24 @@ module.exports = (sequelize) => {
           const salt = await bcrypt.genSalt(10);
           user.password = await bcrypt.hash(user.password, salt);
         }
+      },
+      afterCreate: async (user, options) => {
+        // Автоматическая выдача наград при регистрации
+        try {
+          const AwardService = require('../services/awardService');
+          await AwardService.checkNewUserAwards(user);
+        } catch (err) {
+          console.error('Ошибка при автоматической выдаче наград (afterCreate):', err);
+        }
+      },
+      afterUpdate: async (user, options) => {
+        // Автоматическая выдача наград при обновлении статистики
+        try {
+          const AwardService = require('../services/awardService');
+          await AwardService.checkUserStatsAwards(user);
+        } catch (err) {
+          console.error('Ошибка при автоматической выдаче наград (afterUpdate):', err);
+        }
       }
     }
   });

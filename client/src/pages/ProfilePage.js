@@ -709,42 +709,42 @@ const ProfilePage = () => {
                         <Box sx={{ textAlign: 'center', p: isMobile ? 1 : 2 }}>
                           <SportsKabaddiIcon sx={{ color: '#ffb347', fontSize: 32, mb: 1 }} />
                           <Typography sx={{ color: '#ffb347', fontWeight: 700 }}>Убийств всего</Typography>
-                          <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{userStats?.kills ?? '-'}</Typography>
+                          <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{userStats?.kills ?? '0'}</Typography>
                         </Box>
                       </Grid>
                       <Grid item xs={12} sm={6} md={4}>
                         <Box sx={{ textAlign: 'center', p: isMobile ? 1 : 2 }}>
                           <GroupRemoveIcon sx={{ color: '#ffb347', fontSize: 32, mb: 1 }} />
                           <Typography sx={{ color: '#ffb347', fontWeight: 700 }}>Смертей всего</Typography>
-                          <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{userStats?.deaths ?? '-'}</Typography>
+                          <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{userStats?.deaths ?? '0'}</Typography>
                         </Box>
                       </Grid>
                       <Grid item xs={12} sm={6} md={4}>
                         <Box sx={{ textAlign: 'center', p: isMobile ? 1 : 2 }}>
                           <GroupOffIcon sx={{ color: '#ffb347', fontSize: 32, mb: 1 }} />
                           <Typography sx={{ color: '#ffb347', fontWeight: 700 }}>Тимкиллы всего</Typography>
-                          <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{userStats?.teamKills ?? '-'}</Typography>
+                          <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{userStats?.teamKills ?? '0'}</Typography>
                         </Box>
                       </Grid>
                       <Grid item xs={12} sm={6} md={4}>
                         <Box sx={{ textAlign: 'center', p: isMobile ? 1 : 2 }}>
                           <TrendingUpIcon sx={{ color: '#ffb347', fontSize: 32, mb: 1 }} />
                           <Typography sx={{ color: '#ffb347', fontWeight: 700 }}>K/D</Typography>
-                          <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{userStats && userStats.deaths > 0 ? (userStats.kills / userStats.deaths).toFixed(2) : userStats?.kills ?? '-'}</Typography>
+                          <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{userStats && userStats.deaths > 0 ? (userStats.kills / userStats.deaths).toFixed(2) : userStats?.kills ?? '0'}</Typography>
                         </Box>
                       </Grid>
                       <Grid item xs={12} sm={6} md={4}>
                         <Box sx={{ textAlign: 'center', p: isMobile ? 1 : 2 }}>
                           <PercentIcon sx={{ color: '#ffb347', fontSize: 32, mb: 1 }} />
                           <Typography sx={{ color: '#ffb347', fontWeight: 700 }}>% побед</Typography>
-                          <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{userStats?.winRate ?? '-'}</Typography>
+                          <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{userStats?.winRate ?? '0'}</Typography>
                         </Box>
                       </Grid>
                       <Grid item xs={12} sm={6} md={4}>
                         <Box sx={{ textAlign: 'center', p: isMobile ? 1 : 2 }}>
                           <SportsScoreIcon sx={{ color: '#ffb347', fontSize: 32, mb: 1 }} />
                           <Typography sx={{ color: '#ffb347', fontWeight: 700 }}>Матчей всего</Typography>
-                          <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{userStats?.totalGames ?? '-'}</Typography>
+                          <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{userStats?.totalGames ?? '0'}</Typography>
                         </Box>
                       </Grid>
                     </Grid>
