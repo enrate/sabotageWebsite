@@ -427,7 +427,7 @@ const ProfilePage = () => {
               )}
               {user.youtubeId && (
                 <a
-                  href={`https://youtube.com/@${user.youtubeUsername}`}
+                  href={user.youtubeUrl || `https://youtube.com/channel/${user.youtubeId}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{ textDecoration: 'none' }}

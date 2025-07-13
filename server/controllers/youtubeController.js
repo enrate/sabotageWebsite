@@ -5,7 +5,7 @@ const { User } = require('../models');
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY || 'YOUR_YOUTUBE_API_KEY';
 
 // Извлекаем YouTube канал ID из различных форматов ссылок
-function extractChannelId(url) {
+exports.extractChannelId = function(url) {
   const patterns = [
     // https://www.youtube.com/channel/UC...
     /youtube\.com\/channel\/([a-zA-Z0-9_-]+)/,
@@ -28,8 +28,9 @@ function extractChannelId(url) {
 }
 
 // Получаем информацию о канале по ID или username
-async function getChannelInfo(identifier) {
+async function getChannelInfo(identifier, originalUrl) {
   console.log('🔍 Ищем канал с идентификатором:', identifier);
+  console.log('🔗 Оригинальная ссылка:', originalUrl);
   
   try {
     // Сначала пробуем как channel ID
@@ -52,7 +53,7 @@ async function getChannelInfo(identifier) {
       return response.data.items[0];
     }
 
-    // Если не найден, пробуем как username
+    // Если не найден, пробуем как username (только для старых каналов)
     console.log('📡 Запрос 2: Поиск по username...');
     response = await axios.get('https://www.googleapis.com/youtube/v3/channels', {
       params: {
@@ -72,43 +73,114 @@ async function getChannelInfo(identifier) {
       return response.data.items[0];
     }
 
-    // Если не найден, пробуем через search API
-    console.log('📡 Запрос 3: Поиск через search API...');
-    response = await axios.get('https://www.googleapis.com/youtube/v3/search', {
-      params: {
-        part: 'snippet',
-        q: identifier,
-        type: 'channel',
-        maxResults: 1,
-        key: YOUTUBE_API_KEY
-      }
-    });
-
-    console.log('📊 Ответ API (search):', {
-      items: response.data.items?.length || 0,
-      status: response.status
-    });
-
-    if (response.data.items && response.data.items.length > 0) {
-      const searchResult = response.data.items[0];
-      console.log('✅ Канал найден через search:', searchResult.snippet.title);
+    // Для @username каналов используем более точный поиск
+    if (identifier.startsWith('@') || originalUrl.includes('/@')) {
+      console.log('📡 Запрос 3: Точный поиск @username канала...');
       
-      // Теперь получаем полную информацию о канале
-      const channelResponse = await axios.get('https://www.googleapis.com/youtube/v3/channels', {
+      // Убираем @ если есть
+      const cleanUsername = identifier.startsWith('@') ? identifier.substring(1) : identifier;
+      
+      response = await axios.get('https://www.googleapis.com/youtube/v3/search', {
         params: {
           part: 'snippet',
-          id: searchResult.snippet.channelId,
+          q: `@${cleanUsername}`,
+          type: 'channel',
+          maxResults: 5,
           key: YOUTUBE_API_KEY
         }
       });
 
-      if (channelResponse.data.items && channelResponse.data.items.length > 0) {
-        console.log('✅ Получена полная информация о канале:', channelResponse.data.items[0].snippet.title);
-        return channelResponse.data.items[0];
+      console.log('📊 Ответ API (точный поиск @username):', {
+        items: response.data.items?.length || 0,
+        status: response.status
+      });
+
+      if (response.data.items && response.data.items.length > 0) {
+        // Ищем точное совпадение
+        const exactMatch = response.data.items.find(item => {
+          const channelTitle = item.snippet.title.toLowerCase();
+          const channelHandle = item.snippet.channelHandle?.toLowerCase() || '';
+          const searchUsername = cleanUsername.toLowerCase();
+          
+          return channelTitle.includes(searchUsername) || 
+                 channelHandle.includes(searchUsername) ||
+                 channelHandle === `@${searchUsername}`;
+        });
+
+        if (exactMatch) {
+          console.log('✅ Найдено точное совпадение:', exactMatch.snippet.title);
+          
+          // Получаем полную информацию о канале
+          const channelResponse = await axios.get('https://www.googleapis.com/youtube/v3/channels', {
+            params: {
+              part: 'snippet',
+              id: exactMatch.snippet.channelId,
+              key: YOUTUBE_API_KEY
+            }
+          });
+
+          if (channelResponse.data.items && channelResponse.data.items.length > 0) {
+            console.log('✅ Получена полная информация о канале:', channelResponse.data.items[0].snippet.title);
+            return channelResponse.data.items[0];
+          }
+        } else {
+          console.log('⚠️ Точное совпадение не найдено, возвращаем первый результат');
+          const firstResult = response.data.items[0];
+          
+          // Получаем полную информацию о канале
+          const channelResponse = await axios.get('https://www.googleapis.com/youtube/v3/channels', {
+            params: {
+              part: 'snippet',
+              id: firstResult.snippet.channelId,
+              key: YOUTUBE_API_KEY
+            }
+          });
+
+          if (channelResponse.data.items && channelResponse.data.items.length > 0) {
+            console.log('✅ Получена информация о канале:', channelResponse.data.items[0].snippet.title);
+            return channelResponse.data.items[0];
+          }
+        }
+      }
+    } else {
+      // Для обычных каналов используем общий поиск
+      console.log('📡 Запрос 3: Общий поиск через search API...');
+      response = await axios.get('https://www.googleapis.com/youtube/v3/search', {
+        params: {
+          part: 'snippet',
+          q: identifier,
+          type: 'channel',
+          maxResults: 1,
+          key: YOUTUBE_API_KEY
+        }
+      });
+
+      console.log('📊 Ответ API (search):', {
+        items: response.data.items?.length || 0,
+        status: response.status
+      });
+
+      if (response.data.items && response.data.items.length > 0) {
+        const searchResult = response.data.items[0];
+        console.log('✅ Канал найден через search:', searchResult.snippet.title);
+        
+        // Теперь получаем полную информацию о канале
+        const channelResponse = await axios.get('https://www.googleapis.com/youtube/v3/channels', {
+          params: {
+            part: 'snippet',
+            id: searchResult.snippet.channelId,
+            key: YOUTUBE_API_KEY
+          }
+        });
+
+        if (channelResponse.data.items && channelResponse.data.items.length > 0) {
+          console.log('✅ Получена полная информация о канале:', channelResponse.data.items[0].snippet.title);
+          return channelResponse.data.items[0];
+        }
       }
     }
 
-    console.log('❌ Канал не найден ни по ID, ни по username, ни через search');
+    console.log('❌ Канал не найден');
     return null;
   } catch (error) {
     console.error('💥 Ошибка получения информации о канале:', {
@@ -138,7 +210,7 @@ exports.linkYoutubeByUrl = async (req, res) => {
     }
 
     // Получаем информацию о канале
-    const channelInfo = await getChannelInfo(channelId);
+    const channelInfo = await getChannelInfo(channelId, youtubeUrl);
     
     if (!channelInfo) {
       return res.status(404).json({ error: 'YouTube канал не найден' });
@@ -146,12 +218,14 @@ exports.linkYoutubeByUrl = async (req, res) => {
 
     const { id: youtubeId, snippet } = channelInfo;
     const channelName = snippet.title;
-    const channelUrl = `https://www.youtube.com/channel/${youtubeId}`;
+    // Сохраняем оригинальную ссылку пользователя
+    const channelUrl = youtubeUrl;
 
     // Сохраняем в профиль
     await User.update({
       youtubeId: youtubeId,
-      youtubeUsername: channelName
+      youtubeUsername: channelName,
+      youtubeUrl: channelUrl // Добавляем сохранение оригинальной ссылки
     }, { where: { id: userId } });
 
     res.json({ 
@@ -172,7 +246,8 @@ exports.unlinkYoutube = async (req, res) => {
   try {
     await User.update({ 
       youtubeId: null, 
-      youtubeUsername: null 
+      youtubeUsername: null,
+      youtubeUrl: null
     }, { where: { id: req.user.id } });
     
     res.json({ success: true, message: 'YouTube канал отвязан' });

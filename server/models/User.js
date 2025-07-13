@@ -150,6 +150,11 @@ module.exports = (sequelize) => {
       type: DataTypes.STRING,
       allowNull: true,
       comment: 'YouTube username пользователя'
+    },
+    youtubeUrl: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'Оригинальная ссылка на YouTube канал пользователя'
     }
   }, {
     tableName: 'users',

@@ -3,7 +3,7 @@ const { User } = require('../models');
 exports.getUserById = async (req, res) => {
   try {
     const user = await User.findByPk(req.params.id, {
-      attributes: ['id', 'username', 'avatar', 'role', 'description', 'email', 'squadId', 'createdAt', 'isLookingForSquad', 'armaId', 'discordId', 'discordUsername', 'twitchId', 'twitchUsername', 'youtubeId', 'youtubeUsername']
+      attributes: ['id', 'username', 'avatar', 'role', 'description', 'email', 'squadId', 'createdAt', 'isLookingForSquad', 'armaId', 'discordId', 'discordUsername', 'twitchId', 'twitchUsername', 'youtubeId', 'youtubeUsername', 'youtubeUrl']
     });
     if (!user) return res.status(404).json({ message: 'Пользователь не найден' });
     // Скрывать email, если не свой профиль и не админ
@@ -127,7 +127,7 @@ exports.updateProfile = async (req, res) => {
 
     // Возвращаем обновленного пользователя
     const updatedUser = await User.findByPk(userId, {
-      attributes: ['id', 'username', 'avatar', 'role', 'description', 'email', 'squadId', 'armaId', 'joinDate', 'isLookingForSquad', 'discordId', 'discordUsername', 'twitchId', 'twitchUsername', 'youtubeId', 'youtubeUsername']
+      attributes: ['id', 'username', 'avatar', 'role', 'description', 'email', 'squadId', 'armaId', 'joinDate', 'isLookingForSquad', 'discordId', 'discordUsername', 'twitchId', 'twitchUsername', 'youtubeId', 'youtubeUsername', 'youtubeUrl']
     });
 
     res.json(updatedUser);

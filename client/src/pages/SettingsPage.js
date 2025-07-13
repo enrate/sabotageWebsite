@@ -267,7 +267,7 @@ const SettingsPage = () => {
     try {
       const token = localStorage.getItem('token');
       await axios.post('/youtube/unlink', {}, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
-      updateUser({ ...currentUser, youtubeId: null, youtubeUsername: null });
+      updateUser({ ...currentUser, youtubeId: null, youtubeUsername: null, youtubeUrl: null });
       setSuccess('YouTube отвязан');
     } catch (err) {
       setError('Ошибка при отвязке YouTube');
@@ -278,7 +278,8 @@ const SettingsPage = () => {
     updateUser({ 
       ...currentUser, 
       youtubeId: data.youtubeId || 'temp', 
-      youtubeUsername: data.channelName || 'temp' 
+      youtubeUsername: data.channelName || 'temp',
+      youtubeUrl: data.channelUrl || null
     });
     setSuccess(data.message || 'YouTube канал успешно привязан!');
   };
