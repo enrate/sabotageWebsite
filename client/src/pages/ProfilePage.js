@@ -583,7 +583,6 @@ const ProfilePage = () => {
                   </Popover>
                 </Box>
               )}
-            </Box>
           </Paper>
         </Grid>
 
