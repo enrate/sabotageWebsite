@@ -54,6 +54,11 @@ SquadAward.belongsTo(db.User, { foreignKey: 'issuedBy', as: 'issuer' });
 Season.hasMany(Award, { foreignKey: 'seasonId', as: 'seasonAwards' });
 Award.belongsTo(Season, { foreignKey: 'seasonId', as: 'season' });
 
+// Ассоциации для трофеев сезона
+Season.belongsTo(Award, { as: 'trophy1', foreignKey: 'trophy1Id' });
+Season.belongsTo(Award, { as: 'trophy2', foreignKey: 'trophy2Id' });
+Season.belongsTo(Award, { as: 'trophy3', foreignKey: 'trophy3Id' });
+
 Object.keys(db).forEach(modelName => {
   if (db[modelName].associate) {
     db[modelName].associate(db);
