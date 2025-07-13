@@ -155,6 +155,17 @@ module.exports = (sequelize) => {
       type: DataTypes.STRING,
       allowNull: true,
       comment: 'Оригинальная ссылка на YouTube канал пользователя'
+    },
+    activeAwardId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: 'awards',
+        key: 'id'
+      },
+      onUpdate: 'CASCADE',
+      onDelete: 'SET NULL',
+      comment: 'ID активной награды пользователя для отображения в профиле'
     }
   }, {
     tableName: 'users',

@@ -28,7 +28,12 @@ import {
   Switch,
   FormControlLabel,
   useTheme,
-  useMediaQuery
+  useMediaQuery,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Tooltip
 } from '@mui/material';
 import {
   Person as PersonIcon,
@@ -58,6 +63,7 @@ const SettingsPage = () => {
   const [dragActive, setDragActive] = useState(false);
   const [showYouTubeModal, setShowYouTubeModal] = useState(false);
   const avatarInputRef = React.useRef(null);
+  const [userAwards, setUserAwards] = useState([]);
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -79,9 +85,14 @@ const SettingsPage = () => {
         description: currentUser.description || '',
         avatar: currentUser.avatar || '',
         armaId: currentUser.armaId || '',
-        isLookingForSquad: currentUser.isLookingForSquad || false
+        isLookingForSquad: currentUser.isLookingForSquad || false,
+        activeAwardId: currentUser.activeAwardId || ''
       });
       setAvatarPreview(currentUser.avatar || '');
+      // Загружаем награды пользователя
+      axios.get(`/awards/user/${currentUser.id}`)
+        .then(res => setUserAwards(res.data.map(ua => ua.award)))
+        .catch(() => setUserAwards([]));
     }
   }, [currentUser]);
 
@@ -448,6 +459,27 @@ const SettingsPage = () => {
               }
             }}
           />
+          <FormControl fullWidth sx={{ mb: 2 }}>
+            <InputLabel>Активная награда</InputLabel>
+            <Select
+              name="activeAwardId"
+              value={form.activeAwardId || ''}
+              onChange={handleFormChange}
+              label="Активная награда"
+            >
+              <MenuItem value="">Нет</MenuItem>
+              {userAwards.map(award => (
+                <MenuItem key={award.id} value={award.id}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Avatar src={award.image} sx={{ width: 24, height: 24 }} />
+                    <Tooltip title={award.description || award.name} placement="right">
+                      <span>{award.name}</span>
+                    </Tooltip>
+                  </Box>
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
           <FormControlLabel
             control={
               <Switch

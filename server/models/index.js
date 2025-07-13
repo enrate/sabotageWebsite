@@ -50,6 +50,9 @@ SquadAward.belongsTo(db.Squad, { foreignKey: 'squadId' });
 SquadAward.belongsTo(Award, { foreignKey: 'awardId' });
 SquadAward.belongsTo(db.User, { foreignKey: 'issuedBy', as: 'issuer' });
 
+// Ассоциация для активной награды пользователя
+db.User.belongsTo(Award, { foreignKey: 'activeAwardId', as: 'activeAward' });
+
 // Ассоциации для сезонов
 Season.hasMany(Award, { foreignKey: 'seasonId', as: 'seasonAwards' });
 Award.belongsTo(Season, { foreignKey: 'seasonId', as: 'season' });

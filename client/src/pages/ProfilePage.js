@@ -24,7 +24,8 @@ import {
   CardContent,
   LinearProgress,
   Button,
-  Popover
+  Popover,
+  Tooltip
 } from '@mui/material';
 import {
   Person as PersonIcon,
@@ -368,22 +369,41 @@ const ProfilePage = () => {
             }}
           >
             {/* Аватар и имя */}
-            <Box sx={{ textAlign: 'center', mb: isMobile ? 1 : 3 }}>
-            <Avatar
+            <Box sx={{ textAlign: 'center', mb: isMobile ? 1 : 3, position: 'relative', display: 'inline-block' }}>
+              <Avatar
                 src={user.avatar}
-              sx={{
+                sx={{
                   width: isMobile ? 64 : 120,
                   height: isMobile ? 64 : 120,
-                mx: 'auto',
-                mb: isMobile ? 1 : 2,
+                  mx: 'auto',
+                  mb: isMobile ? 1 : 2,
                   border: '3px solid #ffb347',
                   fontSize: isMobile ? '1.7rem' : '3rem',
                   bgcolor: user.avatar ? 'transparent' : '#ffb347'
-              }}
-            >
+                }}
+              >
                 {!user.avatar && <PersonIcon sx={{ fontSize: isMobile ? '1.7rem' : '3rem' }} />}
                 {user.avatar && (user.username?.charAt(0)?.toUpperCase() || 'U')}
-            </Avatar>
+              </Avatar>
+              {user.activeAward && (
+                <Tooltip title={user.activeAward.description || user.activeAward.name} placement="top">
+                  <Avatar
+                    src={user.activeAward.image}
+                    sx={{
+                      width: 40,
+                      height: 40,
+                      position: 'absolute',
+                      right: -8,
+                      bottom: -8,
+                      border: '2px solid #fff',
+                      boxShadow: 2,
+                      bgcolor: '#fff',
+                      zIndex: 2
+                    }}
+                  />
+                </Tooltip>
+              )}
+            </Box>
               <Typography variant={isMobile ? 'h6' : 'h4'} sx={{ color: '#ffb347', fontWeight: 700, mb: isMobile ? 1 : 1, fontSize: isMobile ? '1.2rem' : undefined }}>
                 {user.username}
               </Typography>

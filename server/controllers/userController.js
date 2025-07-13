@@ -52,7 +52,7 @@ exports.getUserById = async (req, res) => {
 
 exports.updateProfile = async (req, res) => {
   try {
-    const { username, email, description, avatar, armaId, isLookingForSquad } = req.body;
+    const { username, email, description, avatar, armaId, isLookingForSquad, activeAwardId } = req.body;
     const userId = req.user.id;
 
     // Проверяем, что пользователь существует
@@ -85,6 +85,17 @@ exports.updateProfile = async (req, res) => {
       }
     }
 
+    // Проверяем, что активная награда принадлежит пользователю
+    if (activeAwardId) {
+      const { UserAward } = require('../models');
+      const userAward = await UserAward.findOne({
+        where: { userId: user.id, awardId: activeAwardId }
+      });
+      if (!userAward) {
+        return res.status(400).json({ message: 'Выбранная награда не принадлежит вам' });
+      }
+    }
+
     // Обновляем профиль
     let newArmaId = armaId !== undefined ? armaId : user.armaId;
     if (newArmaId === '') newArmaId = null;
@@ -93,7 +104,8 @@ exports.updateProfile = async (req, res) => {
       userId,
       oldArmaId,
       newArmaId,
-      armaIdFromBody: armaId
+      armaIdFromBody: armaId,
+      activeAwardId
     });
     
     await user.update({
@@ -102,7 +114,8 @@ exports.updateProfile = async (req, res) => {
       description: description !== undefined ? description : user.description,
       avatar: avatar !== undefined ? avatar : user.avatar,
       armaId: newArmaId, // Сохраняем null вместо пустой строки
-      isLookingForSquad: isLookingForSquad !== undefined ? isLookingForSquad : user.isLookingForSquad
+      isLookingForSquad: isLookingForSquad !== undefined ? isLookingForSquad : user.isLookingForSquad,
+      activeAwardId: activeAwardId !== undefined ? activeAwardId : user.activeAwardId
     });
 
     // Если установлен новый armaId, привязываем статистику
@@ -127,7 +140,14 @@ exports.updateProfile = async (req, res) => {
 
     // Возвращаем обновленного пользователя
     const updatedUser = await User.findByPk(userId, {
-      attributes: ['id', 'username', 'avatar', 'role', 'description', 'email', 'squadId', 'armaId', 'joinDate', 'isLookingForSquad', 'discordId', 'discordUsername', 'twitchId', 'twitchUsername', 'youtubeId', 'youtubeUsername', 'youtubeUrl']
+      attributes: ['id', 'username', 'avatar', 'role', 'description', 'email', 'squadId', 'armaId', 'joinDate', 'isLookingForSquad', 'discordId', 'discordUsername', 'twitchId', 'twitchUsername', 'youtubeId', 'youtubeUsername', 'youtubeUrl', 'activeAwardId'],
+      include: [
+        {
+          model: require('../models').Award,
+          as: 'activeAward',
+          attributes: ['id', 'name', 'description', 'image', 'category']
+        }
+      ]
     });
 
     res.json(updatedUser);
