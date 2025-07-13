@@ -124,7 +124,7 @@ const CreateSquadModal = ({ onClose, onSquadCreated }) => {
             <input
               type="text"
               value={tag}
-              onChange={e => { setTag(e.target.value.toUpperCase()); setTagError(null); }}
+              onChange={e => { setTag(e.target.value); setTagError(null); }}
               required
               maxLength={8}
               style={{ 
