@@ -5,8 +5,7 @@ import {
   TextField, IconButton, Paper, Grid, Avatar, Tooltip, Tabs, Tab, Autocomplete, CircularProgress, Alert
 } from '@mui/material';
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, EmojiEvents as AwardIcon, People as PeopleIcon } from '@mui/icons-material';
-
-const emptyAward = { type: '', name: '', description: '', image: '' };
+import AwardEditorModal from './AwardEditorModal';
 
 const AdminAwards = () => {
   const [awards, setAwards] = useState([]);
@@ -14,8 +13,6 @@ const AdminAwards = () => {
   const [error, setError] = useState(null);
   const [openDialog, setOpenDialog] = useState(false);
   const [editAward, setEditAward] = useState(null);
-  const [form, setForm] = useState(emptyAward);
-  const [saving, setSaving] = useState(false);
   const [tab, setTab] = useState('list');
   const [userId, setUserId] = useState('');
   const [userSearch, setUserSearch] = useState('');
@@ -90,38 +87,17 @@ const AdminAwards = () => {
 
   const handleOpenDialog = (award = null) => {
     setEditAward(award);
-    setForm(award ? { ...award } : emptyAward);
     setOpenDialog(true);
   };
-  const handleCloseDialog = () => {
+
+  const handleCloseDialog = (saved = false) => {
     setOpenDialog(false);
     setEditAward(null);
-    setForm(emptyAward);
-  };
-  const handleChange = e => {
-    setForm(f => ({ ...f, [e.target.name]: e.target.value }));
-  };
-  const handleSave = async () => {
-    setSaving(true);
-    try {
-      const token = localStorage.getItem('token');
-      if (editAward) {
-        await axios.put(`/api/admin/awards/${editAward.id}`, form, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-      } else {
-        await axios.post('/api/admin/awards', form, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-      }
-      await fetchAwards();
-      handleCloseDialog();
-    } catch (e) {
-      setError('Ошибка сохранения');
-    } finally {
-      setSaving(false);
+    if (saved) {
+      fetchAwards();
     }
   };
+
   const handleDelete = async (award) => {
     if (!window.confirm('Удалить награду?')) return;
     try {
@@ -225,6 +201,16 @@ const AdminAwards = () => {
                   <Typography variant="h6" sx={{ color: '#ffb347', fontWeight: 600 }}>{award.name}</Typography>
                   <Typography variant="body2" sx={{ color: '#fff' }}>{award.type}</Typography>
                   <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.7)' }}>{award.description}</Typography>
+                  {award.category && (
+                    <Typography variant="caption" sx={{ color: '#ffb347' }}>
+                      Категория: {award.category}
+                    </Typography>
+                  )}
+                  {award.isSeasonAward && (
+                    <Typography variant="caption" sx={{ color: '#4caf50', display: 'block' }}>
+                      Сезонная награда
+                    </Typography>
+                  )}
                 </Box>
                 <Tooltip title="Редактировать">
                   <IconButton onClick={() => handleOpenDialog(award)}><EditIcon /></IconButton>
@@ -334,19 +320,14 @@ const AdminAwards = () => {
           )}
         </Paper>
       )}
-      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
-        <DialogTitle>{editAward ? 'Редактировать награду' : 'Создать награду'}</DialogTitle>
-        <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
-          <TextField label="Тип (медаль, кубок...)" name="type" value={form.type} onChange={handleChange} fullWidth />
-          <TextField label="Название" name="name" value={form.name} onChange={handleChange} fullWidth />
-          <TextField label="Описание" name="description" value={form.description} onChange={handleChange} fullWidth multiline minRows={2} />
-          <TextField label="URL картинки" name="image" value={form.image} onChange={handleChange} fullWidth />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog}>Отмена</Button>
-          <Button onClick={handleSave} variant="contained" disabled={saving}>{editAward ? 'Сохранить' : 'Создать'}</Button>
-        </DialogActions>
-      </Dialog>
+      
+      {/* Новая модалка для редактирования наград */}
+      <AwardEditorModal
+        open={openDialog}
+        onClose={handleCloseDialog}
+        award={editAward}
+      />
+      
       <Dialog open={recipientsDialog.open} onClose={handleCloseRecipients} maxWidth="md" fullWidth>
         <DialogTitle>Кому выдана награда: {recipientsDialog.award?.name}</DialogTitle>
         <DialogContent>

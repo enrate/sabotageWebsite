@@ -85,6 +85,7 @@ export default function AwardEditorModal({ open, onClose, award }) {
     setSaving(true);
     setError('');
     try {
+      const token = localStorage.getItem('token');
       const data = {
         ...form,
         minMatches: form.minMatches ? Number(form.minMatches) : undefined,
@@ -96,10 +97,15 @@ export default function AwardEditorModal({ open, onClose, award }) {
         registrationDeadline: form.registrationDeadline || undefined,
         assignmentConditions: form.assignmentConditions ? JSON.parse(form.assignmentConditions) : undefined,
       };
+      
       if (award) {
-        await axios.put(`/awards/${award.id}`, data);
+        await axios.put(`/api/admin/awards/${award.id}`, data, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
       } else {
-        await axios.post('/awards', data);
+        await axios.post('/api/admin/awards', data, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
       }
       onClose(true);
     } catch (err) {
