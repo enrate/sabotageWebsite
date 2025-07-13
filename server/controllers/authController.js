@@ -122,32 +122,7 @@ exports.login = async (req, res) => {
 // Получение информации о пользователе
 exports.getUser = async (req, res) => {
   try {
-    const { UserAward, Award, Season } = require('../models');
-    const user = await User.findByPk(req.user.id, {
-      include: [
-        {
-          model: UserAward,
-          as: 'UserAwards',
-          include: [
-            {
-              model: Award,
-              include: [
-                {
-                  model: Season,
-                  as: 'season',
-                  attributes: ['id', 'name']
-                }
-              ]
-            }
-          ]
-        },
-        {
-          model: Award,
-          as: 'activeAward',
-          attributes: ['id', 'name', 'description', 'image', 'category']
-        }
-      ]
-    });
+    const user = await User.findByPk(req.user.id);
     if (!user) {
       return res.status(404).json({ message: 'Пользователь не найден' });
     }
@@ -163,13 +138,9 @@ exports.getUser = async (req, res) => {
         squadRole = roleRecord ? roleRecord.role : null;
       }
     }
-    // Возвращаем все нужные поля + userAwards
-    const { id, username, email, role, squadId, avatar, description, isLookingForSquad, createdAt, armaId, discordId, discordUsername, twitchId, twitchUsername, youtubeId, youtubeUsername, activeAward } = user;
-    res.json({
-      id, username, email, role, squadId, avatar, description, isLookingForSquad, createdAt, squadRole, armaId, discordId, discordUsername, twitchId, twitchUsername, youtubeId, youtubeUsername,
-      userAwards: user.UserAwards || [],
-      activeAward: user.activeAward || null
-    });
+    // Возвращаем только основные поля пользователя (без armaId, stats, verified)
+    const { id, username, email, role, squadId, avatar, description, isLookingForSquad, createdAt, armaId, discordId, discordUsername, twitchId, twitchUsername, youtubeId, youtubeUsername } = user;
+    res.json({ id, username, email, role, squadId, avatar, description, isLookingForSquad, createdAt, squadRole, armaId, discordId, discordUsername, twitchId, twitchUsername, youtubeId, youtubeUsername });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Ошибка сервера' });

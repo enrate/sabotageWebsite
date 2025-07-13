@@ -343,11 +343,15 @@ exports.revokeAwardFromUser = async (req, res) => {
 exports.getUserAwards = async (req, res) => {
   try {
     const userId = req.params.userId;
+    console.log('getUserAwards called for userId:', userId);
 
     const user = await User.findByPk(userId);
     if (!user) {
+      console.log('User not found for userId:', userId);
       return res.status(404).json({ error: 'Пользователь не найден' });
     }
+
+    console.log('User found:', user.username);
 
     const userAwards = await UserAward.findAll({
       where: { userId },
@@ -365,6 +369,9 @@ exports.getUserAwards = async (req, res) => {
       ],
       order: [['issuedAt', 'DESC']]
     });
+
+    console.log('Found userAwards:', userAwards.length);
+    console.log('userAwards data:', JSON.stringify(userAwards, null, 2));
 
     res.json(userAwards);
   } catch (err) {
