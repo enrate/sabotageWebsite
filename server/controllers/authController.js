@@ -127,6 +127,7 @@ exports.getUser = async (req, res) => {
       include: [
         {
           model: UserAward,
+          as: 'UserAwards',
           include: [
             {
               model: Award,
