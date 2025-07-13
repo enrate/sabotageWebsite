@@ -3,7 +3,6 @@ const router = express.Router();
 const adminController = require('../controllers/adminController');
 const { protect, admin } = require('../middleware/authMiddleware');
 const awardController = require('../controllers/awardController');
-const { protect: protectOnlyAdmin, adminOnly } = require('../middleware/authMiddleware');
 const seasonController = require('../controllers/seasonController');
 
 // Маршруты для управления пользователями
@@ -14,9 +13,9 @@ router.post('/users/:id/ban', protect, admin, adminController.banUser);
 router.post('/users/:id/unban', protect, admin, adminController.unbanUser);
 
 // Маршруты для предупреждений отрядам
-router.post('/squads/:squadId/warnings', protect, adminController.issueSquadWarning);
-router.get('/squads/:squadId/warnings', protect, adminController.getSquadWarnings);
-router.patch('/warnings/:warningId/cancel', protect, adminController.cancelSquadWarning);
+router.post('/squads/:squadId/warnings', protect, admin, adminController.issueSquadWarning);
+router.get('/squads/:squadId/warnings', protect, admin, adminController.getSquadWarnings);
+router.patch('/warnings/:warningId/cancel', protect, admin, adminController.cancelSquadWarning);
 
 // Маршруты для предупреждений пользователям
 router.post('/users/:userId/warnings', protect, admin, adminController.issueUserWarning);
@@ -25,20 +24,20 @@ router.patch('/user-warnings/:warningId/cancel', protect, admin, adminController
 
 // --- Роуты для наград ---
 router.get('/awards', protect, admin, awardController.getAllAwards);
-router.get('/awards/:id', protect, admin, awardController.getAward);
+router.get('/awards/:id', protect, admin, awardController.getAwardById);
 router.post('/awards', protect, admin, awardController.createAward);
 router.put('/awards/:id', protect, admin, awardController.updateAward);
 router.delete('/awards/:id', protect, admin, awardController.deleteAward);
 // Выдача наград
-router.post('/awards/give/user', protect, admin, awardController.giveAwardToUser);
-router.post('/awards/give/squad', protect, admin, awardController.giveAwardToSquad);
+router.post('/awards/give/user', protect, admin, awardController.assignAwardToUser);
+// router.post('/awards/give/squad', protect, admin, awardController.giveAwardToSquad); // TODO: добавить метод
 // Получение наград пользователя/отряда
 router.get('/awards/user/:userId', protect, admin, awardController.getUserAwards);
-router.get('/awards/squad/:squadId', protect, admin, awardController.getSquadAwards);
+// router.get('/awards/squad/:squadId', protect, admin, awardController.getSquadAwards); // TODO: добавить метод
 // --- Управление вручением и отзывом наград ---
-router.delete('/awards/user-award/:userAwardId', protect, admin, awardController.removeAwardFromUser);
-router.delete('/awards/squad-award/:squadAwardId', protect, admin, awardController.removeAwardFromSquad);
-router.get('/awards/:awardId/recipients', protect, admin, awardController.getAwardRecipients);
+router.delete('/awards/user-award/:userAwardId', protect, admin, awardController.revokeAwardFromUser);
+// router.delete('/awards/squad-award/:squadAwardId', protect, admin, awardController.removeAwardFromSquad); // TODO: добавить метод
+// router.get('/awards/:awardId/recipients', protect, admin, awardController.getAwardRecipients); // TODO: добавить метод
 
 // --- Роуты для сезонов ---
 router.get('/seasons', protect, admin, seasonController.getAllSeasons);
