@@ -101,7 +101,13 @@ exports.login = async (req, res) => {
             squadId: user.squadId,
             avatar: user.avatar,
             description: user.description,
-            armaId: user.armaId
+            armaId: user.armaId,
+            discordId: user.discordId,
+            discordUsername: user.discordUsername,
+            twitchId: user.twitchId,
+            twitchUsername: user.twitchUsername,
+            youtubeId: user.youtubeId,
+            youtubeUsername: user.youtubeUsername
           }
         });
       });
@@ -181,6 +187,12 @@ exports.verifyEmail = async (req, res) => {
         avatar: user.avatar,
         description: user.description,
         armaId: user.armaId,
+        discordId: user.discordId,
+        discordUsername: user.discordUsername,
+        twitchId: user.twitchId,
+        twitchUsername: user.twitchUsername,
+        youtubeId: user.youtubeId,
+        youtubeUsername: user.youtubeUsername,
         emailVerified: true
       }
     });

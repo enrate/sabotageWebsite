@@ -118,6 +118,8 @@ const SettingsPage = () => {
       }
     } else if (youtubeStatus === 'error') {
       setError('Ошибка привязки YouTube');
+    } else if (youtubeStatus === 'no-channel') {
+      setError('YouTube канал не найден. Убедитесь, что у вас есть YouTube канал.');
     }
   }, [currentUser, updateUser]);
 

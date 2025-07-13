@@ -127,7 +127,7 @@ exports.updateProfile = async (req, res) => {
 
     // Возвращаем обновленного пользователя
     const updatedUser = await User.findByPk(userId, {
-      attributes: ['id', 'username', 'avatar', 'role', 'description', 'email', 'squadId', 'armaId', 'joinDate', 'isLookingForSquad']
+      attributes: ['id', 'username', 'avatar', 'role', 'description', 'email', 'squadId', 'armaId', 'joinDate', 'isLookingForSquad', 'discordId', 'discordUsername', 'twitchId', 'twitchUsername', 'youtubeId', 'youtubeUsername']
     });
 
     res.json(updatedUser);

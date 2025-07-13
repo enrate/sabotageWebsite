@@ -6,7 +6,7 @@ const qs = require('querystring');
 const YOUTUBE_CLIENT_ID = process.env.YOUTUBE_CLIENT_ID || 'YOUR_YOUTUBE_CLIENT_ID';
 const YOUTUBE_CLIENT_SECRET = process.env.YOUTUBE_CLIENT_SECRET || 'YOUR_YOUTUBE_CLIENT_SECRET';
 const YOUTUBE_REDIRECT_URI = process.env.YOUTUBE_REDIRECT_URI || 'http://localhost:3001/youtube/callback';
-const YOUTUBE_SCOPE = 'https://www.googleapis.com/auth/userinfo.profile';
+const YOUTUBE_SCOPE = 'https://www.googleapis.com/auth/youtube.readonly';
 
 // 1. Редирект на YouTube OAuth2
 exports.startOAuth = (req, res) => {
@@ -44,26 +44,37 @@ exports.handleCallback = async (req, res) => {
     );
     const { access_token } = tokenRes.data;
     
-    // Получаем инфу о пользователе
-    const userRes = await axios.get('https://www.googleapis.com/oauth2/v2/userinfo', {
+    // Получаем информацию о YouTube канале
+    const channelRes = await axios.get('https://www.googleapis.com/youtube/v3/channels', {
       headers: { 
         'Authorization': `Bearer ${access_token}`
+      },
+      params: {
+        part: 'snippet',
+        mine: true
       }
     });
     
-    const { id, name, email } = userRes.data;
-    
-    // Сохраняем в профиль
-    await User.update({
-      youtubeId: id,
-      youtubeUsername: name
-    }, { where: { id: userId } });
+    if (channelRes.data.items && channelRes.data.items.length > 0) {
+      const channel = channelRes.data.items[0];
+      const { id, snippet } = channel;
+      const channelName = snippet.title;
+      
+      // Сохраняем в профиль
+      await User.update({
+        youtubeId: id,
+        youtubeUsername: channelName
+      }, { where: { id: userId } });
+    } else {
+      throw new Error('YouTube канал не найден');
+    }
     
     // Можно редиректить на фронт с успехом
     res.redirect('/settings?youtube=success');
   } catch (err) {
     console.error('[YouTube OAuth2]', err);
-    res.redirect('/settings?youtube=error');
+    const errorMessage = err.message === 'YouTube канал не найден' ? 'no-channel' : 'error';
+    res.redirect(`/settings?youtube=${errorMessage}`);
   }
 };
 
