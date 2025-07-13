@@ -354,19 +354,23 @@ exports.getUserAwards = async (req, res) => {
       include: [
         {
           model: Award,
-          include: [
-            {
-              model: Season,
-              as: 'season',
-              attributes: ['id', 'name']
-            }
-          ]
+          attributes: ['id', 'name', 'description', 'image', 'type']
         }
       ],
       order: [['issuedAt', 'DESC']]
     });
 
-    res.json(userAwards);
+    // Преобразуем в упрощенный формат
+    const simplifiedAwards = userAwards.map(ua => ({
+      id: ua.Award.id,
+      name: ua.Award.name,
+      description: ua.Award.description,
+      image: ua.Award.image,
+      type: ua.Award.type,
+      isActive: user.activeAwardId === ua.Award.id
+    }));
+
+    res.json(simplifiedAwards);
   } catch (err) {
     console.error('Ошибка при получении наград пользователя:', err);
     res.status(500).json({ error: 'Ошибка при получении наград пользователя' });

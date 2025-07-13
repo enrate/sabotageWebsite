@@ -91,8 +91,17 @@ const SettingsPage = () => {
       setAvatarPreview(currentUser.avatar || '');
       // Загружаем награды пользователя
       axios.get(`/api/awards/user/${currentUser.id}`)
-        .then(res => setUserAwards(res.data.map(ua => ua.Award)))
-        .catch(() => setUserAwards([]));
+        .then(res => {
+          setUserAwards(res.data);
+          // Находим активную награду и устанавливаем в форму
+          const activeAward = res.data.find(award => award.isActive);
+          if (activeAward) {
+            setForm(prev => ({ ...prev, activeAwardId: activeAward.id }));
+          }
+        })
+        .catch(() => {
+          setUserAwards([]);
+        });
     }
   }, [currentUser]);
 
@@ -234,7 +243,8 @@ const SettingsPage = () => {
       description: currentUser?.description || '',
       avatar: currentUser?.avatar || '',
       armaId: currentUser?.armaId || '',
-      isLookingForSquad: currentUser?.isLookingForSquad || false
+      isLookingForSquad: currentUser?.isLookingForSquad || false,
+      activeAwardId: currentUser?.activeAwardId || ''
     });
     setAvatarPreview(currentUser?.avatar || '');
     setError(null);
