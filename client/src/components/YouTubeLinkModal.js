@@ -1,17 +1,6 @@
 import React, { useState } from 'react';
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-  TextField,
-  Typography,
-  Box,
-  Alert,
-  CircularProgress
-} from '@mui/material';
 import axios from 'axios';
+import './CreateSquadModal.css';
 
 const YouTubeLinkModal = ({ open, onClose, onSuccess }) => {
   const [youtubeUrl, setYoutubeUrl] = useState('');
@@ -54,72 +43,201 @@ const YouTubeLinkModal = ({ open, onClose, onSuccess }) => {
     onClose();
   };
 
+  // Закрытие по клику вне модалки
+  const handleOverlayClick = (e) => {
+    if (e.target === e.currentTarget) {
+      handleClose();
+    }
+  };
+
+  if (!open) return null;
+
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>
-        Привязать YouTube канал
-      </DialogTitle>
-      <form onSubmit={handleSubmit}>
-        <DialogContent>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            Вставьте ссылку на ваш YouTube канал. Поддерживаются следующие форматы:
-          </Typography>
-          
-          <Box sx={{ mb: 2 }}>
-            <Typography variant="body2" component="div" sx={{ mb: 1 }}>
-              Поддерживаемые форматы:
-            </Typography>
-            <Typography variant="caption" component="div" sx={{ color: 'text.secondary', mb: 0.5 }}>
-              • https://www.youtube.com/channel/UC...
-            </Typography>
-            <Typography variant="caption" component="div" sx={{ color: 'text.secondary', mb: 0.5 }}>
-              • https://www.youtube.com/c/ChannelName
-            </Typography>
-            <Typography variant="caption" component="div" sx={{ color: 'text.secondary', mb: 0.5 }}>
-              • https://www.youtube.com/@username
-            </Typography>
-            <Typography variant="caption" component="div" sx={{ color: 'text.secondary' }}>
-              • https://www.youtube.com/user/username
-            </Typography>
-          </Box>
-
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Ссылка на YouTube канал"
-            type="url"
-            fullWidth
-            variant="outlined"
-            value={youtubeUrl}
-            onChange={(e) => setYoutubeUrl(e.target.value)}
-            placeholder="https://www.youtube.com/channel/UC..."
-            disabled={loading}
-            error={!!error}
-            helperText={error}
-          />
-
-          {success && (
-            <Alert severity="success" sx={{ mt: 2 }}>
-              {success}
-            </Alert>
-          )}
-        </DialogContent>
+    <div
+      className="modal-overlay"
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100vw',
+        height: '100vh',
+        background: 'rgba(30,30,30,0.75)',
+        zIndex: 1000,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backdropFilter: 'blur(10px)',
+        WebkitBackdropFilter: 'blur(10px)',
+        animation: 'fadeIn 0.2s',
+      }}
+      onClick={handleOverlayClick}
+    >
+      <div
+        className="create-squad-modal-card"
+        style={{
+          maxWidth: 480,
+          minWidth: 320,
+        }}
+        onClick={e => e.stopPropagation()}
+      >
+        <h2>Привязать YouTube канал</h2>
         
-        <DialogActions>
-          <Button onClick={handleClose} disabled={loading}>
-            Отмена
-          </Button>
-          <Button 
-            type="submit" 
-            variant="contained" 
-            disabled={loading || !youtubeUrl.trim()}
-            startIcon={loading ? <CircularProgress size={20} /> : null}
-          >
-            {loading ? 'Привязка...' : 'Привязать'}
-          </Button>
-        </DialogActions>
-      </form>
-    </Dialog>
+        {error && <div className="error">{error}</div>}
+        {success && <div style={{ color: '#52c41a', fontWeight: 500, marginBottom: 16 }}>{success}</div>}
+        
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label>Ссылка на YouTube канал</label>
+            <input
+              type="url"
+              value={youtubeUrl}
+              onChange={e => setYoutubeUrl(e.target.value)}
+              placeholder="https://www.youtube.com/channel/UC..."
+              required
+              disabled={loading}
+            />
+          </div>
+          
+          <div style={{ 
+            background: 'rgba(255, 179, 71, 0.1)', 
+            border: '1px solid rgba(255, 179, 71, 0.3)', 
+            borderRadius: 8, 
+            padding: 12, 
+            marginBottom: 16,
+            fontSize: 14
+          }}>
+            <div style={{ fontWeight: 500, marginBottom: 8, color: '#ffb347' }}>
+              Поддерживаемые форматы:
+            </div>
+            <div style={{ color: 'rgba(255,255,255,0.8)', lineHeight: 1.5 }}>
+              • https://www.youtube.com/channel/UC...<br/>
+              • https://www.youtube.com/c/ChannelName<br/>
+              • https://www.youtube.com/@username<br/>
+              • https://www.youtube.com/user/username
+            </div>
+          </div>
+          
+          <div className="modal-actions">
+            <button type="button" onClick={handleClose} disabled={loading}>
+              Отмена
+            </button>
+            <button type="submit" disabled={loading || !youtubeUrl.trim()}>
+              {loading ? 'Привязка...' : 'Привязать'}
+            </button>
+          </div>
+        </form>
+      </div>
+      
+      <style>{`
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        
+        @keyframes slideDown {
+          from { 
+            opacity: 0; 
+            transform: translateY(-20px); 
+          }
+          to { 
+            opacity: 1; 
+            transform: translateY(0); 
+          }
+        }
+        
+        .modal-actions {
+          display: flex;
+          gap: 12px;
+          margin-top: 20px;
+        }
+        
+        .form-group {
+          margin-bottom: 16px;
+        }
+        
+        .form-group label {
+          display: block;
+          margin-bottom: 4px;
+          font-weight: 500;
+          color: #fff;
+        }
+        
+        .form-group input {
+          width: 100%;
+          margin-top: 4px;
+          border-radius: 8px;
+          border: 1.5px solid #ffb347;
+          padding: 8px 12px;
+          background: #232526;
+          color: #fff;
+          font-size: 16px;
+        }
+        
+        .form-group input:focus {
+          outline: none;
+          border-color: #ffd580;
+          box-shadow: 0 0 0 2px rgba(255, 179, 71, 0.2);
+        }
+        
+        .form-group input:disabled {
+          opacity: 0.7;
+          cursor: not-allowed;
+        }
+        
+        .modal-actions button {
+          flex: 1;
+          padding: 10px 0;
+          font-weight: 600;
+          font-size: 16px;
+          cursor: pointer;
+          border-radius: 8px;
+          transition: all 0.2s;
+        }
+        
+        .modal-actions button[type="submit"] {
+          background: #ffb347;
+          border: none;
+          color: #232526;
+        }
+        
+        .modal-actions button[type="submit"]:hover:not(:disabled) {
+          background: #ffd580;
+        }
+        
+        .modal-actions button[type="button"] {
+          background: none;
+          border: 2px solid #ffb347;
+          color: #ffb347;
+        }
+        
+        .modal-actions button[type="button"]:hover:not(:disabled) {
+          background: rgba(255, 179, 71, 0.1);
+        }
+        
+        .modal-actions button:disabled {
+          opacity: 0.7;
+          cursor: not-allowed;
+        }
+        
+        .error {
+          color: #ff4d4f;
+          font-weight: 500;
+          margin-bottom: 16px;
+          padding: 8px 12px;
+          background: rgba(255, 77, 79, 0.1);
+          border: 1px solid rgba(255, 77, 79, 0.3);
+          border-radius: 6px;
+        }
+        
+        @media (max-width: 500px) {
+          .create-squad-modal-card {
+            min-width: 0;
+            width: 98vw;
+            padding: 18px 16px;
+          }
+        }
+      `}</style>
+    </div>
   );
 };
 
