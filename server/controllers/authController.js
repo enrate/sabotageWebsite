@@ -58,8 +58,15 @@ exports.login = async (req, res) => {
   const { email, password } = req.body;
   
   try {
-    // Поиск пользователя
-    const user = await User.findOne({ where: { email } });
+    // Поиск пользователя по email или username
+    const user = await User.findOne({
+      where: {
+        [require('sequelize').Op.or]: [
+          { email },
+          { username: email }
+        ]
+      }
+    });
     if (!user) {
       return res.status(400).json({ message: 'Неверные учетные данные' });
     }
