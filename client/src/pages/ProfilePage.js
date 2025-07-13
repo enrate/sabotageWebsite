@@ -393,12 +393,14 @@ const ProfilePage = () => {
                       width: 40,
                       height: 40,
                       position: 'absolute',
-                      right: -8,
-                      bottom: -8,
+                      right: 0,
+                      bottom: 0,
                       border: '2px solid #fff',
                       boxShadow: 2,
                       bgcolor: '#fff',
-                      zIndex: 2
+                      zIndex: 2,
+                      m: 0,
+                      p: 0
                     }}
                   />
                 </Tooltip>
