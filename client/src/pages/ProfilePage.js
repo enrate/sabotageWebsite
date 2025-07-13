@@ -390,14 +390,12 @@ const ProfilePage = () => {
                   <Avatar
                     src={user.activeAward.image}
                     sx={{
-                      width: 40,
-                      height: 40,
+                      width: 60,
+                      height: 60,
                       position: 'absolute',
-                      right: 0,
+                      right: -10,
                       bottom: 0,
-                      border: '2px solid #fff',
                       boxShadow: 2,
-                      bgcolor: '#fff',
                       zIndex: 2,
                       m: 0,
                       p: 0
@@ -675,7 +673,7 @@ const ProfilePage = () => {
                           {userAwards.map(award => (
                             <Grid item xs={12} sm={6} md={4} key={award.id}>
                               <Paper sx={{ p: isMobile ? 1 : 2, display: 'flex', alignItems: 'center', gap: 2, bgcolor: 'rgba(255,255,255,0.03)' }} elevation={2}>
-                                <Avatar src={award.image} sx={{ bgcolor: '#ffb347', width: 56, height: 56 }}>
+                                <Avatar src={award.image} sx={{ width: 56, height: 56 }}>
                                   {!award.image && <EmojiEventsIcon />}
                                 </Avatar>
                                 <Box sx={{ flex: 1 }}>
