@@ -3,7 +3,7 @@ const { User } = require('../models');
 exports.getUserById = async (req, res) => {
   try {
     const user = await User.findByPk(req.params.id, {
-      attributes: ['id', 'username', 'avatar', 'role', 'description', 'email', 'squadId', 'createdAt', 'isLookingForSquad', 'armaId', 'discordId', 'discordUsername', 'twitchId', 'twitchUsername', 'youtubeId', 'youtubeUsername', 'youtubeUrl']
+      attributes: ['id', 'username', 'avatar', 'role', 'description', 'email', 'squadId', 'createdAt', 'isLookingForSquad', 'armaId', 'discordId', 'discordUsername', 'twitchId', 'twitchUsername', 'youtubeId', 'youtubeUsername', 'youtubeUrl', 'activeAwardId']
     });
     if (!user) return res.status(404).json({ message: 'Пользователь не найден' });
     // Скрывать email, если не свой профиль и не админ
@@ -44,7 +44,15 @@ exports.getUserById = async (req, res) => {
       const squad = await Squad.findByPk(user.squadId);
       if (squad) squadName = squad.name;
     }
-    res.json({ ...user.toJSON(), verified, stats, squadName });
+    let activeAward = null;
+    if (user.activeAwardId) {
+      const { Award } = require('../models');
+      const award = await Award.findByPk(user.activeAwardId, {
+        attributes: ['id', 'name', 'description', 'image']
+      });
+      if (award) activeAward = award;
+    }
+    res.json({ ...user.toJSON(), verified, stats, squadName, activeAward });
   } catch (err) {
     res.status(500).json({ message: 'Ошибка получения пользователя' });
   }
