@@ -179,6 +179,7 @@ class AwardService {
             { minKills: { [Op.ne]: null } },
             { minElo: { [Op.ne]: null } }
           ]
+        }
       });
 
       let assignedCount = 0;
