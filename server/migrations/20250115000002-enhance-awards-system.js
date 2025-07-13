@@ -11,8 +11,8 @@ module.exports = {
           CREATE TYPE "public"."enum_awards_category" AS ENUM('general', 'season', 'achievement', 'special');
         END IF;
         
-        IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'enum_awards_assignmentType') THEN
-          CREATE TYPE "public"."enum_awards_assignmentType" AS ENUM('manual', 'automatic', 'conditional');
+        IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'enum_awards_assignmenttype') THEN
+          CREATE TYPE "public"."enum_awards_assignmenttype" AS ENUM('manual', 'automatic', 'conditional');
         END IF;
       END $$;
     `);
@@ -21,7 +21,7 @@ module.exports = {
     const columns = [
       {
         name: 'category',
-        type: 'enum_awards_category',
+        type: '"enum_awards_category"',
         comment: 'Категория награды'
       },
       {
@@ -32,7 +32,7 @@ module.exports = {
       },
       {
         name: 'assignmentType',
-        type: 'enum_awards_assignmentType',
+        type: '"enum_awards_assignmenttype"',
         comment: 'Тип назначения награды'
       },
       {
@@ -191,6 +191,6 @@ module.exports = {
 
     // Удаляем ENUM типы
     await queryInterface.sequelize.query('DROP TYPE IF EXISTS enum_awards_category;');
-    await queryInterface.sequelize.query('DROP TYPE IF EXISTS enum_awards_assignmentType;');
+    await queryInterface.sequelize.query('DROP TYPE IF EXISTS enum_awards_assignmenttype;');
   }
 }; 
