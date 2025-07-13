@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import Loader from '../components/Loader';
 import Cropper from 'react-easy-crop';
 import getCroppedImg from '../utils/cropImage';
+import YouTubeLinkModal from '../components/YouTubeLinkModal';
 import '../components/CreateSquadModal.css';
 import {
   Container,
@@ -55,6 +56,7 @@ const SettingsPage = () => {
   const [cropSrc, setCropSrc] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState('');
   const [dragActive, setDragActive] = useState(false);
+  const [showYouTubeModal, setShowYouTubeModal] = useState(false);
   const avatarInputRef = React.useRef(null);
 
   const theme = useTheme();
@@ -258,7 +260,7 @@ const SettingsPage = () => {
   };
 
   const handleYoutubeLink = () => {
-    window.location.href = '/youtube/start';
+    setShowYouTubeModal(true);
   };
 
   const handleYoutubeUnlink = async () => {
@@ -270,6 +272,15 @@ const SettingsPage = () => {
     } catch (err) {
       setError('Ошибка при отвязке YouTube');
     }
+  };
+
+  const handleYouTubeSuccess = (data) => {
+    updateUser({ 
+      ...currentUser, 
+      youtubeId: data.youtubeId || 'temp', 
+      youtubeUsername: data.channelName || 'temp' 
+    });
+    setSuccess(data.message || 'YouTube канал успешно привязан!');
   };
 
   if (loading) return (
@@ -620,6 +631,13 @@ const SettingsPage = () => {
       )}
         </Container>
       </Box>
+
+      {/* YouTube Link Modal */}
+      <YouTubeLinkModal
+        open={showYouTubeModal}
+        onClose={() => setShowYouTubeModal(false)}
+        onSuccess={handleYouTubeSuccess}
+      />
     </Box>
   );
 };

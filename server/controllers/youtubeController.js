@@ -1,88 +1,124 @@
 require('dotenv').config();
 const axios = require('axios');
 const { User } = require('../models');
-const qs = require('querystring');
 
-const YOUTUBE_CLIENT_ID = process.env.YOUTUBE_CLIENT_ID || 'YOUR_YOUTUBE_CLIENT_ID';
-const YOUTUBE_CLIENT_SECRET = process.env.YOUTUBE_CLIENT_SECRET || 'YOUR_YOUTUBE_CLIENT_SECRET';
-const YOUTUBE_REDIRECT_URI = process.env.YOUTUBE_REDIRECT_URI || 'http://localhost:3001/youtube/callback';
-const YOUTUBE_SCOPE = 'https://www.googleapis.com/auth/youtube.readonly';
+const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY || 'YOUR_YOUTUBE_API_KEY';
 
-// 1. Редирект на YouTube OAuth2
-exports.startOAuth = (req, res) => {
-  console.log('SESSION DEBUG:', req.session);
-  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-  res.set('Pragma', 'no-cache');
-  res.set('Expires', '0');
-  res.set('Surrogate-Control', 'no-store');
-  const userId = req.session && req.session.userId;
-  if (!userId) return res.status(401).send('Not authorized');
-  const state = userId; // Можно добавить CSRF protection
-  const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${YOUTUBE_CLIENT_ID}&redirect_uri=${encodeURIComponent(YOUTUBE_REDIRECT_URI)}&response_type=code&scope=${encodeURIComponent(YOUTUBE_SCOPE)}&state=${state}`;
-  res.redirect(url);
-};
+// Извлекаем YouTube канал ID из различных форматов ссылок
+function extractChannelId(url) {
+  const patterns = [
+    // https://www.youtube.com/channel/UC...
+    /youtube\.com\/channel\/([a-zA-Z0-9_-]+)/,
+    // https://www.youtube.com/c/ChannelName
+    /youtube\.com\/c\/([^\/\?]+)/,
+    // https://www.youtube.com/@username
+    /youtube\.com\/@([^\/\?]+)/,
+    // https://www.youtube.com/user/username
+    /youtube\.com\/user\/([^\/\?]+)/
+  ];
 
-// 2. Callback от YouTube
-exports.handleCallback = async (req, res) => {
-  const { code, state } = req.query;
-  const userId = req.session && req.session.userId;
-  if (!code || !state || !userId) return res.status(400).json({ error: 'Нет кода авторизации, state или userId' });
+  for (const pattern of patterns) {
+    const match = url.match(pattern);
+    if (match) {
+      return match[1];
+    }
+  }
+  
+  return null;
+}
+
+// Получаем информацию о канале по ID или username
+async function getChannelInfo(identifier) {
   try {
-    // Получаем access_token
-    const tokenRes = await axios.post('https://oauth2.googleapis.com/token',
-      qs.stringify({
-        client_id: YOUTUBE_CLIENT_ID,
-        client_secret: YOUTUBE_CLIENT_SECRET,
-        grant_type: 'authorization_code',
-        code,
-        redirect_uri: YOUTUBE_REDIRECT_URI,
-        scope: YOUTUBE_SCOPE
-      }),
-      {
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-      }
-    );
-    const { access_token } = tokenRes.data;
-    
-    // Получаем информацию о YouTube канале
-    const channelRes = await axios.get('https://www.googleapis.com/youtube/v3/channels', {
-      headers: { 
-        'Authorization': `Bearer ${access_token}`
-      },
+    // Сначала пробуем как channel ID
+    let response = await axios.get('https://www.googleapis.com/youtube/v3/channels', {
       params: {
         part: 'snippet',
-        mine: true
+        id: identifier,
+        key: YOUTUBE_API_KEY
       }
     });
-    
-    if (channelRes.data.items && channelRes.data.items.length > 0) {
-      const channel = channelRes.data.items[0];
-      const { id, snippet } = channel;
-      const channelName = snippet.title;
-      
-      // Сохраняем в профиль
-      await User.update({
-        youtubeId: id,
-        youtubeUsername: channelName
-      }, { where: { id: userId } });
-    } else {
-      throw new Error('YouTube канал не найден');
+
+    if (response.data.items && response.data.items.length > 0) {
+      return response.data.items[0];
     }
+
+    // Если не найден, пробуем как username
+    response = await axios.get('https://www.googleapis.com/youtube/v3/channels', {
+      params: {
+        part: 'snippet',
+        forUsername: identifier,
+        key: YOUTUBE_API_KEY
+      }
+    });
+
+    if (response.data.items && response.data.items.length > 0) {
+      return response.data.items[0];
+    }
+
+    return null;
+  } catch (error) {
+    console.error('Ошибка получения информации о канале:', error.message);
+    return null;
+  }
+}
+
+// Привязать YouTube канал по ссылке
+exports.linkYoutubeByUrl = async (req, res) => {
+  try {
+    const { youtubeUrl } = req.body;
+    const userId = req.user.id;
+
+    if (!youtubeUrl) {
+      return res.status(400).json({ error: 'Необходимо указать ссылку на YouTube канал' });
+    }
+
+    // Извлекаем ID канала из ссылки
+    const channelId = extractChannelId(youtubeUrl);
     
-    // Можно редиректить на фронт с успехом
-    res.redirect('/settings?youtube=success');
-  } catch (err) {
-    console.error('[YouTube OAuth2]', err);
-    const errorMessage = err.message === 'YouTube канал не найден' ? 'no-channel' : 'error';
-    res.redirect(`/settings?youtube=${errorMessage}`);
+    if (!channelId) {
+      return res.status(400).json({ error: 'Неверный формат ссылки на YouTube канал' });
+    }
+
+    // Получаем информацию о канале
+    const channelInfo = await getChannelInfo(channelId);
+    
+    if (!channelInfo) {
+      return res.status(404).json({ error: 'YouTube канал не найден' });
+    }
+
+    const { id: youtubeId, snippet } = channelInfo;
+    const channelName = snippet.title;
+    const channelUrl = `https://www.youtube.com/channel/${youtubeId}`;
+
+    // Сохраняем в профиль
+    await User.update({
+      youtubeId: youtubeId,
+      youtubeUsername: channelName
+    }, { where: { id: userId } });
+
+    res.json({ 
+      success: true, 
+      channelName, 
+      channelUrl,
+      message: 'YouTube канал успешно привязан!' 
+    });
+
+  } catch (error) {
+    console.error('Ошибка привязки YouTube:', error);
+    res.status(500).json({ error: 'Ошибка при привязке YouTube канала' });
   }
 };
 
-// 3. Отвязать YouTube
+// Отвязать YouTube
 exports.unlinkYoutube = async (req, res) => {
   try {
-    await User.update({ youtubeId: null, youtubeUsername: null }, { where: { id: req.user.id } });
-    res.json({ success: true });
+    await User.update({ 
+      youtubeId: null, 
+      youtubeUsername: null 
+    }, { where: { id: req.user.id } });
+    
+    res.json({ success: true, message: 'YouTube канал отвязан' });
   } catch (err) {
     res.status(500).json({ error: 'Ошибка при отвязке YouTube' });
   }
