@@ -57,6 +57,15 @@ exports.getAwardById = async (req, res) => {
 // Создать новую награду
 exports.createAward = async (req, res) => {
   try {
+    // Обработка данных из FormData
+    const processFormData = (value) => {
+      if (value === 'true') return true;
+      if (value === 'false') return false;
+      if (value === 'null' || value === '') return null;
+      if (!isNaN(value) && value !== '') return Number(value);
+      return value;
+    };
+
     const {
       type,
       name,
@@ -75,23 +84,51 @@ exports.createAward = async (req, res) => {
       priority = 0
     } = req.body;
 
+    // Преобразуем данные из FormData
+    const processedData = {
+      type: processFormData(type),
+      name: processFormData(name),
+      description: processFormData(description),
+      category: processFormData(category),
+      isSeasonAward: processFormData(isSeasonAward),
+      assignmentType: processFormData(assignmentType),
+      assignmentConditions: assignmentConditions ? JSON.parse(assignmentConditions) : null,
+      registrationDeadline: processFormData(registrationDeadline),
+      minMatches: processFormData(minMatches),
+      minWins: processFormData(minWins),
+      minKills: processFormData(minKills),
+      minElo: processFormData(minElo),
+      seasonId: processFormData(seasonId),
+      maxRecipients: processFormData(maxRecipients),
+      priority: processFormData(priority),
+      isActive: processFormData(req.body.isActive)
+    };
+
+    // Отладочная информация
+    console.log('createAward - входящие данные:', {
+      type,
+      name,
+      isSeasonAward,
+      typeof_isSeasonAward: typeof isSeasonAward,
+      seasonId,
+      assignmentType
+    });
+
+    console.log('createAward - обработанные данные:', processedData);
+
     // Валидация
-    if (!type || !name) {
+    if (!processedData.type || !processedData.name) {
       return res.status(400).json({ error: 'Тип и название награды обязательны' });
     }
 
-    // Преобразуем строковые значения в булевы
-    const isSeasonAwardBool = isSeasonAward === 'true' || isSeasonAward === true;
-    const isActiveBool = req.body.isActive === 'true' || req.body.isActive === true || req.body.isActive === undefined;
-
     // Проверка для наград сезона
-    if (isSeasonAwardBool && !seasonId) {
+    if (processedData.isSeasonAward && !processedData.seasonId) {
       return res.status(400).json({ error: 'Для наград сезона необходимо указать ID сезона' });
     }
 
     // Проверка существования сезона
-    if (seasonId) {
-      const season = await Season.findByPk(seasonId);
+    if (processedData.seasonId) {
+      const season = await Season.findByPk(processedData.seasonId);
       if (!season) {
         return res.status(404).json({ error: 'Сезон не найден' });
       }
@@ -104,23 +141,23 @@ exports.createAward = async (req, res) => {
     }
 
     const award = await Award.create({
-      type,
-      name,
-      description,
+      type: processedData.type,
+      name: processedData.name,
+      description: processedData.description,
       image: imagePath,
-      category,
-      isSeasonAward: isSeasonAwardBool,
-      assignmentType,
-      assignmentConditions,
-      registrationDeadline: registrationDeadline ? new Date(registrationDeadline) : null,
-      minMatches: minMatches ? Number(minMatches) : null,
-      minWins: minWins ? Number(minWins) : null,
-      minKills: minKills ? Number(minKills) : null,
-      minElo: minElo ? Number(minElo) : null,
-      seasonId: seasonId || null,
-      maxRecipients: maxRecipients ? Number(maxRecipients) : null,
-      priority: priority ? Number(priority) : 0,
-      isActive: isActiveBool
+      category: processedData.category,
+      isSeasonAward: processedData.isSeasonAward,
+      assignmentType: processedData.assignmentType,
+      assignmentConditions: processedData.assignmentConditions,
+      registrationDeadline: processedData.registrationDeadline ? new Date(processedData.registrationDeadline) : null,
+      minMatches: processedData.minMatches,
+      minWins: processedData.minWins,
+      minKills: processedData.minKills,
+      minElo: processedData.minElo,
+      seasonId: processedData.seasonId,
+      maxRecipients: processedData.maxRecipients,
+      priority: processedData.priority,
+      isActive: processedData.isActive
     });
 
     res.status(201).json({
