@@ -22,7 +22,6 @@ module.exports = {
       {
         name: 'category',
         type: 'enum_awards_category',
-        defaultValue: 'general',
         comment: 'Категория награды'
       },
       {
@@ -34,7 +33,6 @@ module.exports = {
       {
         name: 'assignmentType',
         type: 'enum_awards_assignmentType',
-        defaultValue: 'manual',
         comment: 'Тип назначения награды'
       },
       {
@@ -135,14 +133,32 @@ module.exports = {
       `);
     }
 
-    // Обновляем существующие награды
+    // Обновляем существующие награды с значениями по умолчанию
     await queryInterface.sequelize.query(`
       UPDATE awards 
       SET category = 'general', 
           "assignmentType" = 'manual',
           "isActive" = true,
           priority = 0
-      WHERE category IS NULL
+      WHERE category IS NULL OR "assignmentType" IS NULL OR "isActive" IS NULL OR priority IS NULL
+    `);
+
+    // Делаем обязательные поля NOT NULL после установки значений по умолчанию
+    await queryInterface.sequelize.query(`
+      DO $$ 
+      BEGIN
+        -- Проверяем, что все записи имеют значения для обязательных полей
+        IF NOT EXISTS (
+          SELECT 1 FROM awards 
+          WHERE category IS NULL OR "assignmentType" IS NULL OR "isActive" IS NULL OR priority IS NULL
+        ) THEN
+          -- Делаем поля NOT NULL
+          ALTER TABLE "awards" ALTER COLUMN "category" SET NOT NULL;
+          ALTER TABLE "awards" ALTER COLUMN "assignmentType" SET NOT NULL;
+          ALTER TABLE "awards" ALTER COLUMN "isActive" SET NOT NULL;
+          ALTER TABLE "awards" ALTER COLUMN "priority" SET NOT NULL;
+        END IF;
+      END $$;
     `);
   },
 
