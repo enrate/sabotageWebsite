@@ -390,10 +390,10 @@ const ProfilePage = () => {
                   <Avatar
                     src={user.activeAward.image}
                     sx={{
-                      width: 60,
-                      height: 60,
+                      width: 40,
+                      height: 40,
                       position: 'absolute',
-                      right: -10,
+                      right: -15,
                       bottom: 0,
                       boxShadow: 2,
                       zIndex: 2,
