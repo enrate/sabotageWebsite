@@ -36,6 +36,7 @@ db.Comment = require('./Comment.js')(sequelize);
 db.Message = require('./Message.js')(sequelize);
 db.User = require('./User.js')(sequelize);
 const Award = require('./Award.js')(sequelize, Sequelize.DataTypes);
+const Season = require('./Season.js')(sequelize, Sequelize.DataTypes);
 const UserAward = require('./UserAward.js')(sequelize, Sequelize.DataTypes);
 const SquadAward = require('./SquadAward.js')(sequelize, Sequelize.DataTypes);
 
@@ -49,6 +50,10 @@ SquadAward.belongsTo(db.Squad, { foreignKey: 'squadId' });
 SquadAward.belongsTo(Award, { foreignKey: 'awardId' });
 SquadAward.belongsTo(db.User, { foreignKey: 'issuedBy', as: 'issuer' });
 
+// Ассоциации для сезонов
+Season.hasMany(Award, { foreignKey: 'seasonId', as: 'seasonAwards' });
+Award.belongsTo(Season, { foreignKey: 'seasonId', as: 'season' });
+
 Object.keys(db).forEach(modelName => {
   if (db[modelName].associate) {
     db[modelName].associate(db);
@@ -58,6 +63,7 @@ Object.keys(db).forEach(modelName => {
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
 db.Award = Award;
+db.Season = Season;
 db.UserAward = UserAward;
 db.SquadAward = SquadAward;
 
