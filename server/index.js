@@ -5,6 +5,7 @@ const { sequelize } = require('./models');
 const routes = require('./routes');
 const discordRoutes = require('./routes/discordRoutes');
 const twitchRoutes = require('./routes/twitchRoutes');
+const youtubeRoutes = require('./routes/youtubeRoutes');
 const { protect, admin } = require('./middleware/authMiddleware');
 const jwt = require('jsonwebtoken');
 const cron = require('node-cron');
@@ -155,6 +156,7 @@ app.post('/api/server/data', async (req, res) => {
 app.use('/api', routes);
 app.use('/discord', discordRoutes);
 app.use('/twitch', twitchRoutes);
+app.use('/youtube', youtubeRoutes);
 
 // Production static
 if (process.env.NODE_ENV === 'production') {

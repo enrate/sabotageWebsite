@@ -532,7 +532,6 @@ const AdminUsers = ({ users, setUsers }) => {
               <TableCell sx={{ color: '#ffb347', fontWeight: 700 }}>Имя</TableCell>
               <TableCell sx={{ color: '#ffb347', fontWeight: 700 }}>Email</TableCell>
               <TableCell sx={{ color: '#ffb347', fontWeight: 700 }}>Роль</TableCell>
-              <TableCell sx={{ color: '#ffb347', fontWeight: 700 }}>Рейтинг</TableCell>
               <TableCell sx={{ color: '#ffb347', fontWeight: 700 }}>Статус</TableCell>
               <TableCell sx={{ color: '#ffb347', fontWeight: 700 }}>Действия</TableCell>
             </TableRow>

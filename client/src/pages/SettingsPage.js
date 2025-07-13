@@ -88,6 +88,7 @@ const SettingsPage = () => {
     const urlParams = new URLSearchParams(window.location.search);
     const discordStatus = urlParams.get('discord');
     const twitchStatus = urlParams.get('twitch');
+    const youtubeStatus = urlParams.get('youtube');
     
     if (discordStatus === 'success') {
       setSuccess('Discord успешно привязан!');
@@ -107,6 +108,16 @@ const SettingsPage = () => {
       }
     } else if (twitchStatus === 'error') {
       setError('Ошибка привязки Twitch');
+    }
+    
+    if (youtubeStatus === 'success') {
+      setSuccess('YouTube успешно привязан!');
+      // Обновляем пользователя
+      if (currentUser) {
+        updateUser({ ...currentUser, youtubeId: 'temp', youtubeUsername: 'temp' });
+      }
+    } else if (youtubeStatus === 'error') {
+      setError('Ошибка привязки YouTube');
     }
   }, [currentUser, updateUser]);
 
@@ -245,8 +256,18 @@ const SettingsPage = () => {
   };
 
   const handleYoutubeLink = () => {
-    // Здесь будет логика привязки YouTube (заглушка)
-    window.open('https://www.youtube.com/', '_blank');
+    window.location.href = '/youtube/start';
+  };
+
+  const handleYoutubeUnlink = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post('/youtube/unlink', {}, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+      updateUser({ ...currentUser, youtubeId: null, youtubeUsername: null });
+      setSuccess('YouTube отвязан');
+    } catch (err) {
+      setError('Ошибка при отвязке YouTube');
+    }
   };
 
   if (loading) return (
@@ -478,14 +499,23 @@ const SettingsPage = () => {
             {/* YouTube */}
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, bgcolor: 'rgba(255,0,0,0.08)', borderRadius: 2, p: 1.5, border: '1px solid #ff0000', width: '100%' }}>
               <img src="/youtube-icon.png" alt="YouTube" style={{ width: 28, height: 28 }} />
-              <img src="/youtube-logo.png" alt="YouTube Logo" style={{ height: 22, marginLeft: 4 }} />
               <Box sx={{ flex: 1 }}>
                 <Typography sx={{ color: '#fff', fontWeight: 500, fontSize: 16 }}>YouTube</Typography>
-                <Typography sx={{ color: '#ffb3b3', fontSize: 14 }}>Не привязан</Typography>
+                {currentUser?.youtubeId ? (
+                  <Typography sx={{ color: '#ffb3b3', fontSize: 14 }}>Привязан: {currentUser.youtubeUsername}</Typography>
+                ) : (
+                  <Typography sx={{ color: '#ffb3b3', fontSize: 14 }}>Не привязан</Typography>
+                )}
               </Box>
-              <Button variant="contained" onClick={handleYoutubeLink} sx={{ bgcolor: '#ff0000', color: '#fff', fontWeight: 600, minWidth: 120, '&:hover': { bgcolor: '#ff4444' } }}>
-                Привязать
-              </Button>
+              {currentUser?.youtubeId ? (
+                <Button variant="outlined" color="secondary" onClick={handleYoutubeUnlink} sx={{ borderColor: '#ff0000', color: '#ff0000', minWidth: 120, '&:hover': { borderColor: '#ff4444', color: '#ff4444' } }}>
+                  Отвязать
+                </Button>
+              ) : (
+                <Button variant="contained" onClick={handleYoutubeLink} sx={{ bgcolor: '#ff0000', color: '#fff', fontWeight: 600, minWidth: 120, '&:hover': { bgcolor: '#ff4444' } }}>
+                  Привязать
+                </Button>
+              )}
             </Box>
           </Box>
           <Divider sx={{ my: 2, bgcolor: 'rgba(255,255,255,0.12)' }} />

@@ -13,6 +13,7 @@ const notificationRoutes = require('./notificationRoutes');
 const seasonRoutes = require('./seasonRoutes');
 const discordRoutes = require('./discordRoutes');
 const twitchRoutes = require('./twitchRoutes');
+const youtubeRoutes = require('./youtubeRoutes');
 
 router.use('/auth', authRoutes);
 router.use('/news', newsRoutes);
@@ -27,5 +28,6 @@ router.use('/notifications', notificationRoutes);
 router.use('/seasons', seasonRoutes);
 router.use('/discord', discordRoutes);
 router.use('/twitch', twitchRoutes);
+router.use('/youtube', youtubeRoutes);
 
 module.exports = router;

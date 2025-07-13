@@ -139,6 +139,17 @@ module.exports = (sequelize) => {
       type: DataTypes.STRING,
       allowNull: true,
       comment: 'Twitch username пользователя'
+    },
+    youtubeId: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      unique: true,
+      comment: 'YouTube ID пользователя'
+    },
+    youtubeUsername: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'YouTube username пользователя'
     }
   }, {
     tableName: 'users',
