@@ -43,7 +43,7 @@ const SquadAward = require('./SquadAward.js')(sequelize, Sequelize.DataTypes);
 // Ассоциации для наград
 Award.hasMany(UserAward, { foreignKey: 'awardId' });
 Award.hasMany(SquadAward, { foreignKey: 'awardId' });
-UserAward.belongsTo(db.User, { foreignKey: 'userId' });
+UserAward.belongsTo(db.User, { foreignKey: 'userId', as: 'user' });
 UserAward.belongsTo(Award, { foreignKey: 'awardId' });
 UserAward.belongsTo(db.User, { foreignKey: 'issuedBy', as: 'issuer' });
 SquadAward.belongsTo(db.Squad, { foreignKey: 'squadId' });

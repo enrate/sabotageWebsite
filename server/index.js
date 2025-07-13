@@ -43,6 +43,9 @@ app.use(session({
   }
 }));
 
+// Статическая раздача файлов
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 // Подключение к PostgreSQL
 sequelize.authenticate()
 .then(() => {

@@ -4,6 +4,7 @@ const adminController = require('../controllers/adminController');
 const { protect, admin } = require('../middleware/authMiddleware');
 const awardController = require('../controllers/awardController');
 const seasonController = require('../controllers/seasonController');
+const { uploadImage, handleUploadError } = require('../middleware/uploadMiddleware');
 
 // Маршруты для управления пользователями
 router.get('/users', protect, admin, adminController.getUsers);
@@ -25,8 +26,8 @@ router.patch('/user-warnings/:warningId/cancel', protect, admin, adminController
 // --- Роуты для наград ---
 router.get('/awards', protect, admin, awardController.getAllAwards);
 router.get('/awards/:id', protect, admin, awardController.getAwardById);
-router.post('/awards', protect, admin, awardController.createAward);
-router.put('/awards/:id', protect, admin, awardController.updateAward);
+router.post('/awards', protect, admin, uploadImage, handleUploadError, awardController.createAward);
+router.put('/awards/:id', protect, admin, uploadImage, handleUploadError, awardController.updateAward);
 router.delete('/awards/:id', protect, admin, awardController.deleteAward);
 // Выдача наград
 router.post('/awards/give/user', protect, admin, awardController.assignAwardToUser);

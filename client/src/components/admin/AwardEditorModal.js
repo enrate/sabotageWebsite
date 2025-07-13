@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
-  Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, Select, MenuItem, FormControl, InputLabel, Checkbox, FormControlLabel, Box, Typography
+  Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, Select, MenuItem, FormControl, InputLabel, Checkbox, FormControlLabel, Box, Typography, Avatar, IconButton
 } from '@mui/material';
+import { PhotoCamera } from '@mui/icons-material';
 import axios from 'axios';
 
 const CATEGORIES = [
@@ -37,8 +38,11 @@ export default function AwardEditorModal({ open, onClose, award }) {
     priority: 0,
     assignmentConditions: '',
   });
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState('');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     if (award) {
@@ -53,6 +57,7 @@ export default function AwardEditorModal({ open, onClose, award }) {
         priority: award.priority || 0,
         assignmentConditions: award.assignmentConditions ? JSON.stringify(award.assignmentConditions, null, 2) : '',
       });
+      setImagePreview(award.image || '');
     } else {
       setForm({
         type: '',
@@ -73,6 +78,8 @@ export default function AwardEditorModal({ open, onClose, award }) {
         priority: 0,
         assignmentConditions: '',
       });
+      setImagePreview('');
+      setImageFile(null);
     }
   }, [award, open]);
 
@@ -81,30 +88,74 @@ export default function AwardEditorModal({ open, onClose, award }) {
     setForm(f => ({ ...f, [name]: type === 'checkbox' ? checked : value }));
   };
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        setError('Размер файла превышает 5MB');
+        return;
+      }
+      
+      if (!file.type.startsWith('image/')) {
+        setError('Выберите изображение');
+        return;
+      }
+
+      setImageFile(file);
+      setError('');
+      
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSave = async () => {
     setSaving(true);
     setError('');
     try {
       const token = localStorage.getItem('token');
-      const data = {
-        ...form,
-        minMatches: form.minMatches ? Number(form.minMatches) : undefined,
-        minWins: form.minWins ? Number(form.minWins) : undefined,
-        minKills: form.minKills ? Number(form.minKills) : undefined,
-        minElo: form.minElo ? Number(form.minElo) : undefined,
-        maxRecipients: form.maxRecipients ? Number(form.maxRecipients) : undefined,
-        priority: form.priority ? Number(form.priority) : 0,
-        registrationDeadline: form.registrationDeadline || undefined,
-        assignmentConditions: form.assignmentConditions ? JSON.parse(form.assignmentConditions) : undefined,
-      };
+      const formData = new FormData();
+      
+      // Добавляем все поля формы
+      Object.keys(form).forEach(key => {
+        if (form[key] !== '' && form[key] !== null && form[key] !== undefined) {
+          if (key === 'assignmentConditions' && form[key]) {
+            try {
+              formData.append(key, JSON.stringify(JSON.parse(form[key])));
+            } catch {
+              formData.append(key, form[key]);
+            }
+          } else if (key === 'registrationDeadline' && form[key]) {
+            formData.append(key, new Date(form[key]).toISOString());
+          } else if (['minMatches', 'minWins', 'minKills', 'minElo', 'maxRecipients', 'priority'].includes(key) && form[key]) {
+            formData.append(key, Number(form[key]));
+          } else {
+            formData.append(key, form[key]);
+          }
+        }
+      });
+      
+      // Добавляем файл изображения если есть
+      if (imageFile) {
+        formData.append('image', imageFile);
+      }
       
       if (award) {
-        await axios.put(`/api/admin/awards/${award.id}`, data, {
-          headers: { Authorization: `Bearer ${token}` }
+        await axios.put(`/api/admin/awards/${award.id}`, formData, {
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data'
+          }
         });
       } else {
-        await axios.post('/api/admin/awards', data, {
-          headers: { Authorization: `Bearer ${token}` }
+        await axios.post('/api/admin/awards', formData, {
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data'
+          }
         });
       }
       onClose(true);
@@ -123,7 +174,35 @@ export default function AwardEditorModal({ open, onClose, award }) {
           <TextField label="Тип (код)" name="type" value={form.type} onChange={handleChange} required fullWidth />
           <TextField label="Название" name="name" value={form.name} onChange={handleChange} required fullWidth />
           <TextField label="Описание" name="description" value={form.description} onChange={handleChange} multiline rows={2} fullWidth />
-          <TextField label="URL изображения" name="image" value={form.image} onChange={handleChange} fullWidth />
+          
+          {/* Загрузка изображения */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Avatar 
+              src={imagePreview} 
+              sx={{ width: 80, height: 80, bgcolor: imagePreview ? 'transparent' : '#ffb347' }}
+            >
+              {!imagePreview && '?'}
+            </Avatar>
+            <Box>
+              <input
+                accept="image/*"
+                style={{ display: 'none' }}
+                id="image-upload"
+                type="file"
+                ref={fileInputRef}
+                onChange={handleImageChange}
+              />
+              <label htmlFor="image-upload">
+                <IconButton color="primary" component="span">
+                  <PhotoCamera />
+                </IconButton>
+              </label>
+              <Typography variant="caption" display="block">
+                {imageFile ? imageFile.name : 'Выберите изображение'}
+              </Typography>
+            </Box>
+          </Box>
+          
           <FormControl fullWidth>
             <InputLabel>Категория</InputLabel>
             <Select name="category" value={form.category} label="Категория" onChange={handleChange}>

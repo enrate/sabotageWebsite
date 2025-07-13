@@ -61,7 +61,6 @@ exports.createAward = async (req, res) => {
       type,
       name,
       description,
-      image,
       category = 'general',
       isSeasonAward = false,
       assignmentType = 'manual',
@@ -94,11 +93,17 @@ exports.createAward = async (req, res) => {
       }
     }
 
+    // Обработка загруженного изображения
+    let imagePath = null;
+    if (req.file) {
+      imagePath = `/uploads/${req.file.filename}`;
+    }
+
     const award = await Award.create({
       type,
       name,
       description,
-      image,
+      image: imagePath,
       category,
       isSeasonAward,
       assignmentType,
@@ -138,6 +143,21 @@ exports.updateAward = async (req, res) => {
     // Обработка даты дедлайна
     if (updateData.registrationDeadline) {
       updateData.registrationDeadline = new Date(updateData.registrationDeadline);
+    }
+
+    // Обработка загруженного изображения
+    if (req.file) {
+      updateData.image = `/uploads/${req.file.filename}`;
+      
+      // Удаляем старое изображение если оно существует
+      if (award.image && award.image.startsWith('/uploads/')) {
+        const fs = require('fs');
+        const path = require('path');
+        const oldImagePath = path.join(__dirname, '..', award.image);
+        if (fs.existsSync(oldImagePath)) {
+          fs.unlinkSync(oldImagePath);
+        }
+      }
     }
 
     await award.update(updateData);
@@ -281,7 +301,6 @@ exports.getUserAwards = async (req, res) => {
       include: [
         {
           model: Award,
-          as: 'award',
           include: [
             {
               model: Season,

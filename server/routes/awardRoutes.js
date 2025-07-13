@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const awardController = require('../controllers/awardController');
 const { protect, admin } = require('../middleware/authMiddleware');
+const { uploadImage, handleUploadError } = require('../middleware/uploadMiddleware');
 
 // Получить все награды (публичный доступ)
 router.get('/', awardController.getAllAwards);
@@ -21,11 +22,11 @@ router.get('/season/:seasonId', awardController.getSeasonAwards);
 // Админские маршруты (требуют авторизации и прав администратора)
 router.use(protect, admin);
 
-// Создать новую награду
-router.post('/', awardController.createAward);
+// Создать новую награду с загрузкой изображения
+router.post('/', uploadImage, handleUploadError, awardController.createAward);
 
-// Обновить награду
-router.put('/:id', awardController.updateAward);
+// Обновить награду с загрузкой изображения
+router.put('/:id', uploadImage, handleUploadError, awardController.updateAward);
 
 // Удалить награду
 router.delete('/:id', awardController.deleteAward);

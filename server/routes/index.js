@@ -14,6 +14,7 @@ const seasonRoutes = require('./seasonRoutes');
 const discordRoutes = require('./discordRoutes');
 const twitchRoutes = require('./twitchRoutes');
 const youtubeRoutes = require('./youtubeRoutes');
+const awardRoutes = require('./awardRoutes');
 
 router.use('/auth', authRoutes);
 router.use('/news', newsRoutes);
@@ -29,5 +30,6 @@ router.use('/seasons', seasonRoutes);
 router.use('/discord', discordRoutes);
 router.use('/twitch', twitchRoutes);
 router.use('/youtube', youtubeRoutes);
+router.use('/awards', awardRoutes);
 
 module.exports = router;
