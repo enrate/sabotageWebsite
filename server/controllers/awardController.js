@@ -80,8 +80,12 @@ exports.createAward = async (req, res) => {
       return res.status(400).json({ error: 'Тип и название награды обязательны' });
     }
 
+    // Преобразуем строковые значения в булевы
+    const isSeasonAwardBool = isSeasonAward === 'true' || isSeasonAward === true;
+    const isActiveBool = req.body.isActive === 'true' || req.body.isActive === true || req.body.isActive === undefined;
+
     // Проверка для наград сезона
-    if (isSeasonAward && !seasonId) {
+    if (isSeasonAwardBool && !seasonId) {
       return res.status(400).json({ error: 'Для наград сезона необходимо указать ID сезона' });
     }
 
@@ -105,17 +109,18 @@ exports.createAward = async (req, res) => {
       description,
       image: imagePath,
       category,
-      isSeasonAward,
+      isSeasonAward: isSeasonAwardBool,
       assignmentType,
       assignmentConditions,
       registrationDeadline: registrationDeadline ? new Date(registrationDeadline) : null,
-      minMatches,
-      minWins,
-      minKills,
-      minElo,
-      seasonId,
-      maxRecipients,
-      priority
+      minMatches: minMatches ? Number(minMatches) : null,
+      minWins: minWins ? Number(minWins) : null,
+      minKills: minKills ? Number(minKills) : null,
+      minElo: minElo ? Number(minElo) : null,
+      seasonId: seasonId || null,
+      maxRecipients: maxRecipients ? Number(maxRecipients) : null,
+      priority: priority ? Number(priority) : 0,
+      isActive: isActiveBool
     });
 
     res.status(201).json({
@@ -138,7 +143,15 @@ exports.updateAward = async (req, res) => {
       return res.status(404).json({ error: 'Награда не найдена' });
     }
 
-    const updateData = req.body;
+    const updateData = { ...req.body };
+    
+    // Преобразуем строковые значения в булевы
+    if (updateData.isSeasonAward !== undefined) {
+      updateData.isSeasonAward = updateData.isSeasonAward === 'true' || updateData.isSeasonAward === true;
+    }
+    if (updateData.isActive !== undefined) {
+      updateData.isActive = updateData.isActive === 'true' || updateData.isActive === true;
+    }
     
     // Обработка даты дедлайна
     if (updateData.registrationDeadline) {
