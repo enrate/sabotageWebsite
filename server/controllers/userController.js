@@ -251,17 +251,37 @@ exports.getUserStats = async (req, res) => {
     const { armaId } = req.params;
     const stats = await require('../models').UserStats.findOne({ where: { armaId } });
     if (!stats) {
-      return res.status(404).json({ kills: '-', deaths: '-', teamKills: '-', totalGames: '-', winRate: '-', maxElo: '-' });
+      return res.status(404).json({ kills: '0', deaths: '0', teamKills: '0', totalGames: '0', winRate: '0', maxElo: '0' });
     }
     res.json({
       kills: stats.kills,
       deaths: stats.deaths,
-      teamKills: stats.teamKills ?? '-',
-      totalGames: stats.totalGames ?? '-',
-      winRate: stats.winRate ?? '-',
-      maxElo: stats.maxElo ?? '-'
+      teamKills: stats.teamKills ?? '0',
+      totalGames: stats.totalGames ?? '0',
+      winRate: stats.winRate ?? '0',
+      maxElo: stats.maxElo ?? '0'
     });
   } catch (error) {
     res.status(500).json({ error: 'Ошибка получения статистики' });
+  }
+}; 
+
+// Получить публично предупреждения пользователя
+exports.getUserWarnings = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { UserWarning, User } = require('../models');
+    const warnings = await UserWarning.findAll({
+      where: { userId, isActive: true },
+      include: [
+        { model: User, as: 'admin', attributes: ['id', 'username'] },
+        { model: User, as: 'canceledByAdmin', attributes: ['id', 'username'] }
+      ],
+      order: [['createdAt', 'DESC']]
+    });
+    res.json(warnings);
+  } catch (err) {
+    console.error('Ошибка получения предупреждений пользователя:', err);
+    res.status(500).json({ error: 'Ошибка получения предупреждений пользователя' });
   }
 }; 

@@ -120,25 +120,20 @@ const ProfilePage = () => {
           await checkExistingInvite(currentUser.squadId, userResponse.data.id);
         }
 
-        // Загрузка предупреждений пользователя
-        const token = localStorage.getItem('token');
-        const warningsRes = await axios.get(`/api/admin/users/${userId}/warnings`, {
-          headers: token ? { Authorization: `Bearer ${token}` } : {}
-        });
-        setUserWarnings(warningsRes.data || []);
-
-        // Загрузка наград пользователя
+        // Загрузка наград пользователя (теперь только публичный роут)
         setAwardsLoading(true);
         try {
-          const awardsRes = await axios.get(`/api/admin/awards/user/${userId}`, {
-            headers: token ? { Authorization: `Bearer ${token}` } : {}
-          });
+          const awardsRes = await axios.get(`/api/awards/user/${userId}`);
           setUserAwards(awardsRes.data || []);
         } catch (e) {
           setUserAwards([]);
         } finally {
           setAwardsLoading(false);
         }
+
+        // Загрузка предупреждений пользователя (теперь публичный роут)
+        const warningsRes = await axios.get(`/api/users/${userId}/warnings`);
+        setUserWarnings(warningsRes.data || []);
       } catch (userError) {
         console.error('Ошибка загрузки пользователя:', userError);
         setError('Пользователь не найден');
@@ -711,7 +706,7 @@ const ProfilePage = () => {
                         <Box sx={{ textAlign: 'center', p: isMobile ? 1 : 2 }}>
                           <TrendingUpIcon sx={{ color: '#ffb347', fontSize: 32, mb: 1 }} />
                           <Typography sx={{ color: '#ffb347', fontWeight: 700 }}>Максимальный рейтинг</Typography>
-                          <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{userStats?.maxElo ?? '-'}</Typography>
+                          <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{userStats?.maxElo ?? '0'}</Typography>
                         </Box>
                       </Grid>
                       <Grid item xs={12} sm={6} md={4}>
@@ -794,28 +789,28 @@ const ProfilePage = () => {
                             <Box sx={{ textAlign: 'center', p: isMobile ? 1 : 2 }}>
                               <TrendingUpIcon sx={{ color: '#ffb347', fontSize: 32, mb: 1 }} />
                               <Typography sx={{ color: '#ffb347', fontWeight: 700 }}>Рейтинг (эло)</Typography>
-                              <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{seasonalStats.elo ?? '-'}</Typography>
+                              <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{seasonalStats.elo ?? '0'}</Typography>
                             </Box>
                           </Grid>
                           <Grid item xs={12} sm={6} md={4}>
                             <Box sx={{ textAlign: 'center', p: isMobile ? 1 : 2 }}>
                               <SportsKabaddiIcon sx={{ color: '#ffb347', fontSize: 32, mb: 1 }} />
                               <Typography sx={{ color: '#ffb347', fontWeight: 700 }}>Убийства</Typography>
-                              <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{seasonalStats.kills ?? '-'}</Typography>
+                              <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{seasonalStats.kills ?? '0'}</Typography>
                             </Box>
                           </Grid>
                           <Grid item xs={12} sm={6} md={4}>
                             <Box sx={{ textAlign: 'center', p: isMobile ? 1 : 2 }}>
                               <GroupRemoveIcon sx={{ color: '#ffb347', fontSize: 32, mb: 1 }} />
                               <Typography sx={{ color: '#ffb347', fontWeight: 700 }}>Смерти</Typography>
-                              <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{seasonalStats.deaths ?? '-'}</Typography>
+                              <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{seasonalStats.deaths ?? '0'}</Typography>
                             </Box>
                           </Grid>
                           <Grid item xs={12} sm={6} md={4}>
                             <Box sx={{ textAlign: 'center', p: isMobile ? 1 : 2 }}>
                               <TrendingUpIcon sx={{ color: '#ffb347', fontSize: 32, mb: 1 }} />
                               <Typography sx={{ color: '#ffb347', fontWeight: 700 }}>K/D</Typography>
-                              <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{seasonalStats.deaths > 0 ? (seasonalStats.kills / seasonalStats.deaths).toFixed(2) : seasonalStats.kills ?? '-'}</Typography>
+                              <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{seasonalStats.deaths > 0 ? (seasonalStats.kills / seasonalStats.deaths).toFixed(2) : seasonalStats.kills ?? '0'}</Typography>
                             </Box>
                           </Grid>
                           <Grid item xs={12} sm={6} md={4}>
@@ -825,7 +820,7 @@ const ProfilePage = () => {
                               <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>
                                 {(seasonalStats?.wins !== undefined && seasonalStats?.matches > 0)
                                   ? ((seasonalStats.wins / seasonalStats.matches) * 100).toFixed(1)
-                                  : '-'}
+                                  : '0'}
                               </Typography>
                             </Box>
                           </Grid>
@@ -833,14 +828,14 @@ const ProfilePage = () => {
                             <Box sx={{ textAlign: 'center', p: isMobile ? 1 : 2 }}>
                               <SportsScoreIcon sx={{ color: '#ffb347', fontSize: 32, mb: 1 }} />
                               <Typography sx={{ color: '#ffb347', fontWeight: 700 }}>Матчей</Typography>
-                              <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{seasonalStats.matches ?? '-'}</Typography>
+                              <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{seasonalStats.matches ?? '0'}</Typography>
                             </Box>
                           </Grid>
                           <Grid item xs={12} sm={6} md={4}>
                             <Box sx={{ textAlign: 'center', p: isMobile ? 1 : 2 }}>
                               <GroupOffIcon sx={{ color: '#ffb347', fontSize: 32, mb: 1 }} />
                               <Typography sx={{ color: '#ffb347', fontWeight: 700 }}>Тимкиллы</Typography>
-                              <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{seasonalStats?.teamkills ?? '-'}</Typography>
+                              <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{seasonalStats?.teamkills ?? '0'}</Typography>
                             </Box>
                           </Grid>
                         </Grid>

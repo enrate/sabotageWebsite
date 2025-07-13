@@ -1031,7 +1031,7 @@ exports.getSquadStats = async (req, res) => {
     const SquadStats = require('../models').SquadStats;
     const stats = await SquadStats.findOne({ where: { squadId } });
     if (!stats) {
-      return res.status(404).json({ kills: '-', deaths: '-' });
+      return res.status(404).json({ kills: '0', deaths: '0' });
     }
     res.json({ kills: stats.kills, deaths: stats.deaths });
   } catch (error) {

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import './CreateSquadModal.css';
 import { register } from '../services/register';
+import CloseIcon from '@mui/icons-material/Close';
 
 const AuthModal = ({ onClose, onShowSnackbar }) => {
   const [mode, setMode] = useState('login'); // 'login' | 'register'
@@ -67,12 +68,12 @@ const AuthModal = ({ onClose, onShowSnackbar }) => {
     }
   };
 
-  // Закрытие по клику вне модалки
-  const handleOverlayClick = (e) => {
-    if (e.target === e.currentTarget) {
-      onClose();
-    }
-  };
+  // Закрытие по клику вне модалки (убираем)
+  // const handleOverlayClick = (e) => {
+  //   if (e.target === e.currentTarget) {
+  //     onClose();
+  //   }
+  // };
 
   return (
     <div
@@ -92,7 +93,7 @@ const AuthModal = ({ onClose, onShowSnackbar }) => {
         WebkitBackdropFilter: 'blur(10px)',
         animation: 'fadeIn 0.2s',
       }}
-      onClick={handleOverlayClick}
+      // onClick={handleOverlayClick} // убираем закрытие по клику вне
     >
       <div
         className="modal"
@@ -111,6 +112,24 @@ const AuthModal = ({ onClose, onShowSnackbar }) => {
         }}
         onClick={e => e.stopPropagation()}
       >
+        {/* Крестик для закрытия */}
+        <button
+          onClick={onClose}
+          style={{
+            position: 'absolute',
+            top: 12,
+            right: 12,
+            background: 'none',
+            border: 'none',
+            color: '#ffb347',
+            fontSize: 28,
+            cursor: 'pointer',
+            zIndex: 2
+          }}
+          aria-label="Закрыть"
+        >
+          <CloseIcon />
+        </button>
         <h2>{mode === 'login' ? 'Авторизация' : 'Регистрация'}</h2>
         {error && <div className="error-message">{error}</div>}
         {mode === 'login' ? (

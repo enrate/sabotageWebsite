@@ -476,6 +476,7 @@ const SettingsPage = () => {
               value={form.activeAwardId || ''}
               onChange={handleFormChange}
               label="Активная награда"
+              MenuProps={{ disableScrollLock: true }}
             >
               <MenuItem value="">Нет</MenuItem>
               {userAwards.map(award => (

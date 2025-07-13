@@ -66,25 +66,25 @@ const metricList = [
     key: 'kills',
     label: 'Убийства',
     icon: <SportsKabaddiIcon sx={{ color: '#ffb347', fontSize: 24 }} />,
-    value: perf => perf.kills ?? '-',
+    value: perf => perf.kills ?? '0',
   },
   {
     key: 'deaths',
     label: 'Смерти',
     icon: <GroupRemoveIcon sx={{ color: '#ffb347', fontSize: 24 }} />,
-    value: perf => perf.deaths ?? '-',
+    value: perf => perf.deaths ?? '0',
   },
   {
     key: 'teamkills',
     label: 'Тимкиллы',
     icon: <MilitaryTechIcon sx={{ color: '#ffb347', fontSize: 24 }} />,
-    value: perf => perf.teamkills ?? '-',
+    value: perf => perf.teamkills ?? '0',
   },
   {
     key: 'kd',
     label: 'K/D',
     icon: <SportsEsportsIcon sx={{ color: '#ffb347', fontSize: 24 }} />,
-    value: perf => perf.kills && perf.deaths ? (perf.deaths ? (perf.kills / perf.deaths).toFixed(2) : perf.kills) : '-',
+    value: perf => perf.kills && perf.deaths ? (perf.deaths ? (perf.kills / perf.deaths).toFixed(2) : perf.kills) : '0',
   },
 ];
 

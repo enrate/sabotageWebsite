@@ -706,7 +706,7 @@ const SquadPage = () => {
                           }}>
                             <Box sx={{ textAlign: 'center', p: 2, bgcolor: 'rgba(255, 179, 71, 0.05)', borderRadius: 2 }}>
                               <Typography variant="h5" sx={{ color: '#ffb347', fontWeight: 700, mb: 0.5 }}>
-                                {user.stats?.elo ?? '-'}
+                                {user.stats?.elo ?? '0'}
                               </Typography>
                               <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.75rem' }}>
                                 Рейтинг (сезон)
@@ -714,7 +714,7 @@ const SquadPage = () => {
                             </Box>
                             <Box sx={{ textAlign: 'center', p: 2, bgcolor: 'rgba(79, 140, 255, 0.05)', borderRadius: 2 }}>
                               <Typography variant="h5" sx={{ color: '#4f8cff', fontWeight: 700, mb: 0.5 }}>
-                                {user.stats?.matches ?? '-'}
+                                {user.stats?.matches ?? '0'}
                               </Typography>
                               <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.75rem' }}>
                                 Матчей (сезон)
@@ -732,7 +732,7 @@ const SquadPage = () => {
                           }}>
                             <Box sx={{ textAlign: 'center' }}>
                               <Typography variant="body2" sx={{ color: '#4caf50', fontWeight: 600 }}>
-                                {user.stats?.kills ?? '-'}
+                                {user.stats?.kills ?? '0'}
                               </Typography>
                               <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.6)' }}>
                                 Убийств
@@ -740,7 +740,7 @@ const SquadPage = () => {
                             </Box>
                             <Box sx={{ textAlign: 'center' }}>
                               <Typography variant="body2" sx={{ color: '#f44336', fontWeight: 600 }}>
-                                {user.stats?.deaths ?? '-'}
+                                {user.stats?.deaths ?? '0'}
                               </Typography>
                               <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.6)' }}>
                                 Смертей
@@ -748,7 +748,7 @@ const SquadPage = () => {
                             </Box>
                             <Box sx={{ textAlign: 'center' }}>
                               <Typography variant="body2" sx={{ color: '#ff9800', fontWeight: 600 }}>
-                                {user.stats?.teamkills ?? '-'}
+                                {user.stats?.teamkills ?? '0'}
                               </Typography>
                               <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.6)' }}>
                                 Тимкиллов
@@ -756,7 +756,7 @@ const SquadPage = () => {
                             </Box>
                             <Box sx={{ textAlign: 'center' }}>
                               <Typography variant="body2" sx={{ color: '#9c27b0', fontWeight: 600 }}>
-                                {user.stats?.winRate ? `${user.stats.winRate}%` : '-'}
+                                {user.stats?.winRate ? `${user.stats.winRate}%` : '0'}
                               </Typography>
                               <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.6)' }}>
                                 Win Rate
@@ -764,7 +764,7 @@ const SquadPage = () => {
                             </Box>
                             <Box sx={{ textAlign: 'center' }}>
                               <Typography variant="body2" sx={{ color: '#1976d2', fontWeight: 600 }}>
-                                {user.stats?.wins ?? '-'}
+                                {user.stats?.wins ?? '0'}
                               </Typography>
                               <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.6)' }}>
                                 Побед
@@ -772,7 +772,7 @@ const SquadPage = () => {
                             </Box>
                             <Box sx={{ textAlign: 'center' }}>
                               <Typography variant="body2" sx={{ color: '#bdbdbd', fontWeight: 600 }}>
-                                {user.stats?.losses ?? '-'}
+                                {user.stats?.losses ?? '0'}
                               </Typography>
                               <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.6)' }}>
                                 Поражений

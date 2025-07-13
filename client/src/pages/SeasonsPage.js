@@ -484,7 +484,7 @@ const SeasonsPage = () => {
                             if (col.key === 'kd') {
                               return (
                                 <TableCell align="left" key={col.key}>
-                                  {row.kills && row.deaths ? (row.deaths ? (row.kills / row.deaths).toFixed(2) : row.kills) : row.kd || '-'}
+                                  {row.kills && row.deaths ? (row.deaths ? (row.kills / row.deaths).toFixed(2) : row.kills) : row.kd || '0'}
                                 </TableCell>
                               );
                             }
