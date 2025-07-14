@@ -7,8 +7,10 @@ const formatDate = (dateStr) => {
 };
 
 const getPlayerName = (players, id) => {
-  const p = players.find(p => p.entityId === id || p.playerIdentity === id);
-  return p ? (p.name || p.playerIdentity) : id;
+  // Сначала ищем по entityId, потом по playerIdentity
+  let p = players.find(p => p.entityId === id);
+  if (!p) p = players.find(p => p.playerIdentity === id);
+  return p ? (p.name || p.playerIdentity || id) : id;
 };
 
 const getFactionPlayers = (players, factionKey) => {
