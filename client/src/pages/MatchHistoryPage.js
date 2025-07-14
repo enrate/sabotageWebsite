@@ -170,7 +170,11 @@ const MatchHistoryPage = () => {
                           </ul>
                           <div style={{ color: '#fff', fontWeight: 500, marginBottom: 4 }}>Участники:</div>
                           <ul style={{ margin: 0, paddingLeft: 18 }}>
-                            {getFactionPlayers(match.players, f.factionKey).map((p, idx) => renderPlayer(match.players, p.playerIdentity))}
+                            {getFactionPlayers(match.players, f.factionKey).map((p, idx) => (
+                              <li key={p.playerIdentity ?? p.entityId ?? p.PlayerId ?? idx}>
+                                {renderPlayer(match.players, p.playerIdentity ?? p.entityId ?? p.PlayerId ?? idx)}
+                              </li>
+                            ))}
                             {getFactionPlayers(match.players, f.factionKey).length === 0 && <li style={{ color: '#bbb', fontSize: 15 }}>Нет участников</li>}
                           </ul>
                         </div>
