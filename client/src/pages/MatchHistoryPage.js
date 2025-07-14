@@ -53,7 +53,9 @@ const MatchHistoryPage = () => {
       try {
         const res = await axios.get('/api/users');
         const map = {};
-        res.data.forEach(u => { if (u.armaId) map[u.armaId] = u.id; });
+        res.data.forEach(u => {
+          if (u.armaId) map[String(u.armaId).trim().toLowerCase()] = u.id;
+        });
         setArmaIdToUserId(map);
       } catch {}
     };
@@ -66,13 +68,13 @@ const MatchHistoryPage = () => {
 
   const renderPlayer = (players, id) => {
     const player = players.find(p => p.playerIdentity === id || p.entityId === id || String(p.PlayerId) === String(id));
-    const name = player ? (player.name || player.playerIdentity || player.PlayerId || id) : id;
-    const armaId = player?.playerIdentity;
+    const armaId = player?.playerIdentity ? String(player.playerIdentity).trim().toLowerCase() : undefined;
     const userId = armaIdToUserId[armaId];
+    // console.log('armaId:', armaId, 'userId:', userId, 'armaIdToUserId:', armaIdToUserId); // для отладки
     return userId ? (
-      <Link to={`/profile/${userId}`} style={{ color: ACCENT, textDecoration: 'underline', fontWeight: 600 }}>{name}</Link>
+      <Link to={`/profile/${userId}`} style={{ color: ACCENT, textDecoration: 'underline', fontWeight: 600 }}>{player ? (player.name || player.playerIdentity || player.PlayerId || id) : id}</Link>
     ) : (
-      <b>{name}</b>
+      <b>{player ? (player.name || player.playerIdentity || player.PlayerId || id) : id}</b>
     );
   };
 
