@@ -123,12 +123,15 @@ const MatchHistoryPage = () => {
                   <div style={{ color: '#bbb', fontSize: 15, marginBottom: 2 }}>{formatDate(match.date)}</div>
                   <div style={{ color: '#fff', fontSize: 15, marginTop: 2 }}>
                     <b style={{ color: ACCENT }}>Участники:</b>{' '}
-                    {match.players.map((p, idx) => (
-                      <React.Fragment key={p.playerIdentity || p.entityId || p.PlayerId || idx}>
-                        {renderPlayer(match.players, p.playerIdentity || p.entityId || p.PlayerId)}
-                        {idx < match.players.length - 1 && ', '}
-                      </React.Fragment>
-                    ))}
+                    {match.players.map((p, idx) => {
+                      console.log('player:', p); // временно для отладки
+                      return (
+                        <React.Fragment key={p.playerIdentity ?? p.entityId ?? p.PlayerId ?? idx}>
+                          {renderPlayer(match.players, p.playerIdentity ?? p.entityId ?? p.PlayerId ?? idx)}
+                          {idx < match.players.length - 1 && ', '}
+                        </React.Fragment>
+                      );
+                    })}
                   </div>
                 </div>
                 <div style={{ fontSize: 28, color: ACCENT, userSelect: 'none', marginLeft: 12, transition: 'transform 0.2s', transform: open[match.sessionId] ? 'rotate(180deg)' : 'none' }}>
