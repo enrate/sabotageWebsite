@@ -87,7 +87,7 @@ const MatchHistoryPage = () => {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
         {matches.map(match => {
           const factionsWithObjectives = (match.factionObjectives || []).filter(f => f.objectives && f.objectives.length > 0);
-          const participants = match.players.map(p => p.name || p.playerIdentity).join(', ');
+          // const participants = match.players.map(p => p.name || p.playerIdentity).join(', ');
           const img = match.missionImage || IMAGE_PLACEHOLDER;
           const playerIdToName = {};
           match.players.forEach(p => {
@@ -122,7 +122,13 @@ const MatchHistoryPage = () => {
                   <div style={{ fontWeight: 800, fontSize: 20, color: ACCENT, letterSpacing: 0.5, marginBottom: 2 }}>{match.missionName || 'Сценарий неизвестен'}</div>
                   <div style={{ color: '#bbb', fontSize: 15, marginBottom: 2 }}>{formatDate(match.date)}</div>
                   <div style={{ color: '#fff', fontSize: 15, marginTop: 2 }}>
-                    <b style={{ color: ACCENT }}>Участники:</b> {participants}
+                    <b style={{ color: ACCENT }}>Участники:</b>{' '}
+                    {match.players.map((p, idx) => (
+                      <React.Fragment key={p.playerIdentity || p.entityId || p.PlayerId || idx}>
+                        {renderPlayer(match.players, p.playerIdentity || p.entityId || p.PlayerId)}
+                        {idx < match.players.length - 1 && ', '}
+                      </React.Fragment>
+                    ))}
                   </div>
                 </div>
                 <div style={{ fontSize: 28, color: ACCENT, userSelect: 'none', marginLeft: 12, transition: 'transform 0.2s', transform: open[match.sessionId] ? 'rotate(180deg)' : 'none' }}>
