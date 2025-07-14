@@ -124,25 +124,7 @@ app.post('/api/server/data', async (req, res) => {
     return res.status(401).json({ error: 'Unauthorized' });
   }
   try {
-    const { events } = req.body;
-    if (Array.isArray(events)) {
-      for (const event of events) {
-        if (event.name === 'logger_player_killed') {
-          // --- ВЫЗЫВАЕМ КОНТРОЛЛЕР ---
-          // --- Определяем текущий сезон ---
-          const now = new Date();
-          const currentSeason = await require('./models').Season.findOne({
-            where: {
-              startDate: { [require('./models').Sequelize.Op.lte]: now },
-              endDate: { [require('./models').Sequelize.Op.gte]: now }
-            },
-            order: [['startDate', 'DESC']]
-          });
-          const seasonId = currentSeason ? currentSeason.id : null;
-          await processKillEvent(event, seasonId);
-        }
-      }
-    }
+    // --- УДАЛЯЮ ОБРАБОТКУ logger_player_killed ---
     // --- Если есть Factions/FactionResults ---
     if (req.body.Factions) {
       await processMatchResults(req, res);

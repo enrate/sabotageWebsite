@@ -7,7 +7,6 @@ import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import MiniProfile from '../components/MiniProfile';
 
 const columns = [
   { label: 'Место', key: 'place', align: 'center' },
@@ -37,16 +36,7 @@ const SeasonsPage = () => {
   const { currentUser } = useAuth();
   const navigate = useNavigate();
   const season = seasons[seasonIdx] || {};
-  const [miniProfile, setMiniProfile] = useState({ open: false, anchorEl: null, user: null, stats: null });
 
-  // Открытие мини-профиля
-  const handleMiniProfileOpen = (event, user, stats) => {
-    setMiniProfile({ open: true, anchorEl: event.currentTarget, user, stats });
-  };
-  // Закрытие мини-профиля
-  const handleMiniProfileClose = () => {
-    setMiniProfile({ open: false, anchorEl: null, user: null, stats: null });
-  };
   // Отправка ЛС (заглушка)
   const handleSendMessage = (user) => {
     navigate(`/messages?user=${user.id}`);
@@ -451,20 +441,8 @@ const SeasonsPage = () => {
                                     {tab === 0 ? (
                                       <Typography
                                         component={Link}
-                                        to={undefined}
+                                        to={`/profile/${row.id}`}
                                         sx={{ color: '#ffb347', fontWeight: 600, textDecoration: 'none', cursor: 'pointer', borderBottom: 'none', '&:hover, &:focus': { color: '#ffd580', textDecoration: 'none', borderBottom: 'none' } }}
-                                        onClick={e => {
-                                          e.preventDefault();
-                                          handleMiniProfileOpen(e, row, row);
-                                        }}
-                                        tabIndex={0}
-                                        onKeyDown={e => {
-                                          if (e.key === 'Enter' || e.key === ' ') {
-                                            e.preventDefault();
-                                            handleMiniProfileOpen(e, row, row);
-                                          }
-                                        }}
-                                        aria-label={`Мини-профиль пользователя ${row.username}`}
                                       >
                                         {row.username}
                                       </Typography>
@@ -502,16 +480,6 @@ const SeasonsPage = () => {
           )}
         </CardContent>
       </Card>
-      {/* MiniProfile popover */}
-      <MiniProfile
-        user={miniProfile.user}
-        seasonStats={miniProfile.stats}
-        anchorEl={miniProfile.anchorEl}
-        open={miniProfile.open}
-        onClose={handleMiniProfileClose}
-        onSendMessage={handleSendMessage}
-        currentUserId={currentUser?.id}
-      />
       </Box>
     </Box>
   );

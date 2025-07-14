@@ -353,6 +353,26 @@ const Navbar = ({ onOpenAuthModal, notifications = [], onNotificationClick, mark
 
             {currentUser?.role === 'admin' && (
               <Button
+                color="inherit"
+                component={Link}
+                to="/match-history"
+                sx={{
+                  fontWeight: 600,
+                  color: isActive('/match-history') ? '#ffb347' : '#fff',
+                  borderBottom: isActive('/match-history') ? '2px solid #ffb347' : 'none',
+                  borderRadius: 0,
+                  mx: 1.5,
+                  fontSize: 16,
+                  textTransform: 'none',
+                  letterSpacing: 0.2
+                }}
+              >
+                История матчей
+              </Button>
+            )}
+
+            {currentUser?.role === 'admin' && (
+              <Button
                 component={Link}
                 to="/admin"
                 startIcon={<AdminIcon />}
@@ -703,6 +723,7 @@ const Navbar = ({ onOpenAuthModal, notifications = [], onNotificationClick, mark
               <Button component={Link} to="/seasons" startIcon={<ArticleIcon />} sx={{ justifyContent: 'flex-start', color: isActive('/seasons') ? '#ffb347' : '#fff', mb: 1 }} onClick={()=>setDrawerOpen(false)}>Статистика</Button>
               <Button component={Link} to="/squads" startIcon={<SquadIcon />} sx={{ justifyContent: 'flex-start', color: isActive('/squads') ? '#ffb347' : '#fff', mb: 1 }} onClick={()=>setDrawerOpen(false)}>Отряды</Button>
               {currentUser?.squadId && <Button component={Link} to={`/squads/${currentUser.squadId}`} startIcon={<SquadIcon />} sx={{ justifyContent: 'flex-start', color: location.pathname === `/squads/${currentUser.squadId}` ? '#ffb347' : '#fff', mb: 1 }} onClick={()=>setDrawerOpen(false)}>Мой отряд</Button>}
+              <Button component={Link} to="/match-history" startIcon={<NewsIcon />} sx={{ justifyContent: 'flex-start', color: isActive('/match-history') ? '#ffb347' : '#fff', mb: 1 }} onClick={()=>setDrawerOpen(false)}>История матчей</Button>
               {currentUser?.role === 'admin' && <Button component={Link} to="/admin" startIcon={<AdminIcon />} sx={{ justifyContent: 'flex-start', color: isActive('/admin') ? '#ffb347' : '#fff', mb: 1 }} onClick={()=>setDrawerOpen(false)}>Админка</Button>}
               <Divider sx={{ my: 1, bgcolor: 'rgba(255, 179, 71, 0.2)' }} />
               {/* Действия пользователя */}

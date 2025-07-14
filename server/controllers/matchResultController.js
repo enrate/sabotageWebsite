@@ -57,41 +57,139 @@ function getAllPlayersResults(jsonData, winningFactionKey) {
   return results;
 }
 
+// --- НОВАЯ ЛОГИКА УЧЁТА УБИЙСТВ ---
+async function processKillsFromMatchData(jsonData, seasonId) {
+  const db = require('../models');
+  // 1. Построить сопоставления
+  const entityToFaction = new Map();
+  if (jsonData.Factions) {
+    jsonData.Factions.forEach(faction => {
+      faction.Groups.forEach(group => {
+        group.Playables.forEach(playable => {
+          entityToFaction.set(playable.EntityId, faction.Key);
+        });
+      });
+    });
+  }
+  const playerIdToEntity = new Map();
+  if (jsonData.PlayersToPlayables) {
+    jsonData.PlayersToPlayables.forEach(mapping => {
+      playerIdToEntity.set(mapping.PlayerId, mapping.EntityId);
+    });
+  }
+  const playerIdToGuid = new Map();
+  if (jsonData.Players) {
+    jsonData.Players.forEach(player => {
+      playerIdToGuid.set(player.PlayerId, player.GUID);
+    });
+  }
+  // 2. Обработка массива Kills
+  if (!Array.isArray(jsonData.Kills)) return;
+  for (const kill of jsonData.Kills) {
+    // Получаем GUID убийцы и жертвы
+    const instigatorEntity = playerIdToEntity.get(kill.InstigatorId);
+    const victimEntity = playerIdToEntity.get(kill.PlayerId);
+    const killerGuid = playerIdToGuid.get(kill.InstigatorId);
+    const victimGuid = playerIdToGuid.get(kill.PlayerId);
+    if (!killerGuid || !victimGuid) continue; // пропускаем если нет игрока
+    // Получаем фракции
+    const killerFaction = entityToFaction.get(instigatorEntity);
+    const victimFaction = entityToFaction.get(victimEntity);
+    // Определяем тип убийства
+    const isSuicide = killerGuid === victimGuid;
+    const isFriendly = !isSuicide && killerFaction && victimFaction && killerFaction === victimFaction;
+    // Сохраняем в KillLog
+    await db.KillLog.create({
+      friendlyFire: !!isFriendly,
+      suicide: !!isSuicide,
+      killerIdentity: killerGuid,
+      victimIdentity: victimGuid,
+      timestamp: kill.SystemTime ? new Date(kill.SystemTime * 1000) : new Date(),
+      processed: true // сразу processed, т.к. пакетная обработка
+    });
+    // Обновляем статистику
+    // --- Тимкилл ---
+    if (isFriendly) {
+      await statsService.incrementUserStats(killerGuid, 'teamkills');
+      const killerUser = await db.User.findOne({ where: { armaId: killerGuid } });
+      if (killerUser && killerUser.squadId) {
+        await statsService.incrementSquadStats(killerUser.squadId, 'teamkills');
+      }
+      if (seasonId) {
+        await statsService.incrementPlayerSeasonStats(killerGuid, seasonId, 'teamkills');
+        if (killerUser && killerUser.squadId) {
+          await statsService.incrementSquadSeasonStats(killerUser.squadId, seasonId, 'teamkills');
+        }
+      }
+    }
+    // --- Суицид ---
+    if (isSuicide) {
+      await statsService.incrementUserStats(victimGuid, 'deaths');
+      const victimUser = await db.User.findOne({ where: { armaId: victimGuid } });
+      if (victimUser && victimUser.squadId) {
+        await statsService.incrementSquadStats(victimUser.squadId, 'deaths');
+      }
+      if (seasonId) {
+        await statsService.incrementPlayerSeasonStats(victimGuid, seasonId, 'deaths');
+        if (victimUser && victimUser.squadId) {
+          await statsService.incrementSquadSeasonStats(victimUser.squadId, seasonId, 'deaths');
+        }
+      }
+    }
+    // --- Обычное убийство ---
+    if (!isFriendly && !isSuicide) {
+      await statsService.incrementUserStats(killerGuid, 'kills');
+      const killerUser = await db.User.findOne({ where: { armaId: killerGuid } });
+      if (killerUser && killerUser.squadId) {
+        await statsService.incrementSquadStats(killerUser.squadId, 'kills');
+      }
+      if (seasonId) {
+        await statsService.incrementPlayerSeasonStats(killerGuid, seasonId, 'kills');
+        if (killerUser && killerUser.squadId) {
+          await statsService.incrementSquadSeasonStats(killerUser.squadId, seasonId, 'kills');
+        }
+      }
+    }
+    // --- Жертве всегда смерть ---
+    await statsService.incrementUserStats(victimGuid, 'deaths');
+    const victimUser = await db.User.findOne({ where: { armaId: victimGuid } });
+    if (victimUser && victimUser.squadId) {
+      await statsService.incrementSquadStats(victimUser.squadId, 'deaths');
+    }
+    if (seasonId) {
+      await statsService.incrementPlayerSeasonStats(victimGuid, seasonId, 'deaths');
+      if (victimUser && victimUser.squadId) {
+        await statsService.incrementSquadSeasonStats(victimUser.squadId, seasonId, 'deaths');
+      }
+    }
+  }
+}
+
 async function processMatchResults(req, res) {
   try {
     const winningFactionKey = getWinner(req.body.FactionResults);
     const sessionId = req.body.SessionId || String(Date.now());
     const timestamp = req.body.Timestamp ? new Date(req.body.Timestamp * 1000) : new Date();
+    // --- СОХРАНЯЮ ПОЛНУЮ ИНФОРМАЦИЮ О МАТЧЕ ---
+    await db.MatchHistory.upsert({ sessionId, data: req.body });
     const playersResults = getAllPlayersResults(req.body, winningFactionKey);
-    let unprocessedLogs = [];
+    // --- ДОБАВЛЯЮ ВЫЗОВ НОВОЙ ЛОГИКИ УЧЁТА УБИЙСТВ ---
+    const now = new Date();
+    let currentSeason = null;
     try {
-      unprocessedLogs = await db.KillLog.findAll({ where: { processed: false } });
+      currentSeason = await db.Season.findOne({
+        where: {
+          startDate: { [db.Sequelize.Op.lte]: now },
+          endDate: { [db.Sequelize.Op.gte]: now }
+        },
+        order: [['startDate', 'DESC']]
+      });
     } catch (err) {
-      console.error('[MatchResultController] Ошибка при получении KillLog:', err);
+      console.error('[MatchResultController] Ошибка при получении сезона:', err);
     }
-    const killStatsByPlayer = {};
-    for (const log of unprocessedLogs) {
-      if (log.killerIdentity && !log.suicide && !log.friendlyFire) {
-        if (!killStatsByPlayer[log.killerIdentity]) killStatsByPlayer[log.killerIdentity] = { kills: 0, deaths: 0, teamkills: 0 };
-        killStatsByPlayer[log.killerIdentity].kills++;
-      }
-      if (log.victimIdentity) {
-        if (!killStatsByPlayer[log.victimIdentity]) killStatsByPlayer[log.victimIdentity] = { kills: 0, deaths: 0, teamkills: 0 };
-        killStatsByPlayer[log.victimIdentity].deaths++;
-      }
-      if (log.friendlyFire && log.killerIdentity) {
-        if (!killStatsByPlayer[log.killerIdentity]) killStatsByPlayer[log.killerIdentity] = { kills: 0, deaths: 0, teamkills: 0 };
-        killStatsByPlayer[log.killerIdentity].teamkills++;
-      }
-    }
-    if (playersResults && Array.isArray(playersResults)) {
-      for (const player of playersResults) {
-        const stats = killStatsByPlayer[player.playerIdentity] || { kills: 0, deaths: 0, teamkills: 0 };
-        player.kills = stats.kills;
-        player.deaths = stats.deaths;
-        player.teamkills = stats.teamkills;
-      }
-    }
+    const seasonId = currentSeason ? currentSeason.id : null;
+    await processKillsFromMatchData(req.body, seasonId);
+    // --- СТАРАЯ ЛОГИКА УДАЛЕНА ---
     if (playersResults && Array.isArray(playersResults)) {
       for (const player of playersResults) {
         try {

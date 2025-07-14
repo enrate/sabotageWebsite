@@ -15,6 +15,7 @@ const discordRoutes = require('./discordRoutes');
 const twitchRoutes = require('./twitchRoutes');
 const youtubeRoutes = require('./youtubeRoutes');
 const awardRoutes = require('./awardRoutes');
+const matchHistoryRoutes = require('./matchHistoryRoutes');
 
 router.use('/auth', authRoutes);
 router.use('/news', newsRoutes);
@@ -31,5 +32,6 @@ router.use('/discord', discordRoutes);
 router.use('/twitch', twitchRoutes);
 router.use('/youtube', youtubeRoutes);
 router.use('/awards', awardRoutes);
+router.use('/match-history', matchHistoryRoutes);
 
 module.exports = router;

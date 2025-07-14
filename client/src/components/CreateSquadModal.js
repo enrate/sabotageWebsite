@@ -54,7 +54,6 @@ const CreateSquadModal = ({ onClose, onSquadCreated }) => {
         WebkitBackdropFilter: 'blur(10px)',
         animation: 'fadeIn 0.2s',
       }}
-      onClick={onClose}
     >
       <div
         style={{

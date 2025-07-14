@@ -23,6 +23,7 @@ import SeasonsPage from './pages/SeasonsPage';
 import VerifyEmailPage from './pages/VerifyEmailPage';
 import Snackbar from '@mui/material/Snackbar';
 import MuiAlert from '@mui/material/Alert';
+import MatchHistoryPage from './pages/MatchHistoryPage';
 
 console.log('App rendered');
 
@@ -171,6 +172,10 @@ function App() {
                         <MessagesPage />
                       </PrivateRoute>
                     }
+                  />
+                  <Route 
+                    path="/match-history" 
+                    element={<MatchHistoryPage />} 
                   />
                                   <Route 
                   path="/seasons" 
