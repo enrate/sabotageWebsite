@@ -151,11 +151,7 @@ function App() {
                 />
                 <Route 
                   path="/profile/:id" 
-                  element={
-                    <PrivateRoute>
-                      <ProfilePage />
-                    </PrivateRoute>
-                  }
+                  element={<ProfilePage />} 
                 />
                   <Route 
                     path="/settings" 

@@ -57,7 +57,7 @@ const BurgerIcon = ({ open, ...props }) => (
   </Box>
 );
 
-const MobileBottomNav = ({ currentUser }) => {
+const MobileBottomNav = ({ currentUser, onOpenAuthModal }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [value, setValue] = useState(() => {
@@ -85,7 +85,13 @@ const MobileBottomNav = ({ currentUser }) => {
         if (newValue === 'seasons') navigate('/seasons');
         if (newValue === 'squads') navigate('/squads');
         if (newValue === 'history') navigate('/match-history');
-        if (newValue === 'profile') navigate(currentUser ? `/profile/${currentUser.id}` : '/');
+        if (newValue === 'profile') {
+          if (currentUser) {
+            navigate(`/profile/${currentUser.id}`);
+          } else if (onOpenAuthModal) {
+            onOpenAuthModal();
+          }
+        }
       }}
       showLabels
       sx={{
@@ -809,7 +815,7 @@ const Navbar = ({ onOpenAuthModal, notifications = [], onNotificationClick, mark
         </Container>
       </AppBar>
       {/* Мобильная нижняя навигация */}
-      {isMobile && <MobileBottomNav currentUser={currentUser} />}
+      {isMobile && <MobileBottomNav currentUser={currentUser} onOpenAuthModal={onOpenAuthModal} />}
     </>
   );
 };
