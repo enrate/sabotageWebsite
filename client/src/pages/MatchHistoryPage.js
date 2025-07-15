@@ -8,7 +8,7 @@ import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
-import { DateRangePicker, LocalizationProvider } from '@mui/x-date-pickers';
+import { DateTimePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import 'dayjs/locale/ru';
 
@@ -51,7 +51,8 @@ const MatchHistoryPage = () => {
   const offsetRef = useRef(0);
 
   // Фильтры
-  const [dateRange, setDateRange] = useState([null, null]); // [start, end]
+  const [startDate, setStartDate] = useState(null);
+  const [endDate, setEndDate] = useState(null);
   const [missionNames, setMissionNames] = useState([]); // выбранные сценарии
   const [nicknameInput, setNicknameInput] = useState('');
   const [nicknames, setNicknames] = useState([]); // выбранные никнеймы
@@ -85,8 +86,8 @@ const MatchHistoryPage = () => {
         limit: PAGE_SIZE,
         offset: offsetRef.current,
       };
-      if (dateRange[0]) params.startDate = dateRange[0].toISOString().slice(0, 10);
-      if (dateRange[1]) params.endDate = dateRange[1].toISOString().slice(0, 10);
+      if (startDate) params.startDate = startDate.toISOString();
+      if (endDate) params.endDate = endDate.toISOString();
       if (missionNames.length > 0) params.missionNames = missionNames;
       if (nicknames.length > 0) params.nicknames = nicknames;
       const res = await axios.get('/api/match-history', { params });
@@ -133,7 +134,7 @@ const MatchHistoryPage = () => {
   useEffect(() => {
     fetchMatches(true);
     // eslint-disable-next-line
-  }, [dateRange, missionNames, nicknames]);
+  }, [startDate, endDate, missionNames, nicknames]);
 
   const handleAddNickname = (e) => {
     e.preventDefault();
@@ -194,16 +195,15 @@ const MatchHistoryPage = () => {
       }}>
         {/* Дата */}
         <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="ru">
-          <DateRangePicker
-            startText="Дата с"
-            endText="по"
-            value={dateRange}
-            onChange={setDateRange}
-            localeText={{ start: 'Дата с', end: 'по' }}
+          <DateTimePicker
+            label="Дата и время с"
+            value={startDate}
+            onChange={setStartDate}
+            ampm={false}
             slotProps={{
-              textField: ({ position }) => ({
+              textField: {
                 sx: {
-                  mb: position === 'start' ? 1 : 0,
+                  mb: 1,
                   background: '#181818',
                   borderRadius: 2,
                   color: '#fff',
@@ -215,7 +215,30 @@ const MatchHistoryPage = () => {
                 },
                 size: 'small',
                 fullWidth: true,
-              })
+              }
+            }}
+          />
+          <DateTimePicker
+            label="по"
+            value={endDate}
+            onChange={setEndDate}
+            ampm={false}
+            slotProps={{
+              textField: {
+                sx: {
+                  mb: 0,
+                  background: '#181818',
+                  borderRadius: 2,
+                  color: '#fff',
+                  '& .MuiOutlinedInput-notchedOutline': { borderColor: '#444' },
+                  '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#ffb347' },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#ffb347' },
+                  input: { color: '#fff' },
+                  label: { color: '#ffb347' },
+                },
+                size: 'small',
+                fullWidth: true,
+              }
             }}
           />
         </LocalizationProvider>
