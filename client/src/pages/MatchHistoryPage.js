@@ -70,7 +70,7 @@ const MatchHistoryPage = () => {
     const player = players.find(p => p.playerIdentity === id || p.entityId === id || String(p.PlayerId) === String(id));
     const armaId = player?.playerIdentity ? String(player.playerIdentity).trim().toLowerCase() : undefined;
     const userId = armaIdToUserId[armaId];
-    // console.log('armaId:', armaId, 'userId:', userId, 'armaIdToUserId:', armaIdToUserId); // для отладки
+    console.log('armaId:', armaId, 'userId:', userId, 'armaIdToUserId:', armaIdToUserId); // для отладки
     return userId ? (
       <Link to={`/profile/${userId}`} style={{ color: ACCENT, textDecoration: 'underline', fontWeight: 600 }}>{player ? (player.name || player.playerIdentity || player.PlayerId || id) : id}</Link>
     ) : (
