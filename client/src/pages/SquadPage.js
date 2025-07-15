@@ -350,7 +350,7 @@ const SquadPage = () => {
           }}
         >
           {/* Кнопка создания отряда слева */}
-          {currentUser && !currentUser.squadId && (
+          {currentUser && !currentUser.squadId && currentUser.armaId && (
             <Button
               variant="contained"
               size="large"

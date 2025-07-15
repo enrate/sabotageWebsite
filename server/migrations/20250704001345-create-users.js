@@ -33,6 +33,16 @@ module.exports = {
           len: [6, 100]
         }
       },
+      passwordResetToken: {
+        type: Sequelize.STRING,
+        allowNull: true,
+        comment: 'Токен для сброса пароля'
+      },
+      passwordResetExpires: {
+        type: Sequelize.DATE,
+        allowNull: true,
+        comment: 'Срок действия токена сброса пароля'
+      },
       role: {
         type: Sequelize.ENUM('user', 'admin'),
         defaultValue: 'user'

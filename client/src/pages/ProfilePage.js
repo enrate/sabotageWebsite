@@ -1137,7 +1137,7 @@ function ProfileMatchHistory({ armaId }) {
                           <Typography sx={{ color: ACCENT, fontWeight: 700, fontSize: 15, mb: 0.5 }}>
                             {f.factionKey}
                             <span style={{ color: f.resultName && f.resultName.toLowerCase().includes('victory') ? '#4caf50' : '#ff4d4f', fontWeight: 600, marginLeft: 8 }}>
-                              {f.resultName && f.resultName.toLowerCase().includes('victory') ? ' - Победа' : f.resultName && f.resultName.toLowerCase().includes('loss') ? ' - Поражение' : ''}
+                              {f.resultName && f.resultName.toLowerCase().includes('victory') ? 'Победа' : f.resultName && f.resultName.toLowerCase().includes('loss') ? 'Поражение' : ''}
                             </span>
                           </Typography>
                           <Typography sx={{ color: '#fff', fontWeight: 500, mb: 0.5 }}>Задачи:</Typography>

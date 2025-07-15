@@ -427,7 +427,7 @@ const MatchHistoryPage = () => {
                             <div style={{ color: ACCENT, fontWeight: 700, fontSize: 17, marginBottom: 8 }}>
                               {f.factionKey}
                               <span style={{ color: f.resultName && f.resultName.toLowerCase().includes('victory') ? '#4caf50' : '#ff4d4f', fontWeight: 600, marginLeft: 8 }}>
-                                {f.resultName && f.resultName.toLowerCase().includes('victory') ? ' - Победа' : f.resultName && f.resultName.toLowerCase().includes('loss') ? ' - Поражение' : ''}
+                                {f.resultName && f.resultName.toLowerCase().includes('victory') ? 'Победа' : f.resultName && f.resultName.toLowerCase().includes('loss') ? 'Поражение' : ''}
                               </span>
                             </div>
                             <div style={{ color: '#fff', fontWeight: 500, marginBottom: 6 }}>Задачи:</div>

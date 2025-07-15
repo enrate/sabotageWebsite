@@ -77,6 +77,10 @@ exports.createSquad = async (req, res) => {
     if (user && user.squadId) {
       return res.status(400).json({ message: 'Вы уже состоите в отряде. Сначала покиньте текущий отряд.' });
     }
+    // Проверка: пользователь должен иметь armaId
+    if (!user || !user.armaId) {
+      return res.status(400).json({ message: 'Для создания отряда необходимо указать Arma ID в настройках профиля.' });
+    }
 
     const newSquad = await Squad.create({
       name,

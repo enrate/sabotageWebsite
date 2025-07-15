@@ -269,16 +269,6 @@ const HomePage = () => {
                       }}
                     >
                       <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: isMobile ? 1.2 : 3 }}>
-                        <Avatar
-                          sx={{
-                            mr: isMobile ? 1.2 : 3,
-                            bgcolor: '#ffb347',
-                            width: isMobile ? 36 : 56,
-                            height: isMobile ? 36 : 56
-                          }}
-                        >
-                          <PersonIcon sx={{ fontSize: isMobile ? 18 : 28 }} />
-                        </Avatar>
                         <Box sx={{ flex: 1 }}>
                           <Typography
                             variant={isMobile ? 'subtitle1' : 'h5'}

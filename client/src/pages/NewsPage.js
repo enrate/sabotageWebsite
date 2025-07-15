@@ -126,16 +126,6 @@ const NewsPage = () => {
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 3 }}>
-            <Avatar 
-              sx={{ 
-                mr: 3, 
-                bgcolor: '#ffb347',
-                width: 64,
-                height: 64
-              }}
-            >
-              <PersonIcon sx={{ fontSize: 32 }} />
-            </Avatar>
             <Box sx={{ flex: 1 }}>
               <Typography 
                 variant="h3" 

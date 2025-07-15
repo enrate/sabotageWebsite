@@ -1,9 +1,10 @@
 const { User, SquadRole, Squad } = require('../models');
 const jwt = require('jsonwebtoken');
-const { generateVerificationToken, sendVerificationEmail } = require('../services/emailService');
+const { generateVerificationToken, sendVerificationEmail, sendPasswordResetEmail } = require('../services/emailService');
 const { createClient } = require('redis');
 const redis = createClient({ url: 'redis://localhost:6379' });
 redis.connect();
+const { Op } = require('sequelize');
 
 // Регистрация пользователя
 exports.register = async (req, res) => {
@@ -277,6 +278,75 @@ exports.resendVerification = async (req, res) => {
     }
     
     res.json({ message: 'Email подтверждения отправлен повторно' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Ошибка сервера' });
+  }
+};
+
+// Восстановление пароля (запрос на email)
+exports.forgotPassword = async (req, res) => {
+  const { username, email } = req.body;
+  if (!username || !email) {
+    return res.status(400).json({ message: 'Укажите никнейм и email' });
+  }
+  try {
+    const user = await User.findOne({ where: { username, email } });
+    if (!user) {
+      // Не раскрываем, что пользователя нет
+      return res.status(200).json({ message: 'Письмо с восстановлением пароля отправлено, если данные верны.' });
+    }
+    // Проверка: если уже есть активный токен и не истёк
+    if (user.passwordResetToken && user.passwordResetExpires && user.passwordResetExpires > new Date()) {
+      return res.status(429).json({ message: 'Письмо для сброса пароля уже отправлено. Проверьте почту.' });
+    }
+    // Проверка лимита: не более 2 раз в сутки
+    const since = new Date(Date.now() - 24*60*60*1000);
+    const recentRequests = await User.count({
+      where: {
+        id: user.id,
+        passwordResetExpires: { [Op.gt]: since }
+      }
+    });
+    if (recentRequests >= 2) {
+      return res.status(429).json({ message: 'Вы уже запрашивали восстановление пароля 2 раза за сутки. Попробуйте позже.' });
+    }
+    // Генерируем токен и сохраняем
+    const token = generateVerificationToken();
+    const expires = new Date(Date.now() + 60*60*1000); // 1 час
+    user.passwordResetToken = token;
+    user.passwordResetExpires = expires;
+    await user.save();
+    // Отправляем письмо
+    await sendPasswordResetEmail(user.email, user.username, token);
+    return res.status(200).json({ message: 'Письмо с восстановлением пароля отправлено, если данные верны.' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Ошибка сервера' });
+  }
+};
+
+// Сброс пароля по токену
+exports.resetPassword = async (req, res) => {
+  const { token, password } = req.body;
+  if (!token || !password) {
+    return res.status(400).json({ message: 'Некорректные данные' });
+  }
+  try {
+    const user = await User.findOne({
+      where: {
+        passwordResetToken: token,
+        passwordResetExpires: { [Op.gt]: new Date() }
+      }
+    });
+    if (!user) {
+      return res.status(400).json({ message: 'Ссылка для сброса пароля недействительна или устарела.' });
+    }
+    user.password = password;
+    user.passwordResetToken = null;
+    user.passwordResetExpires = null;
+    await user.save();
+    return res.status(200).json({ message: 'Пароль успешно изменён.' });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Ошибка сервера' });

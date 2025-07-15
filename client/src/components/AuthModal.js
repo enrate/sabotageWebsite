@@ -5,13 +5,14 @@ import { register } from '../services/register';
 import CloseIcon from '@mui/icons-material/Close';
 
 const AuthModal = ({ onClose, onShowSnackbar }) => {
-  const [mode, setMode] = useState('login'); // 'login' | 'register'
+  const [mode, setMode] = useState('login'); // 'login' | 'register' | 'forgot'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [username, setUsername] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [forgotSuccess, setForgotSuccess] = useState('');
   const { login } = useAuth();
 
   const handleRegister = async (e) => {
@@ -63,6 +64,29 @@ const AuthModal = ({ onClose, onShowSnackbar }) => {
       } else {
         setError('Неверные учетные данные');
       }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Новый обработчик для восстановления пароля
+  const handleForgot = async (e) => {
+    e.preventDefault();
+    setError('');
+    setForgotSuccess('');
+    setLoading(true);
+    try {
+      // TODO: заменить на реальный endpoint
+      const res = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, email })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Ошибка восстановления пароля');
+      setForgotSuccess('Письмо с восстановлением пароля отправлено на почту, если данные верны.');
+    } catch (err) {
+      setError(err.message);
     } finally {
       setLoading(false);
     }
@@ -130,8 +154,9 @@ const AuthModal = ({ onClose, onShowSnackbar }) => {
         >
           <CloseIcon />
         </button>
-        <h2>{mode === 'login' ? 'Авторизация' : 'Регистрация'}</h2>
+        <h2>{mode === 'login' ? 'Авторизация' : mode === 'register' ? 'Регистрация' : 'Восстановление пароля'}</h2>
         {error && <div className="error-message">{error}</div>}
+        {forgotSuccess && <div className="success-message">{forgotSuccess}</div>}
         {mode === 'login' ? (
           <form onSubmit={handleLogin}>
             <div className="form-group">
@@ -160,11 +185,14 @@ const AuthModal = ({ onClose, onShowSnackbar }) => {
               <button type="submit" disabled={loading}>{loading ? 'Вход...' : 'Войти'}</button>
             </div>
             <div style={{ marginTop: 16, textAlign: 'center' }}>
+              <button type="button" style={{ background: 'none', color: '#ffb347', border: 'none', cursor: 'pointer', textDecoration: 'underline' }} onClick={() => { setMode('forgot'); setError(''); setForgotSuccess(''); }}>Забыли пароль?</button>
+            </div>
+            <div style={{ marginTop: 8, textAlign: 'center' }}>
               Нет аккаунта?{' '}
               <button type="button" style={{ background: 'none', color: '#ffb347', border: 'none', cursor: 'pointer', textDecoration: 'underline' }} onClick={() => { setMode('register'); setError(''); }}>Зарегистрироваться</button>
             </div>
           </form>
-        ) : (
+        ) : mode === 'register' ? (
           <form onSubmit={handleRegister}>
             <div className="form-group">
               <label>Имя пользователя</label>
@@ -213,6 +241,38 @@ const AuthModal = ({ onClose, onShowSnackbar }) => {
             <div style={{ marginTop: 16, textAlign: 'center' }}>
               Уже есть аккаунт?{' '}
               <button type="button" style={{ background: 'none', color: '#ffb347', border: 'none', cursor: 'pointer', textDecoration: 'underline' }} onClick={() => { setMode('login'); setError(''); }}>Войти</button>
+            </div>
+          </form>
+        ) : (
+          <form onSubmit={handleForgot}>
+            <div className="form-group">
+              <label>Никнейм</label>
+              <input
+                type="text"
+                value={username}
+                onChange={e => setUsername(e.target.value)}
+                required
+                disabled={loading}
+                placeholder="Ваш никнейм"
+              />
+            </div>
+            <div className="form-group">
+              <label>Email</label>
+              <input
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                required
+                disabled={loading}
+                placeholder="Ваш email"
+              />
+            </div>
+            <div className="modal-actions">
+              <button type="button" onClick={onClose} disabled={loading}>Отмена</button>
+              <button type="submit" disabled={loading}>{loading ? 'Отправка...' : 'Восстановить пароль'}</button>
+            </div>
+            <div style={{ marginTop: 16, textAlign: 'center' }}>
+              <button type="button" style={{ background: 'none', color: '#ffb347', border: 'none', cursor: 'pointer', textDecoration: 'underline' }} onClick={() => { setMode('login'); setError(''); setForgotSuccess(''); }}>Войти</button>
             </div>
           </form>
         )}
@@ -284,6 +344,14 @@ const AuthModal = ({ onClose, onShowSnackbar }) => {
         }
         .error-message {
           background: #ff4d4f;
+          color: #fff;
+          padding: 8px 12px;
+          border-radius: 5px;
+          margin-bottom: 16px;
+          text-align: center;
+        }
+        .success-message {
+          background: #52c41a;
           color: #fff;
           padding: 8px 12px;
           border-radius: 5px;
