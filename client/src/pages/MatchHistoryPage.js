@@ -226,7 +226,7 @@ const MatchHistoryPage = () => {
             labelId="mission-multiselect-label"
             id="mission-multiselect"
             multiple
-            value={missionNames.length === 0 ? ['__all__'] : missionNames}
+            value={missionNames}
             onChange={e => {
               const values = typeof e.target.value === 'string' ? e.target.value.split(',') : e.target.value;
               if (values.includes('__all__')) {
@@ -256,7 +256,7 @@ const MatchHistoryPage = () => {
               '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#ffb347' },
             }}
             renderValue={selected =>
-              selected.includes('__all__') || selected.length === 0
+              selected.length === 0
                 ? 'Все'
                 : selected.map(val => cleanMissionName(val)).join(', ')
             }
