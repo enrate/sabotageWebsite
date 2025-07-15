@@ -9,7 +9,7 @@ import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
 import { DateRangePicker, LocalizationProvider } from '@mui/x-date-pickers-pro';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import ruLocale from 'date-fns/locale/ru';
 
 const formatDate = (dateStr) => {
@@ -193,7 +193,7 @@ const MatchHistoryPage = () => {
         height: 'fit-content',
       }}>
         {/* Дата */}
-        <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ruLocale}>
+        <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={ruLocale}>
           <DateRangePicker
             startText="Дата с"
             endText="по"
