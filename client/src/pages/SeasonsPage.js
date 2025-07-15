@@ -288,9 +288,6 @@ const SeasonsPage = () => {
             </Button>
           </Box>
         )}
-        <Typography variant="h4" sx={{ color: '#ffb347', fontWeight: 700, mb: 3, textAlign: 'center' }}>
-          Сезоны
-        </Typography>
         
       {/* Карусель сезонов */}
       {seasonsLoading ? (

@@ -7,15 +7,44 @@ exports.getMatchHistory = async (req, res) => {
     const limit = parseInt(req.query.limit) || 8;
     const offset = parseInt(req.query.offset) || 0;
 
-    // Получаем общее количество матчей
-    const totalCount = await db.MatchHistory.count();
+    // Фильтры
+    const { startDate, endDate, missionNames, nicknames } = req.query;
 
-    // Получаем матчи с пагинацией
-    const matches = await db.MatchHistory.findAll({
-      order: [['createdAt', 'DESC']],
-      limit,
-      offset
+    // Формируем where для sequelize
+    const where = {};
+    if (startDate || endDate) {
+      where.createdAt = {};
+      if (startDate) where.createdAt[Op.gte] = new Date(startDate);
+      if (endDate) where.createdAt[Op.lte] = new Date(endDate);
+    }
+
+    // Получаем все матчи с фильтрацией по дате
+    const allMatches = await db.MatchHistory.findAll({
+      where,
+      order: [['createdAt', 'DESC']]
     });
+
+    // Фильтрация по сценарию и никнейму (по данным внутри data)
+    let filteredMatches = allMatches;
+    // Фильтр по имени сценария
+    if (missionNames) {
+      let namesArr = Array.isArray(missionNames) ? missionNames : [missionNames];
+      filteredMatches = filteredMatches.filter(m => {
+        const missionName = m.data?.MissionName || '';
+        return namesArr.includes(missionName);
+      });
+    }
+    // Фильтр по никнейму игрока
+    if (nicknames) {
+      let nicksArr = Array.isArray(nicknames) ? nicknames : [nicknames];
+      filteredMatches = filteredMatches.filter(m => {
+        const players = m.data?.Players || [];
+        return nicksArr.some(nick => players.some(p => (p.Name || '').toLowerCase() === nick.toLowerCase()));
+      });
+    }
+
+    const totalCount = filteredMatches.length;
+    const matches = filteredMatches.slice(offset, offset + limit);
 
     // Собираем все уникальные armaId из всех матчей
     let allArmaIds = new Set();

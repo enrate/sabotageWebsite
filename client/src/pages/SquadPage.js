@@ -338,19 +338,6 @@ const SquadPage = () => {
               </Button>
             </Box>
           )}
-        {/* Заголовок страницы */}
-        <Box sx={{ textAlign: 'center', mb: 5 }}>
-          <Typography 
-            variant="h3" 
-            sx={{ 
-              color: '#ffb347', 
-              fontWeight: 700,
-              mb: 2
-            }}
-          >
-            Отряды сообщества
-          </Typography>
-        </Box>
         
         {/* Tabs + Кнопка создания отряда */}
         <Box
