@@ -1,16 +1,61 @@
 const db = require('../models');
+const { Op } = require('sequelize');
 
-// Получить историю матчей (последние 20)
+// Получить историю матчей с пагинацией и userId для игроков
 exports.getMatchHistory = async (req, res) => {
   try {
-    // Получаем последние 20 матчей из MatchHistory
+    const limit = parseInt(req.query.limit) || 8;
+    const offset = parseInt(req.query.offset) || 0;
+
+    // Получаем общее количество матчей
+    const totalCount = await db.MatchHistory.count();
+
+    // Получаем матчи с пагинацией
     const matches = await db.MatchHistory.findAll({
       order: [['createdAt', 'DESC']],
-      limit: 20
+      limit,
+      offset
     });
-    // Формируем ответ для фронта
-    const result = matches.map(m => {
+
+    // Собираем все уникальные armaId из всех матчей
+    let allArmaIds = new Set();
+    const matchesData = matches.map(m => {
       const data = m.data || {};
+      let playerIdToEntity = {};
+      if (Array.isArray(data.PlayersToPlayables)) {
+        data.PlayersToPlayables.forEach(mapping => {
+          playerIdToEntity[mapping.PlayerId] = mapping.EntityId;
+        });
+      }
+      const players = Array.isArray(data.Players) ? data.Players.map(p => {
+        const entityId = playerIdToEntity[p.PlayerId];
+        const armaId = p.GUID ? String(p.GUID).trim().toLowerCase() : null;
+        if (armaId) allArmaIds.add(armaId);
+        return { playerIdentity: p.GUID, name: p.Name, entityId };
+      }) : [];
+      return { m, data, players };
+    });
+    allArmaIds = Array.from(allArmaIds);
+
+    // Получаем всех пользователей с этими armaId
+    let users = [];
+    if (allArmaIds.length > 0) {
+      users = await db.User.findAll({
+        where: {
+          armaId: {
+            [Op.in]: allArmaIds
+          }
+        },
+        attributes: ['id', 'armaId']
+      });
+    }
+    const armaIdToUserId = {};
+    users.forEach(u => {
+      if (u.armaId) armaIdToUserId[String(u.armaId).trim().toLowerCase()] = u.id;
+    });
+
+    // Формируем ответ для фронта
+    const result = matchesData.map(({ m, data, players }) => {
       // --- Сопоставления для фракций ---
       let entityToFaction = {};
       if (Array.isArray(data.Factions)) {
@@ -32,11 +77,13 @@ exports.getMatchHistory = async (req, res) => {
           playerIdToEntity[mapping.PlayerId] = mapping.EntityId;
         });
       }
-      // --- Список игроков с фракциями ---
-      const players = Array.isArray(data.Players) ? data.Players.map(p => {
+      // --- Список игроков с фракциями и userId ---
+      const playersWithUserId = Array.isArray(data.Players) ? data.Players.map(p => {
         const entityId = playerIdToEntity[p.PlayerId];
         const faction = entityToFaction[entityId] || null;
-        return { playerIdentity: p.GUID, name: p.Name, faction, entityId };
+        const armaId = p.GUID ? String(p.GUID).trim().toLowerCase() : null;
+        const userId = armaId ? armaIdToUserId[armaId] || null : null;
+        return { playerIdentity: p.GUID, name: p.Name, faction, entityId, userId, PlayerId: p.PlayerId };
       }) : [];
       // --- Определение тимкиллов ---
       const kills = Array.isArray(data.Kills) ? data.Kills.map(k => {
@@ -75,13 +122,13 @@ exports.getMatchHistory = async (req, res) => {
         sessionId: m.sessionId,
         date: data.Timestamp ? new Date(data.Timestamp * 1000) : m.createdAt,
         missionName: data.MissionName || null,
-        players,
+        players: playersWithUserId,
         kills,
         factionObjectives,
         raw: data // для отладки, можно убрать
       };
     });
-    res.json(result);
+    res.json({ matches: result, totalCount });
   } catch (err) {
     console.error('[MatchHistory] Ошибка получения истории матчей:', err);
     res.status(500).json({ error: 'Ошибка получения истории матчей' });

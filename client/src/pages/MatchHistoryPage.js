@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 
@@ -25,42 +25,70 @@ const ACCENT = '#ffb347';
 const BORDER = '2px solid #ffb347';
 const IMAGE_PLACEHOLDER = 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80';
 
+const PAGE_SIZE = 8;
+
 const MatchHistoryPage = () => {
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [open, setOpen] = useState({});
-  const [armaIdToUserId, setArmaIdToUserId] = useState({});
+  const [hasMore, setHasMore] = useState(true);
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
+  const [totalCount, setTotalCount] = useState(0);
+  const offsetRef = useRef(0);
 
   useEffect(() => {
-    const fetchHistory = async () => {
+    // Загрузка первых матчей
+    const fetchInitial = async () => {
       setLoading(true);
+      setError(null);
       try {
-        const res = await axios.get('/api/match-history');
-        setMatches(res.data);
+        const res = await axios.get(`/api/match-history?limit=${PAGE_SIZE}&offset=0`);
+        setMatches(res.data.matches);
+        setTotalCount(res.data.totalCount);
+        setHasMore(res.data.matches.length < res.data.totalCount);
+        offsetRef.current = res.data.matches.length;
       } catch (e) {
         setError('Ошибка загрузки истории матчей');
       } finally {
         setLoading(false);
       }
     };
-    fetchHistory();
+    fetchInitial();
   }, []);
 
   useEffect(() => {
-    // Загружаем всех пользователей для сопоставления armaId → id
-    const fetchUsers = async () => {
-      try {
-        const res = await axios.get('/api/users');
-        const map = {};
-        res.data.forEach(u => {
-          if (u.armaId) map[String(u.armaId).trim().toLowerCase()] = u.id;
-        });
-        setArmaIdToUserId(map);
-      } catch {}
+    // Ленивая подгрузка при прокрутке вниз
+    const handleScroll = () => {
+      if (loading || isFetchingMore || !hasMore) return;
+      const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+      if (scrollTop + clientHeight >= scrollHeight - 100) {
+        fetchMore();
+      }
     };
-    fetchUsers();
-  }, []);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+    // eslint-disable-next-line
+  }, [matches, loading, isFetchingMore, hasMore]);
+
+  const fetchMore = async () => {
+    if (isFetchingMore || !hasMore) return;
+    setIsFetchingMore(true);
+    try {
+      const res = await axios.get(`/api/match-history?limit=${PAGE_SIZE}&offset=${offsetRef.current}`);
+      if (res.data.matches.length > 0) {
+        setMatches(prev => [...prev, ...res.data.matches]);
+        offsetRef.current += res.data.matches.length;
+        setHasMore(offsetRef.current < res.data.totalCount);
+      } else {
+        setHasMore(false);
+      }
+    } catch (e) {
+      setHasMore(false);
+    } finally {
+      setIsFetchingMore(false);
+    }
+  };
 
   const toggleOpen = (sessionId) => {
     setOpen(prev => ({ ...prev, [sessionId]: !prev[sessionId] }));
@@ -68,13 +96,11 @@ const MatchHistoryPage = () => {
 
   const renderPlayer = (players, id) => {
     const player = players.find(p => p.playerIdentity === id || p.entityId === id || String(p.PlayerId) === String(id));
-    const armaId = player?.playerIdentity ? String(player.playerIdentity).trim().toLowerCase() : undefined;
-    const userId = armaIdToUserId[armaId];
-    console.log('armaId:', armaId, 'userId:', userId, 'armaIdToUserId:', armaIdToUserId); // для отладки
-    return userId ? (
-      <Link to={`/profile/${userId}`} style={{ color: ACCENT, textDecoration: 'underline', fontWeight: 600 }}>{player ? (player.name || player.playerIdentity || player.PlayerId || id) : id}</Link>
+    if (!player) return <b>{id}</b>;
+    return player.userId ? (
+      <Link to={`/profile/${player.userId}`} style={{ color: ACCENT, textDecoration: 'underline', fontWeight: 600 }}>{player.name || player.playerIdentity || player.PlayerId || id}</Link>
     ) : (
-      <b>{player ? (player.name || player.playerIdentity || player.PlayerId || id) : id}</b>
+      <b>{player.name || player.playerIdentity || player.PlayerId || id}</b>
     );
   };
 
@@ -89,7 +115,6 @@ const MatchHistoryPage = () => {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
         {matches.map(match => {
           const factionsWithObjectives = (match.factionObjectives || []).filter(f => f.objectives && f.objectives.length > 0);
-          // const participants = match.players.map(p => p.name || p.playerIdentity).join(', ');
           const img = match.missionImage || IMAGE_PLACEHOLDER;
           const playerIdToName = {};
           match.players.forEach(p => {
@@ -125,15 +150,12 @@ const MatchHistoryPage = () => {
                   <div style={{ color: '#bbb', fontSize: 15, marginBottom: 2 }}>{formatDate(match.date)}</div>
                   <div style={{ color: '#fff', fontSize: 15, marginTop: 2 }}>
                     <b style={{ color: ACCENT }}>Участники:</b>{' '}
-                    {match.players.map((p, idx) => {
-                      console.log('player:', p); // временно для отладки
-                      return (
-                        <React.Fragment key={p.playerIdentity ?? p.entityId ?? p.PlayerId ?? idx}>
-                          {renderPlayer(match.players, p.playerIdentity ?? p.entityId ?? p.PlayerId ?? idx)}
-                          {idx < match.players.length - 1 && ', '}
-                        </React.Fragment>
-                      );
-                    })}
+                    {match.players.map((p, idx) => (
+                      <React.Fragment key={p.playerIdentity ?? p.entityId ?? p.PlayerId ?? idx}>
+                        {renderPlayer(match.players, p.playerIdentity ?? p.entityId ?? p.PlayerId ?? idx)}
+                        {idx < match.players.length - 1 && ', '}
+                      </React.Fragment>
+                    ))}
                   </div>
                 </div>
                 <div style={{ fontSize: 28, color: ACCENT, userSelect: 'none', marginLeft: 12, transition: 'transform 0.2s', transform: open[match.sessionId] ? 'rotate(180deg)' : 'none' }}>
@@ -213,6 +235,12 @@ const MatchHistoryPage = () => {
           );
         })}
       </div>
+      {isFetchingMore && (
+        <div style={{ textAlign: 'center', color: '#bbb', margin: 16 }}>Загрузка...</div>
+      )}
+      {!hasMore && matches.length > 0 && (
+        <div style={{ textAlign: 'center', color: '#bbb', margin: 16 }}>Все матчи загружены</div>
+      )}
     </div>
   );
 };
