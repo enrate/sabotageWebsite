@@ -625,195 +625,99 @@ const SquadPage = () => {
                     !searchPlayer ||
                     (user.username && user.username.toLowerCase().includes(searchPlayer.toLowerCase())) ||
                     (user.description && user.description.toLowerCase().includes(searchPlayer.toLowerCase()))
-                  ).map(user => (
-                    <Box key={user.id} sx={{ 
-                      flex: '1 1 calc(33.333% - 16px)',
-                      minWidth: '320px',
-                      maxWidth: '400px'
-                    }}>
-                      <Card
-                        elevation={8}
-                        sx={{
-                          background: 'rgba(0, 0, 0, 0.4)',
-                          borderRadius: 4,
-                          border: '1px solid rgba(255, 179, 71, 0.2)',
-                          transition: 'all 0.3s ease',
-                          backdropFilter: 'blur(10px)',
-                          height: '100%',
-                          overflow: 'hidden',
-                          '&:hover': {
-                            transform: 'translateY(-6px)',
-                            boxShadow: '0 12px 30px rgba(255, 179, 71, 0.25)',
-                            borderColor: '#ffb347'
-                          }
-                        }}
-                      >
-                        {/* Верхняя часть с аватаром и основной информацией */}
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 3, pb: 0 }}>
-                          <Avatar src={user.avatar} sx={{ width: 56, height: 56, bgcolor: user.avatar ? 'transparent' : '#ffb347', color: '#23242a', fontWeight: 700 }}>
-                            {!user.avatar && <PersonIcon sx={{ fontSize: 32 }} />}
-                          </Avatar>
-                          <Box sx={{ flex: 1 }}>
-                            <Typography variant="h6" sx={{ color: '#ffb347', fontWeight: 700, mb: 0.5, fontSize: '1.1rem' }}>
-                              {user.username}
-                            </Typography>
-                            <Chip
-                              label="В поиске отряда"
-                              size="small"
-                              sx={{
-                                bgcolor: 'rgba(76, 175, 80, 0.2)',
-                                color: '#4caf50',
-                                fontSize: '0.75rem',
-                                fontWeight: 600
-                              }}
-                            />
-                          </Box>
-                        </Box>
-                        {/* Описание */}
-                        <Typography
-                          variant="body2"
+                  ).map(user => {
+                    // --- вычисляем К/Д и Win % ---
+                    const kd = user.stats && user.stats.deaths > 0 ? (user.stats.kills / user.stats.deaths).toFixed(2) : (user.stats?.kills || 0);
+                    const winrate = user.stats && user.stats.matches > 0 ? ((user.stats.wins / user.stats.matches) * 100).toFixed(1) : '0';
+                    return (
+                      <Box key={user.id} sx={{ 
+                        flex: '1 1 calc(33.333% - 16px)',
+                        minWidth: '320px',
+                        maxWidth: '400px'
+                      }}>
+                        <Card
+                          elevation={8}
                           sx={{
-                            color: 'rgba(255, 255, 255, 0.8)',
-                            lineHeight: 1.6,
-                            mb: 2,
-                            fontStyle: user.description ? 'normal' : 'italic',
-                            px: 3,
-                            mt: 1 // добавлен отступ сверху
+                            background: 'rgba(20, 20, 20, 0.92)',
+                            borderRadius: 4,
+                            border: '1.5px solid #222',
+                            transition: 'all 0.3s ease',
+                            backdropFilter: 'blur(8px)',
+                            height: '100%',
+                            overflow: 'hidden',
+                            boxShadow: '0 4px 24px 0 rgba(0,0,0,0.18)',
+                            '&:hover': {
+                              transform: 'translateY(-6px)',
+                              boxShadow: '0 12px 30px rgba(255, 179, 71, 0.18)',
+                              borderColor: '#ffb347'
+                            }
                           }}
                         >
-                          {user.description || 'Описание отсутствует'}
-                        </Typography>
-                        {/* Статистика игрока */}
-                        <Box sx={{ p: 3 }}>
-                          <Box sx={{ 
-                            display: 'grid', 
-                            gridTemplateColumns: '1fr 1fr', 
-                            gap: 2, 
-                            mb: 3 
-                          }}>
-                            <Box sx={{ textAlign: 'center', p: 2, bgcolor: 'rgba(255, 179, 71, 0.05)', borderRadius: 2 }}>
-                              <Typography variant="h5" sx={{ color: '#ffb347', fontWeight: 700, mb: 0.5 }}>
-                                {user.stats?.elo ?? '0'}
+                          {/* Верхняя часть с аватаром и основной информацией */}
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 3, pb: 0 }}>
+                            <Avatar src={user.avatar} sx={{ width: 56, height: 56, bgcolor: user.avatar ? 'transparent' : '#ffb347', color: '#23242a', fontWeight: 700 }}>
+                              {!user.avatar && <PersonIcon sx={{ fontSize: 32 }} />}
+                            </Avatar>
+                            <Box sx={{ flex: 1 }}>
+                              <Typography variant="h6" sx={{ color: '#ffb347', fontWeight: 700, mb: 0.5, fontSize: '1.1rem' }}>
+                                {user.username}
                               </Typography>
-                              <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.75rem' }}>
-                                Рейтинг (сезон)
-                              </Typography>
-                            </Box>
-                            <Box sx={{ textAlign: 'center', p: 2, bgcolor: 'rgba(79, 140, 255, 0.05)', borderRadius: 2 }}>
-                              <Typography variant="h5" sx={{ color: '#4f8cff', fontWeight: 700, mb: 0.5 }}>
-                                {user.stats?.matches ?? '0'}
-                              </Typography>
-                              <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '0.75rem' }}>
-                                Матчей (сезон)
-                              </Typography>
+                              <Chip
+                                label="В поиске отряда"
+                                size="small"
+                                sx={{
+                                  bgcolor: 'rgba(76, 175, 80, 0.12)',
+                                  color: '#4caf50',
+                                  fontSize: '0.75rem',
+                                  fontWeight: 600
+                                }}
+                              />
                             </Box>
                           </Box>
-                          <Box sx={{ 
-                            display: 'flex', 
-                            justifyContent: 'space-between', 
-                            alignItems: 'center',
-                            mb: 3,
-                            p: 2,
-                            bgcolor: 'rgba(0, 0, 0, 0.2)',
-                            borderRadius: 2
-                          }}>
-                            <Box sx={{ textAlign: 'center' }}>
-                              <Typography variant="body2" sx={{ color: '#4caf50', fontWeight: 600 }}>
-                                {user.stats?.kills ?? '0'}
-                              </Typography>
-                              <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.6)' }}>
-                                Убийств
-                              </Typography>
-                            </Box>
-                            <Box sx={{ textAlign: 'center' }}>
-                              <Typography variant="body2" sx={{ color: '#f44336', fontWeight: 600 }}>
-                                {user.stats?.deaths ?? '0'}
-                              </Typography>
-                              <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.6)' }}>
-                                Смертей
-                              </Typography>
-                            </Box>
-                            <Box sx={{ textAlign: 'center' }}>
-                              <Typography variant="body2" sx={{ color: '#ff9800', fontWeight: 600 }}>
-                                {user.stats?.teamkills ?? '0'}
-                              </Typography>
-                              <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.6)' }}>
-                                Тимкиллов
-                              </Typography>
-                            </Box>
-                            <Box sx={{ textAlign: 'center' }}>
-                              <Typography variant="body2" sx={{ color: '#9c27b0', fontWeight: 600 }}>
-                                {user.stats?.winRate ? `${user.stats.winRate}%` : '0'}
-                              </Typography>
-                              <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.6)' }}>
-                                Win Rate
-                              </Typography>
-                            </Box>
-                            <Box sx={{ textAlign: 'center' }}>
-                              <Typography variant="body2" sx={{ color: '#1976d2', fontWeight: 600 }}>
-                                {user.stats?.wins ?? '0'}
-                              </Typography>
-                              <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.6)' }}>
-                                Побед
-                              </Typography>
-                            </Box>
-                            <Box sx={{ textAlign: 'center' }}>
-                              <Typography variant="body2" sx={{ color: '#bdbdbd', fontWeight: 600 }}>
-                                {user.stats?.losses ?? '0'}
-                              </Typography>
-                              <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.6)' }}>
-                                Поражений
-                              </Typography>
-                            </Box>
-                          </Box>
-                        </Box>
-                        {/* Кнопки действий */}
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pb: 3 }}>
-                          <Button
-                            variant="outlined"
-                            size="small"
-                            fullWidth
-                            sx={{ color: '#ffb347', borderColor: '#ffb347', fontWeight: 600, '&:hover': { bgcolor: 'rgba(255,179,71,0.08)', borderColor: '#ffd580', color: '#ffd580' } }}
-                            component={Link}
-                            to={`/profile/${user.id}`}
+                          {/* Описание */}
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              color: 'rgba(255, 255, 255, 0.8)',
+                              lineHeight: 1.6,
+                              mb: 2,
+                              fontStyle: user.description ? 'normal' : 'italic',
+                              px: 3,
+                              mt: 1
+                            }}
                           >
-                            Профиль
-                          </Button>
-                          {canInviteToSquad(user) && !hasInvite[user.id] && (
-                            <Button
-                              variant="contained"
-                              size="small"
-                              fullWidth
-                              sx={{ bgcolor: '#ffb347', color: '#232526', fontWeight: 600, '&:hover': { bgcolor: '#ffd580' } }}
-                              disabled={inviteLoading[user.id]}
-                              onClick={() => handleInvite(user.id)}
-                            >
-                              Пригласить
-                            </Button>
-                          )}
-                          {hasInvite[user.id] && (
-                            <Button
-                              variant="outlined"
-                              size="small"
-                              fullWidth
-                              disabled
-                              sx={{
-                                color: '#fff',
-                                borderColor: '#ffb347',
-                                background: '#ffb347',
-                                fontWeight: 700,
-                                opacity: 1,
-                                boxShadow: '0 2px 8px 0 rgba(255,179,71,0.18)'
-                              }}
-                            >
-                              Приглашение отправлено
-                            </Button>
-                          )}
-                        </Box>
-                      </Card>
-                    </Box>
-                  ))
-                }
+                            {user.description || 'Описание отсутствует'}
+                          </Typography>
+                          {/* Минималистичная статистика */}
+                          <Box sx={{ p: 3, pt: 1 }}>
+                            <Box sx={{
+                              display: 'grid',
+                              gridTemplateColumns: '1fr 1fr',
+                              gap: 2,
+                              mb: 1
+                            }}>
+                              <Box sx={{ textAlign: 'center', p: 1 }}>
+                                <Typography variant="subtitle2" sx={{ color: '#bbb', fontWeight: 500, fontSize: 13, mb: 0.5 }}>Рейтинг</Typography>
+                                <Typography variant="h5" sx={{ color: '#ffb347', fontWeight: 700 }}>{user.stats?.elo ?? '0'}</Typography>
+                              </Box>
+                              <Box sx={{ textAlign: 'center', p: 1 }}>
+                                <Typography variant="subtitle2" sx={{ color: '#bbb', fontWeight: 500, fontSize: 13, mb: 0.5 }}>К/Д</Typography>
+                                <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{kd}</Typography>
+                              </Box>
+                              <Box sx={{ textAlign: 'center', p: 1 }}>
+                                <Typography variant="subtitle2" sx={{ color: '#bbb', fontWeight: 500, fontSize: 13, mb: 0.5 }}>Win %</Typography>
+                                <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{winrate}</Typography>
+                              </Box>
+                              <Box sx={{ textAlign: 'center', p: 1 }}>
+                                <Typography variant="subtitle2" sx={{ color: '#bbb', fontWeight: 500, fontSize: 13, mb: 0.5 }}>Матчей</Typography>
+                                <Typography variant="h5" sx={{ color: '#fff', fontWeight: 700 }}>{user.stats?.matches ?? '0'}</Typography>
+                              </Box>
+                            </Box>
+                          </Box>
+                        </Card>
+                      </Box>
+                    );
+                  })}
               </Box>
             </Box>
           )

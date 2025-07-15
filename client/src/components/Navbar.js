@@ -26,7 +26,8 @@ import {
   Mail as MailIcon,
   Notifications as NotificationsIcon,
   Article as ArticleIcon,
-  Menu as MenuIcon
+  Menu as MenuIcon,
+  History as StorageIcon
 } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
 import Badge from '@mui/material/Badge';
@@ -356,6 +357,7 @@ const Navbar = ({ onOpenAuthModal, notifications = [], onNotificationClick, mark
                 color="inherit"
                 component={Link}
                 to="/match-history"
+                startIcon={<History />}
                 sx={{
                   fontWeight: 600,
                   color: isActive('/match-history') ? '#ffb347' : '#fff',

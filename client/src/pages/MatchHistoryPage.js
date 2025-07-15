@@ -153,39 +153,89 @@ const MatchHistoryPage = () => {
 
   return (
     <div style={{ maxWidth: 1200, margin: '0 auto', padding: 24 }}>
-      <h2 style={{ color: ACCENT, textAlign: 'center', marginBottom: 32, letterSpacing: 1, fontWeight: 800, fontSize: 32 }}>История матчей</h2>
       {/* Фильтры */}
-      <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 24, alignItems: 'center', justifyContent: 'center' }}>
-        <div>
-          <label style={{ color: '#fff', fontWeight: 500, marginRight: 6 }}>Дата с:</label>
-          <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} style={{ padding: 4, borderRadius: 4, border: '1px solid #888', background: '#222', color: '#fff' }} />
+      <div style={{
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: 24,
+        marginBottom: 32,
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'rgba(20,20,20,0.92)',
+        borderRadius: 18,
+        boxShadow: '0 4px 24px 0 rgba(0,0,0,0.18)',
+        padding: '22px 28px 18px 28px',
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
+        border: '2px solid #222',
+        minWidth: 260,
+        maxWidth: 900,
+        marginLeft: 'auto',
+        marginRight: 'auto',
+      }}>
+        {/* Дата */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 6 }}>
+          <label style={{ color: '#ffb347', fontWeight: 600, marginBottom: 2, fontSize: 15 }}>Дата с:</label>
+          <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} style={{ padding: '6px 10px', borderRadius: 6, border: '1.5px solid #444', background: '#181818', color: '#fff', fontSize: 15, outline: 'none', transition: 'border 0.2s', boxShadow: '0 1px 4px #0002' }} />
         </div>
-        <div>
-          <label style={{ color: '#fff', fontWeight: 500, marginRight: 6 }}>по:</label>
-          <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} style={{ padding: 4, borderRadius: 4, border: '1px solid #888', background: '#222', color: '#fff' }} />
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 6 }}>
+          <label style={{ color: '#ffb347', fontWeight: 600, marginBottom: 2, fontSize: 15 }}>по:</label>
+          <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} style={{ padding: '6px 10px', borderRadius: 6, border: '1.5px solid #444', background: '#181818', color: '#fff', fontSize: 15, outline: 'none', transition: 'border 0.2s', boxShadow: '0 1px 4px #0002' }} />
         </div>
-        <div>
-          <label style={{ color: '#fff', fontWeight: 500, marginRight: 6 }}>Сценарии:</label>
-          <select multiple value={missionNames} onChange={e => setMissionNames(Array.from(e.target.selectedOptions, o => o.value))} style={{ minWidth: 160, padding: 4, borderRadius: 4, border: '1px solid #888', background: '#222', color: '#fff', height: 32 + 22 * Math.min(4, allMissions.length) }}>
+        {/* Сценарии */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 6, minWidth: 180 }}>
+          <label style={{ color: '#ffb347', fontWeight: 600, marginBottom: 2, fontSize: 15 }}>Сценарии:</label>
+          <select
+            multiple
+            value={missionNames.length === 0 ? ['__all__'] : missionNames}
+            onChange={e => {
+              const values = Array.from(e.target.selectedOptions, o => o.value);
+              if (values.includes('__all__')) {
+                setMissionNames([]); // "Все"
+              } else {
+                setMissionNames(values);
+              }
+            }}
+            style={{ minWidth: 160, padding: 6, borderRadius: 6, border: '1.5px solid #444', background: '#181818', color: '#fff', fontSize: 15, outline: 'none', height: 36 + 22 * Math.min(4, allMissions.length), boxShadow: '0 1px 4px #0002', cursor: 'pointer' }}
+          >
+            <option value="__all__" style={{ color: '#bbb', fontStyle: 'italic' }}>Все</option>
             {allMissions.map(m => (
               <option key={m} value={m}>{cleanMissionName(m)}</option>
             ))}
           </select>
         </div>
-        <div>
-          <label style={{ color: '#fff', fontWeight: 500, marginRight: 6 }}>Игроки:</label>
-          <form onSubmit={handleAddNickname} style={{ display: 'inline' }}>
-            <input type="text" value={nicknameInput} onChange={e => setNicknameInput(e.target.value)} placeholder="Никнейм" style={{ padding: 4, borderRadius: 4, border: '1px solid #888', background: '#222', color: '#fff', minWidth: 90 }} />
-            <button type="submit" style={{ marginLeft: 4, padding: '4px 10px', borderRadius: 4, border: 'none', background: ACCENT, color: '#222', fontWeight: 700, cursor: 'pointer' }}>+</button>
+        {/* Игроки */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 6, minWidth: 180 }}>
+          <label style={{ color: '#ffb347', fontWeight: 600, marginBottom: 2, fontSize: 15 }}>Игроки:</label>
+          <form onSubmit={handleAddNickname} style={{ display: 'flex', gap: 6 }}>
+            <input
+              type="text"
+              value={nicknameInput}
+              onChange={e => setNicknameInput(e.target.value)}
+              placeholder="Никнейм"
+              style={{ padding: '6px 10px', borderRadius: 6, border: '1.5px solid #444', background: '#181818', color: '#fff', fontSize: 15, outline: 'none', transition: 'border 0.2s', minWidth: 90, boxShadow: '0 1px 4px #0002' }}
+              onFocus={e => e.target.select()}
+            />
+            <button
+              type="submit"
+              style={{ padding: '6px 14px', borderRadius: 6, border: 'none', background: ACCENT, color: '#222', fontWeight: 700, fontSize: 16, cursor: 'pointer', transition: 'background 0.18s' }}
+              onMouseOver={e => e.currentTarget.style.background = '#ffd580'}
+              onMouseOut={e => e.currentTarget.style.background = ACCENT}
+            >+
+            </button>
           </form>
           {nicknames.length > 0 && (
-            <span style={{ marginLeft: 8 }}>
+            <div style={{ marginTop: 6, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
               {nicknames.map(nick => (
-                <span key={nick} style={{ background: ACCENT, color: '#222', borderRadius: 4, padding: '2px 8px', marginRight: 4, fontWeight: 600, display: 'inline-block' }}>
-                  {nick} <span style={{ cursor: 'pointer', marginLeft: 2, color: '#b00', fontWeight: 900 }} onClick={() => handleRemoveNickname(nick)}>×</span>
+                <span key={nick} style={{ background: ACCENT, color: '#222', borderRadius: 12, padding: '4px 12px', fontWeight: 600, display: 'inline-flex', alignItems: 'center', fontSize: 15, boxShadow: '0 1px 4px #0002' }}>
+                  {nick}
+                  <span
+                    style={{ cursor: 'pointer', marginLeft: 8, color: '#b00', fontWeight: 900, fontSize: 18, lineHeight: 1 }}
+                    onClick={() => handleRemoveNickname(nick)}
+                  >×</span>
                 </span>
               ))}
-            </span>
+            </div>
           )}
         </div>
       </div>
@@ -253,9 +303,15 @@ const MatchHistoryPage = () => {
                   maxHeight: open[match.sessionId] ? 2000 : 0,
                   overflow: 'hidden',
                   transition: 'max-height 0.45s cubic-bezier(.4,2,.6,1)',
-                  background: open[match.sessionId] ? 'rgba(255,179,71,0.03)' : 'none',
-                  borderTop: open[match.sessionId] ? '1.5px solid #333' : 'none',
-                  boxShadow: open[match.sessionId] ? '0 2px 12px #0004' : 'none'
+                  background: open[match.sessionId] ? 'rgba(20,20,20,0.92)' : 'none',
+                  borderTop: open[match.sessionId] ? '2px solid #222' : 'none',
+                  boxShadow: open[match.sessionId] ? CARD_SHADOW : 'none',
+                  borderBottomLeftRadius: open[match.sessionId] ? 22 : 0,
+                  borderBottomRightRadius: open[match.sessionId] ? 22 : 0,
+                  backdropFilter: open[match.sessionId] ? 'blur(4px)' : 'none',
+                  WebkitBackdropFilter: open[match.sessionId] ? 'blur(4px)' : 'none',
+                  transitionProperty: 'max-height, background, box-shadow, border, backdrop-filter',
+                  transitionDuration: '0.45s, 0.25s, 0.25s, 0.25s, 0.25s',
                 }}
               >
                 {open[match.sessionId] && (
