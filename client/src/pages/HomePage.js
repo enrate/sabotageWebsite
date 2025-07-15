@@ -5,6 +5,7 @@ import ServerStatus from '../components/ServerStatus';
 import NewsPreview from '../components/NewsPreview';
 import Loader from '../components/Loader';
 import SocialBanners from '../components/SocialBanners';
+import YouTube from 'react-youtube';
 
 import { useAuth } from '../context/AuthContext';
 import Snackbar from '@mui/material/Snackbar';
@@ -228,112 +229,130 @@ const HomePage = () => {
               )}
               {/* Список новостей в столбец */}
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, width: '100%', maxWidth: 900, mx: 'auto' }}>
-                {news.map(item => (
-                  <Paper
-                    key={item.id}
-                    elevation={8}
-                    sx={{
-                      p: 4,
-                      mb: 2,
-                      background: 'rgba(0, 0, 0, 0.3)',
-                      borderRadius: 3,
-                      backdropFilter: 'blur(10px)',
-                      border: '1px solid rgba(255, 179, 71, 0.2)',
-                      transition: 'all 0.3s ease',
-                      //boxShadow: '0 8px 32px 0 rgba(255,179,71,0.18), 0 2px 10px rgba(0,0,0,0.16)',
-                      '&:hover': {
-                        //boxShadow: '0 12px 40px 0 rgba(255,179,71,0.22), 0 4px 16px rgba(0,0,0,0.18)',
-                        borderColor: '#ffd580',
-                        transform: 'translateY(-4px) scale(1.01)'
-                      }
-                    }}
-                  >
-                    <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 3 }}>
-                      <Avatar
-                        sx={{
-                          mr: 3,
-                          bgcolor: '#ffb347',
-                          width: 56,
-                          height: 56
-                        }}
-                      >
-                        <PersonIcon sx={{ fontSize: 28 }} />
-                      </Avatar>
-                      <Box sx={{ flex: 1 }}>
-                        <Typography
-                          variant="h5"
-                          component="h2"
-                          sx={{
-                            color: '#ffb347',
-                            fontWeight: 700,
-                            mb: 1.5,
-                            lineHeight: 1.2
-                          }}
-                        >
-                          {item.title}
-                        </Typography>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
-                          <Chip
-                            icon={<ScheduleIcon />}
-                            label={new Date(item.createdAt).toLocaleDateString('ru-RU', {
-                              year: 'numeric',
-                              month: 'long',
-                              day: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })}
-                            size="small"
-                            sx={{
-                              bgcolor: 'rgba(255, 179, 71, 0.1)',
-                              color: '#ffb347',
-                              border: '1px solid rgba(255, 179, 71, 0.3)',
-                              '& .MuiChip-icon': { color: '#ffb347' }
+                {news.map(item => {
+                  // Парсим первую ссылку на YouTube из текста
+                  const ytMatch = (item.content || '').match(/(?:https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu.be\/|youtube.com\/embed\/|youtube.com\/v\/))([\w-]{11})/);
+                  return (
+                    <Paper
+                      key={item.id}
+                      elevation={8}
+                      sx={{
+                        p: 4,
+                        mb: 2,
+                        background: 'rgba(0, 0, 0, 0.3)',
+                        borderRadius: 3,
+                        backdropFilter: 'blur(10px)',
+                        border: '1px solid rgba(255, 179, 71, 0.2)',
+                        transition: 'all 0.3s ease',
+                        //boxShadow: '0 8px 32px 0 rgba(255,179,71,0.18), 0 2px 10px rgba(0,0,0,0.16)',
+                        '&:hover': {
+                          //boxShadow: '0 12px 40px 0 rgba(255,179,71,0.22), 0 4px 16px rgba(0,0,0,0.18)',
+                          borderColor: '#ffd580',
+                          transform: 'translateY(-4px) scale(1.01)'
+                        }
+                      }}
+                    >
+                      {/* YouTube Player если есть ссылка */}
+                      {ytMatch && (
+                        <Box sx={{ mb: 3, display: 'flex', justifyContent: 'center' }}>
+                          <YouTube
+                            videoId={ytMatch[1]}
+                            opts={{
+                              width: '100%',
+                              height: '320',
+                              playerVars: { autoplay: 0 },
                             }}
-                          />
-                          <Chip
-                            icon={<PersonIcon />}
-                            label={item.author?.username || 'Неизвестно'}
-                            size="small"
-                            sx={{
-                              bgcolor: 'rgba(255, 255, 255, 0.1)',
-                              color: 'rgba(255, 255, 255, 0.8)',
-                              border: '1px solid rgba(255, 255, 255, 0.2)',
-                              '& .MuiChip-icon': { color: 'rgba(255, 255, 255, 0.6)' }
-                            }}
+                            style={{ borderRadius: 12, overflow: 'hidden', maxWidth: 700, width: '100%' }}
                           />
                         </Box>
+                      )}
+                      <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 3 }}>
+                        <Avatar
+                          sx={{
+                            mr: 3,
+                            bgcolor: '#ffb347',
+                            width: 56,
+                            height: 56
+                          }}
+                        >
+                          <PersonIcon sx={{ fontSize: 28 }} />
+                        </Avatar>
+                        <Box sx={{ flex: 1 }}>
+                          <Typography
+                            variant="h5"
+                            component="h2"
+                            sx={{
+                              color: '#ffb347',
+                              fontWeight: 700,
+                              mb: 1.5,
+                              lineHeight: 1.2
+                            }}
+                          >
+                            {item.title}
+                          </Typography>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+                            <Chip
+                              icon={<ScheduleIcon />}
+                              label={new Date(item.createdAt).toLocaleDateString('ru-RU', {
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                              size="small"
+                              sx={{
+                                bgcolor: 'rgba(255, 179, 71, 0.1)',
+                                color: '#ffb347',
+                                border: '1px solid rgba(255, 179, 71, 0.3)',
+                                '& .MuiChip-icon': { color: '#ffb347' }
+                              }}
+                            />
+                            <Chip
+                              icon={<PersonIcon />}
+                              label={item.author?.username || 'Неизвестно'}
+                              size="small"
+                              sx={{
+                                bgcolor: 'rgba(255, 255, 255, 0.1)',
+                                color: 'rgba(255, 255, 255, 0.8)',
+                                border: '1px solid rgba(255, 255, 255, 0.2)',
+                                '& .MuiChip-icon': { color: 'rgba(255, 255, 255, 0.6)' }
+                              }}
+                            />
+                          </Box>
+                        </Box>
                       </Box>
-                    </Box>
-                    <Divider sx={{ mb: 3, borderColor: 'rgba(255, 179, 71, 0.2)' }} />
-                    <Box
-                      sx={{
-                        mb: 2,
-                        lineHeight: 1.7,
-                        color: 'rgba(255, 255, 255, 0.9)',
-                        fontSize: '1.08rem',
-                        minHeight: '4.8rem',
-                        display: '-webkit-box',
-                        WebkitLineClamp: 6, // было 4, теперь 6 строк
-                        WebkitBoxOrient: 'vertical',
-                        overflow: 'hidden',
-                        '& img': { maxWidth: '100%', height: 'auto', borderRadius: 2, my: 2 },
-                        '& video': { maxWidth: '100%', height: 'auto', borderRadius: 2, my: 2 }
-                      }}
-                      dangerouslySetInnerHTML={{ __html: item.content }}
-                    />
-                    <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                      <Button
-                        component={Link}
-                        to={`/news/${item.id}`}
-                        size="small"
-                        variant="outlined"
-                        sx={{ color: '#ffb347', borderColor: '#ffb347', fontWeight: 600, '&:hover': { bgcolor: 'rgba(255,179,71,0.08)', borderColor: '#ffd580', color: '#ffd580' } }}
-                      >
-                        Читать полностью
-                      </Button>
-                    </Box>
-                  </Paper>
-                ))}
+                      <Divider sx={{ mb: 3, borderColor: 'rgba(255, 179, 71, 0.2)' }} />
+                      <Box
+                        sx={{
+                          mb: 2,
+                          lineHeight: 1.7,
+                          color: 'rgba(255, 255, 255, 0.9)',
+                          fontSize: '1.08rem',
+                          minHeight: '4.8rem',
+                          display: '-webkit-box',
+                          WebkitLineClamp: 6, // было 4, теперь 6 строк
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden',
+                          '& img': { maxWidth: '100%', height: 'auto', borderRadius: 2, my: 2 },
+                          '& video': { maxWidth: '100%', height: 'auto', borderRadius: 2, my: 2 }
+                        }}
+                        dangerouslySetInnerHTML={{ __html: item.content }}
+                      />
+                      <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                        <Button
+                          component={Link}
+                          to={`/news/${item.id}`}
+                          size="small"
+                          variant="outlined"
+                          sx={{ color: '#ffb347', borderColor: '#ffb347', fontWeight: 600, '&:hover': { bgcolor: 'rgba(255,179,71,0.08)', borderColor: '#ffd580', color: '#ffd580' } }}
+                        >
+                          Читать полностью
+                        </Button>
+                      </Box>
+                    </Paper>
+                  );
+                })}
               </Box>
               {newsLoading && (
                 <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>

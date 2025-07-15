@@ -258,6 +258,7 @@ const Navbar = ({ onOpenAuthModal, notifications = [], onNotificationClick, mark
                 component="img"
                 src="/logo.png"
                 alt="Sabotage Games Logo"
+                to="/"
                 sx={{
                   height: 40,
                   width: 'auto',
@@ -269,24 +270,6 @@ const Navbar = ({ onOpenAuthModal, notifications = [], onNotificationClick, mark
                   }
                 }}
               />
-              <Typography
-                variant="h6"
-                component={Link}
-                to="/"
-                sx={{
-                  color: '#ffb347',
-                  fontWeight: 'bold',
-                  letterSpacing: '1.5px',
-                  textShadow: '0 2px 8px rgba(255,179,71,0.08)',
-                  transition: 'color 0.2s',
-                  textDecoration: 'none',
-                  '&:hover': {
-                    color: '#ffd580'
-                  }
-                }}
-              >
-                Sabotage Games
-              </Typography>
             </Box>
 
             {/* Navigation Links - Centered (desktop only) */}

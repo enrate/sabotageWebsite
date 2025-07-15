@@ -39,6 +39,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import Loader from '../components/Loader';
 import Comments from '../components/Comments';
+import YouTube from 'react-youtube';
 
 const NewsPage = () => {
   const { id } = useParams();
@@ -187,6 +188,20 @@ const NewsPage = () => {
 
           <Divider sx={{ mb: 4, borderColor: 'rgba(255, 179, 71, 0.2)' }} />
 
+          {/* YouTube Player если есть ссылка */}
+          {news.youtubeUrl && news.youtubeUrl.match(/(?:youtu.be\/|youtube.com\/(?:watch\?v=|embed\/|v\/))([\w-]{11})/) && (
+            <Box sx={{ mb: 4, display: 'flex', justifyContent: 'center' }}>
+              <YouTube
+                videoId={news.youtubeUrl.match(/(?:youtu.be\/|youtube.com\/(?:watch\?v=|embed\/|v\/))([\w-]{11})/)[1]}
+                opts={{
+                  width: '100%',
+                  height: '380',
+                  playerVars: { autoplay: 0 },
+                }}
+                style={{ borderRadius: 12, overflow: 'hidden', maxWidth: 700, width: '100%' }}
+              />
+            </Box>
+          )}
           <Box 
             sx={{ 
               mb: 4, 

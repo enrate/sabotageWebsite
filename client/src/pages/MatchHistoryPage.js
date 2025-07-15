@@ -193,7 +193,7 @@ const MatchHistoryPage = () => {
         height: 'fit-content',
       }}>
         {/* Дата */}
-        <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={ru}>
+        <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="ru">
           <DateRangePicker
             startText="Дата с"
             endText="по"
