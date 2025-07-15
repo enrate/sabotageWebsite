@@ -27,8 +27,8 @@ import {
   Notifications as NotificationsIcon,
   Article as ArticleIcon,
   Menu as MenuIcon,
-  LeaderboardIcon as Stats,
-  StorageIcon as History
+  Leaderboard as Stats,
+  Storage as History
 } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
 import Badge from '@mui/material/Badge';
