@@ -138,7 +138,7 @@ const NewsListPage = ({ sx }) => {
         }}>
           {news.map((item) => {
             // Парсим первую ссылку на YouTube из текста
-            const ytMatch = (item.content || '').match(/(?:https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu.be\/|youtube.com\/embed\/|youtube.com\/v\/))([\w-]{11})/);
+            const ytMatch = (item.content || '').match(/(?:https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/|youtube\.com\/shorts\/))([\w-]{11})/);
             return (
               <Box key={item.id} sx={{ 
                 flex: '1 1 100%',

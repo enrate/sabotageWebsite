@@ -812,15 +812,15 @@ const SquadDetailPage = () => {
             </Button>
           </Box>
         )}
-        <Grid container spacing={4}>
+        <Grid container spacing={isMobile ? 1.5 : 4} direction={isMobile ? 'column' : 'row'}>
           {/* Левая панель с вкладками и информацией */}
-          <Grid item style={{width: 320, maxWidth: 320, flexShrink: 0}}>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+          <Grid item xs={12} md={'auto'} style={isMobile ? { width: '100%', maxWidth: '100%' } : { width: 320, maxWidth: 320, flexShrink: 0 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: isMobile ? 1.5 : 3 }}>
               {/* Вкладки */}
               <Paper
                 elevation={8}
                 sx={{
-                  p: 2,
+                  p: isMobile ? 1.2 : 2,
                   background: 'rgba(0, 0, 0, 0.3)',
                   borderRadius: 3,
                   backdropFilter: 'blur(10px)',
@@ -1071,32 +1071,32 @@ const SquadDetailPage = () => {
           </Grid>
 
           {/* Основной контент */}
-          <Grid item xs style={{flex: 1, minWidth: 0}}>
+          <Grid item xs style={isMobile ? { width: '100%', minWidth: 0 } : { flex: 1, minWidth: 0 }}>
             <Paper
               elevation={8}
               sx={{
-                p: 4,
+                p: isMobile ? 1.5 : 4,
                 background: 'rgba(0, 0, 0, 0.3)',
                 borderRadius: 3,
                 backdropFilter: 'blur(10px)',
                 border: '1px solid rgba(255, 179, 71, 0.2)',
-                minHeight: 600,
+                minHeight: isMobile ? 0 : 600,
                 width: '100%'
               }}
             >
               {/* Вкладка "Об отряде" */}
               {tab === 'about' && (
-                <Box sx={{ minWidth: 800, maxWidth: 1100, mx: 'auto' }}>
+                <Box sx={{ minWidth: isMobile ? 0 : 800, maxWidth: isMobile ? '100%' : 1100, mx: 'auto' }}>
                   {/* Логотип и название */}
-                  <Box sx={{ textAlign: 'center', mb: 4 }}>
+                  <Box sx={{ textAlign: 'center', mb: isMobile ? 2 : 4 }}>
                     <Avatar
                       src={squad.logo}
                       alt="Логотип отряда"
                       sx={{
-                        width: 160,
-                        height: 160,
+                        width: isMobile ? 90 : 160,
+                        height: isMobile ? 90 : 160,
                         border: '3px solid #ffb347',
-                        mb: 2,
+                        mb: isMobile ? 1.2 : 2,
                         mx: 'auto',
                         display: 'flex',
                         alignItems: 'center',
@@ -1106,24 +1106,24 @@ const SquadDetailPage = () => {
                     >
                       {!squad.logo && <GroupIcon sx={{ fontSize: 80, color: '#232526', mx: 'auto' }} />}
                     </Avatar>
-                    <Typography variant="h3" sx={{ color: '#ffb347', fontWeight: 700, mb: 1 }}>
+                    <Typography variant={isMobile ? 'h5' : 'h3'} sx={{ color: '#ffb347', fontWeight: 700, mb: 1 }}>
                       {squad.name}
                     </Typography>
-                    <Divider sx={{ bgcolor: '#ffb347', height: 2, borderRadius: 1, mb: 3 }} />
+                    <Divider sx={{ bgcolor: '#ffb347', height: 2, borderRadius: 1, mb: isMobile ? 1.5 : 3 }} />
                     
-                    <Typography variant="body1" sx={{ color: 'rgba(255, 255, 255, 0.8)', mb: 4, wordBreak: 'break-word', whiteSpace: 'pre-line', maxWidth: 600, mx: 'auto' }}>
+                    <Typography variant="body1" sx={{ color: 'rgba(255, 255, 255, 0.8)', mb: isMobile ? 2 : 4, wordBreak: 'break-word', whiteSpace: 'pre-line', maxWidth: 600, mx: 'auto', fontSize: isMobile ? 15 : undefined }}>
                       {squad.description || 'Нет описания'}
                     </Typography>
                   </Box>
 
                   {/* Участники */}
-                  <Typography variant="h5" sx={{ color: '#ffb347', mb: 2, textAlign: 'center' }}>
+                  <Typography variant={isMobile ? 'h6' : 'h5'} sx={{ color: '#ffb347', mb: isMobile ? 1.2 : 2, textAlign: 'center' }}>
                     Участники
                   </Typography>
                   {Array.isArray(squad.members) && squad.members.length > 0 ? (
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', width: '100%', gap: 1.5 }}>
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', width: '100%', gap: isMobile ? 1 : 1.5 }}>
                       {getSortedMembers.map((member, idx) => (
-                        <Box key={member.id || idx} sx={{ width: { xs: '100%', sm: '48.5%' }, boxSizing: 'border-box', p: 0.5 }}>
+                        <Box key={member.id || idx} sx={{ width: isMobile ? '100%' : { xs: '100%', sm: '48.5%' }, boxSizing: 'border-box', p: isMobile ? 0.5 : 0.5 }}>
                           <Box
                             sx={{
                               bgcolor: 'rgba(0, 0, 0, 0.2)',
@@ -1220,7 +1220,7 @@ const SquadDetailPage = () => {
 
               {/* Вкладка "История" */}
               {tab === 'history' && (
-                <Box sx={{ minWidth: 800, maxWidth: 1100, mx: 'auto' }}>
+                <Box sx={{ minWidth: isMobile ? 0 : 800, maxWidth: isMobile ? '100%' : 1100, mx: 'auto' }}>
                   <Typography variant="h4" sx={{ color: '#ffb347', mb: 3, display: 'flex', alignItems: 'center', gap: 1 }}>
                     <HistoryIcon />
                     История отряда
@@ -1333,7 +1333,7 @@ const SquadDetailPage = () => {
 
               {/* Вкладка "Производительность" */}
               {tab === 'performance' && (
-                <Box sx={{ minWidth: 800, maxWidth: 1100, mx: 'auto' }}>
+                <Box sx={{ minWidth: isMobile ? 0 : 800, maxWidth: isMobile ? '100%' : 1100, mx: 'auto' }}>
                   <Box sx={{ width: '100%', mb: 2 }}>
                     <Tabs
                       value={performanceTab}
@@ -1376,7 +1376,7 @@ const SquadDetailPage = () => {
 
               {/* Вкладка "Управление" */}
               {tab === 'manage' && (isLeader || isDeputyInSquad) && (
-                <Box sx={{ minWidth: 800, maxWidth: 1100, mx: 'auto' }}>
+                <Box sx={{ minWidth: isMobile ? 0 : 800, maxWidth: isMobile ? '100%' : 1100, mx: 'auto' }}>
                   {/* Заявки на вступление */}
                   <Typography variant="h4" sx={{ color: '#ffb347', mb: 3 }}>
                     Заявки на вступление

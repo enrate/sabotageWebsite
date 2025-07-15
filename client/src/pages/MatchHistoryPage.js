@@ -165,15 +165,18 @@ const MatchHistoryPage = () => {
   const theme = useTheme();
 
   return (
-    <div style={{
-      width: '100%',
-      padding: 24,
-      display: 'flex',
-      flexDirection: 'row',
-      gap: 32,
-      alignItems: 'flex-start',
-      boxSizing: 'border-box',
-    }}>
+    <div
+      className="match-history-main"
+      style={{
+        width: '100%',
+        padding: 24,
+        display: 'flex',
+        flexDirection: 'row',
+        gap: 32,
+        alignItems: 'flex-start',
+        boxSizing: 'border-box',
+      }}
+    >
       {/* Фильтры слева */}
       <div
         style={{
@@ -493,6 +496,11 @@ const MatchHistoryPage = () => {
 const style = document.createElement('style');
 style.innerHTML = `
 @media (max-width: 900px) {
+  .match-history-main {
+    flex-direction: column !important;
+    gap: 0 !important;
+    padding: 8px 0 0 0 !important;
+  }
   .match-history-filters {
     position: static !important;
     top: unset !important;

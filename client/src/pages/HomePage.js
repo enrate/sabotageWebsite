@@ -180,26 +180,39 @@ const HomePage = () => {
             </Button>
           </Box>
         )}
-        <Grid container spacing={4}>
+        <Grid 
+          container 
+          spacing={isMobile ? 1.5 : 4}
+          direction={isMobile ? 'column' : 'row'}
+          sx={{ width: '100%', flexWrap: isMobile ? 'wrap' : undefined, mx: 0 }}
+        >
           {/* Левая панель — статус серверов */}
-          <Grid item style={{width:340, maxWidth:340, flexShrink:0}} sx={{mt: 8}}>
+          <Grid 
+            item 
+            xs={12} 
+            md="auto"
+            style={isMobile ? { width: '100%', maxWidth: 'unset', flexShrink: 0 } : { width:340, maxWidth:340, flexShrink:0 }}
+            sx={{ mt: isMobile ? 1 : 8, mb: isMobile ? 1.5 : 0 }}
+          >
             <Paper
               elevation={8}
               sx={{
-                p: 3,
+                p: isMobile ? 1.2 : 3,
                 background: 'rgba(0, 0, 0, 0.3)',
                 borderRadius: 3,
                 backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(255, 255, 255, 0.1)'
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                width: '100%'
               }}
             >
-              <Box sx={{ textAlign: 'center', mb: 3 }}>
-                <ComputerIcon sx={{ fontSize: 32, color: '#ffb347', mb: 1 }} />
+              <Box sx={{ textAlign: 'center', mb: isMobile ? 1.2 : 3 }}>
+                <ComputerIcon sx={{ fontSize: isMobile ? 22 : 32, color: '#ffb347', mb: 1 }} />
                 <Typography 
-                  variant="h6" 
+                  variant={isMobile ? 'subtitle1' : 'h6'}
                   sx={{ 
                     color: '#ffb347', 
-                    fontWeight: 600 
+                    fontWeight: 600,
+                    fontSize: isMobile ? '1.05rem' : undefined
                   }}
                 >
                   Статус серверов
@@ -210,7 +223,7 @@ const HomePage = () => {
                   <Loader />
                 </Box>
               ) : (
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: isMobile ? 1 : 1.5 }}>
                   {(servers.length ? servers : TEST_SERVERS).map(server => (
                     <ServerStatus key={server.id} server={server} />
                   ))}
@@ -219,66 +232,70 @@ const HomePage = () => {
             </Paper>
           </Grid>
           {/* Центральная колонка — новости */}
-          <Grid item xs style={{ minWidth: 0, flex: 1, maxWidth: 900, mx: 'auto' }}>
+          <Grid 
+            item 
+            xs={12} 
+            style={{ minWidth: 0, flex: 1, maxWidth: isMobile ? 'unset' : 900, width: '100%' }}
+            sx={{ mx: isMobile ? 0 : 'auto', mb: isMobile ? 1.5 : 0 }}
+          >
             <Box ref={newsContainerRef}>
-              <Typography variant="h4" sx={{ color: '#ffb347', fontWeight: 700, mb: 4, textAlign: 'center' }}>
+              <Typography variant={isMobile ? 'h6' : 'h4'} sx={{ color: '#ffb347', fontWeight: 700, mb: isMobile ? 2 : 4, textAlign: 'center', fontSize: isMobile ? '1.15rem' : undefined }}>
                 Новости сообщества
               </Typography>
               {news.length === 0 && !loading && (
-                <Typography sx={{ color: 'rgba(255,255,255,0.7)', mb: 2 }}>Нет новостей</Typography>
+                <Typography sx={{ color: 'rgba(255,255,255,0.7)', mb: 2, fontSize: isMobile ? '0.97rem' : undefined }}>Нет новостей</Typography>
               )}
               {/* Список новостей в столбец */}
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, width: '100%', maxWidth: 900, mx: 'auto' }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: isMobile ? 2 : 4, width: '100%', maxWidth: isMobile ? 'unset' : 900, mx: 'auto' }}>
                 {news.map(item => {
                   // Парсим первую ссылку на YouTube из текста
-                  const ytMatch = (item.content || '').match(/(?:https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu.be\/|youtube.com\/embed\/|youtube.com\/v\/))([\w-]{11})/);
+                  const ytMatch = (item.content || '').match(/(?:https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/|youtube\.com\/shorts\/))([\w-]{11})/);
                   return (
                     <Paper
                       key={item.id}
                       elevation={8}
                       sx={{
-                        p: 4,
-                        mb: 2,
+                        p: isMobile ? 1.2 : 4,
+                        mb: isMobile ? 1 : 2,
                         background: 'rgba(0, 0, 0, 0.3)',
                         borderRadius: 3,
                         backdropFilter: 'blur(10px)',
                         border: '1px solid rgba(255, 179, 71, 0.2)',
                         transition: 'all 0.3s ease',
-                        //boxShadow: '0 8px 32px 0 rgba(255,179,71,0.18), 0 2px 10px rgba(0,0,0,0.16)',
                         '&:hover': {
-                          //boxShadow: '0 12px 40px 0 rgba(255,179,71,0.22), 0 4px 16px rgba(0,0,0,0.18)',
                           borderColor: '#ffd580',
-                          transform: 'translateY(-4px) scale(1.01)'
+                          transform: isMobile ? 'none' : 'translateY(-4px) scale(1.01)'
                         }
                       }}
                     >
-                      <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 3 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: isMobile ? 1.2 : 3 }}>
                         <Avatar
                           sx={{
-                            mr: 3,
+                            mr: isMobile ? 1.2 : 3,
                             bgcolor: '#ffb347',
-                            width: 56,
-                            height: 56
+                            width: isMobile ? 36 : 56,
+                            height: isMobile ? 36 : 56
                           }}
                         >
-                          <PersonIcon sx={{ fontSize: 28 }} />
+                          <PersonIcon sx={{ fontSize: isMobile ? 18 : 28 }} />
                         </Avatar>
                         <Box sx={{ flex: 1 }}>
                           <Typography
-                            variant="h5"
+                            variant={isMobile ? 'subtitle1' : 'h5'}
                             component="h2"
                             sx={{
                               color: '#ffb347',
                               fontWeight: 700,
-                              mb: 1.5,
-                              lineHeight: 1.2
+                              mb: isMobile ? 0.7 : 1.5,
+                              lineHeight: 1.2,
+                              fontSize: isMobile ? '1.05rem' : undefined
                             }}
                           >
                             {item.title}
                           </Typography>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: isMobile ? 0.7 : 2, flexWrap: 'wrap' }}>
                             <Chip
-                              icon={<ScheduleIcon />}
+                              icon={<ScheduleIcon sx={{ fontSize: isMobile ? 16 : undefined }} />}
                               label={new Date(item.createdAt).toLocaleDateString('ru-RU', {
                                 year: 'numeric',
                                 month: 'long',
@@ -291,33 +308,35 @@ const HomePage = () => {
                                 bgcolor: 'rgba(255, 179, 71, 0.1)',
                                 color: '#ffb347',
                                 border: '1px solid rgba(255, 179, 71, 0.3)',
-                                '& .MuiChip-icon': { color: '#ffb347' }
+                                fontSize: isMobile ? '0.92rem' : undefined,
+                                '& .MuiChip-icon': { color: '#ffb347', fontSize: isMobile ? 16 : undefined }
                               }}
                             />
                             <Chip
-                              icon={<PersonIcon />}
+                              icon={<PersonIcon sx={{ fontSize: isMobile ? 16 : undefined }} />}
                               label={item.author?.username || 'Неизвестно'}
                               size="small"
                               sx={{
                                 bgcolor: 'rgba(255, 255, 255, 0.1)',
                                 color: 'rgba(255, 255, 255, 0.8)',
                                 border: '1px solid rgba(255, 255, 255, 0.2)',
-                                '& .MuiChip-icon': { color: 'rgba(255, 255, 255, 0.6)' }
+                                fontSize: isMobile ? '0.92rem' : undefined,
+                                '& .MuiChip-icon': { color: 'rgba(255, 255, 255, 0.6)', fontSize: isMobile ? 16 : undefined }
                               }}
                             />
                           </Box>
                         </Box>
                       </Box>
-                      <Divider sx={{ mb: 3, borderColor: 'rgba(255, 179, 71, 0.2)' }} />
+                      <Divider sx={{ mb: isMobile ? 1.2 : 3, borderColor: 'rgba(255, 179, 71, 0.2)' }} />
                       <Box
                         sx={{
-                          mb: 2,
+                          mb: isMobile ? 1 : 2,
                           lineHeight: 1.7,
                           color: 'rgba(255, 255, 255, 0.9)',
-                          fontSize: '1.08rem',
-                          minHeight: '4.8rem',
+                          fontSize: isMobile ? '0.97rem' : '1.08rem',
+                          minHeight: isMobile ? '2.5rem' : '4.8rem',
                           display: '-webkit-box',
-                          WebkitLineClamp: 6, // было 4, теперь 6 строк
+                          WebkitLineClamp: isMobile ? 4 : 6,
                           WebkitBoxOrient: 'vertical',
                           overflow: 'hidden',
                           '& img': { maxWidth: '100%', height: 'auto', borderRadius: 2, my: 2 },
@@ -331,15 +350,15 @@ const HomePage = () => {
                       />
                       {/* YouTube Player если есть ссылка — теперь снизу */}
                       {ytMatch && (
-                        <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
+                        <Box sx={{ mt: 1.2, display: 'flex', justifyContent: 'center' }}>
                           <YouTube
                             videoId={ytMatch[1]}
                             opts={{
                               width: '100%',
-                              height: '320',
+                              height: isMobile ? '180' : '320',
                               playerVars: { autoplay: 0 },
                             }}
-                            style={{ borderRadius: 12, overflow: 'hidden', maxWidth: 700, width: '100%' }}
+                            style={{ borderRadius: 12, overflow: 'hidden', maxWidth: isMobile ? '100%' : 700, width: '100%' }}
                           />
                         </Box>
                       )}
@@ -349,7 +368,7 @@ const HomePage = () => {
                           to={`/news/${item.id}`}
                           size="small"
                           variant="outlined"
-                          sx={{ color: '#ffb347', borderColor: '#ffb347', fontWeight: 600, '&:hover': { bgcolor: 'rgba(255,179,71,0.08)', borderColor: '#ffd580', color: '#ffd580' } }}
+                          sx={{ color: '#ffb347', borderColor: '#ffb347', fontWeight: 600, fontSize: isMobile ? '0.97rem' : undefined, py: isMobile ? 0.7 : undefined, px: isMobile ? 1.5 : undefined, '&:hover': { bgcolor: 'rgba(255,179,71,0.08)', borderColor: '#ffd580', color: '#ffd580' } }}
                         >
                           Читать полностью
                         </Button>
@@ -364,15 +383,21 @@ const HomePage = () => {
                 </Box>
               )}
               {!hasMoreNews && news.length > 0 && (
-                <Typography sx={{ color: 'rgba(255,255,255,0.5)', textAlign: 'center', mt: 3 }}>
+                <Typography sx={{ color: 'rgba(255,255,255,0.5)', textAlign: 'center', mt: 3, fontSize: isMobile ? '0.97rem' : undefined }}>
                   Все новости загружены
                 </Typography>
               )}
             </Box>
           </Grid>
           {/* Правая колонка — соц.баннеры */}
-          <Grid item style={{width:340, maxWidth:340, flexShrink:0}} sx={{mt: 8}}>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+          <Grid 
+            item 
+            xs={12} 
+            md="auto"
+            style={isMobile ? { width: '100%', maxWidth: 'unset', flexShrink: 0 } : { width:340, maxWidth:340, flexShrink:0 }}
+            sx={{ mt: isMobile ? 1 : 8, mb: isMobile ? 1.5 : 0 }}
+          >
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: isMobile ? 1.2 : 3, width: '100%' }}>
               <SocialBanners />
             </Box>
           </Grid>
