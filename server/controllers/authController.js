@@ -10,12 +10,48 @@ exports.register = async (req, res) => {
   const { username, email, password } = req.body;
   
   try {
-    // Проверка на существующего пользователя
-    const existingUser = await User.findOne({ where: { email } });
-    if (existingUser) {
-      return res.status(400).json({ message: 'Пользователь уже существует' });
+    // Проверка на существующего пользователя по email
+    const existingUserByEmail = await User.findOne({ where: { email } });
+    if (existingUserByEmail) {
+      return res.status(400).json({ message: 'Пользователь с таким email уже существует' });
     }
-    
+
+    // Проверка на существующего пользователя по username
+    const existingUserByUsername = await User.findOne({ where: { username } });
+    if (existingUserByUsername) {
+      if (!existingUserByUsername.emailVerified) {
+        // Если email не подтверждён — перезаписываем email, генерируем новый токен и отправляем письмо
+        const verificationToken = generateVerificationToken();
+        const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 часа
+        await existingUserByUsername.update({
+          email,
+          password, // обновляем пароль на новый
+          emailVerificationToken: verificationToken,
+          emailVerificationExpires: verificationExpires
+        });
+        // Отправляем письмо
+        await redis.publish('send_verification_email', JSON.stringify({
+          email,
+          username,
+          token: verificationToken
+        }));
+        return res.status(200).json({
+          message: 'Регистрация успешна! Проверьте ваш email для подтверждения аккаунта.',
+          user: {
+            id: existingUserByUsername.id,
+            username: existingUserByUsername.username,
+            email: existingUserByUsername.email,
+            role: existingUserByUsername.role,
+            emailVerified: existingUserByUsername.emailVerified
+          }
+        });
+      } else {
+        // Если email подтверждён — ошибка
+        return res.status(400).json({ message: 'Пользователь с таким username уже существует' });
+      }
+    }
+
+    // Обычная регистрация (username и email свободны)
     // Генерация токена подтверждения
     const verificationToken = generateVerificationToken();
     const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 часа

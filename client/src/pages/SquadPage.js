@@ -547,7 +547,8 @@ const SquadPage = () => {
                             sx={{
                               color: '#fff',
                               fontWeight: 600,
-                              fontSize: '0.85rem'
+                              fontSize: '0.85rem',
+                              ml: 1
                             }}
                           >
                             {squad.leader?.username || 'Неизвестно'}
