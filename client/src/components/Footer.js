@@ -62,7 +62,7 @@ const Footer = () => {
               flex: 'none'
             }}
           >
-            {new Date().getFullYear()} Arma Reforger Community
+            {new Date().getFullYear()} Sabotage Games
           </Typography>
           <Box sx={{ flex: isMobile ? 'none' : 1 }} />
           <Typography
