@@ -42,6 +42,14 @@ exports.getMatchHistory = async (req, res) => {
         return nicksArr.some(nick => players.some(p => (p.Name || '').toLowerCase() === nick.toLowerCase()));
       });
     }
+    // Фильтр по armaId (GUID)
+    if (req.query.armaId) {
+      const armaId = String(req.query.armaId).trim().toLowerCase();
+      filteredMatches = filteredMatches.filter(m => {
+        const players = m.data?.Players || [];
+        return players.some(p => (p.GUID || '').trim().toLowerCase() === armaId);
+      });
+    }
 
     const totalCount = filteredMatches.length;
     const matches = filteredMatches.slice(offset, offset + limit);

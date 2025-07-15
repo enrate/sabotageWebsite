@@ -979,6 +979,24 @@ function ProfileMatchHistory({ armaId }) {
   const CARD_RADIUS = 12;
   const IMAGE_PLACEHOLDER = 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80';
 
+  // Функция для поиска игрока по id
+  const getPlayerName = (players, id) => {
+    let p = players.find(p => p.entityId === id);
+    if (!p) p = players.find(p => p.playerIdentity === id);
+    if (!p) p = players.find(p => String(p.PlayerId) === String(id));
+    return p ? (p.name || p.playerIdentity || p.PlayerId || id) : id;
+  };
+  // Функция для рендера игрока с ссылкой
+  const renderPlayer = (players, id) => {
+    const player = players.find(p => p.playerIdentity === id || p.entityId === id || String(p.PlayerId) === String(id));
+    if (!player) return <b>{id}</b>;
+    return player.userId ? (
+      <Link to={`/profile/${player.userId}`} style={{ color: ACCENT, textDecoration: 'none', fontWeight: 600 }}>{player.name || player.playerIdentity || player.PlayerId || id}</Link>
+    ) : (
+      <b>{player.name || player.playerIdentity || player.PlayerId || id}</b>
+    );
+  };
+
   return (
     <Box sx={{ width: '100%' }}>
       <Box sx={{ mb: 2, display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
@@ -1082,7 +1100,7 @@ function ProfileMatchHistory({ armaId }) {
                     <b style={{ color: ACCENT }}>Участники:</b>{' '}
                     {match.players.map((p, idx) => (
                       <React.Fragment key={p.playerIdentity ?? p.entityId ?? p.PlayerId ?? idx}>
-                        <b>{p.name || p.playerIdentity || p.PlayerId || (p.entityId ?? idx)}</b>
+                        {renderPlayer(match.players, p.playerIdentity ?? p.entityId ?? p.PlayerId ?? idx)}
                         {idx < match.players.length - 1 && ', '}
                       </React.Fragment>
                     ))}
@@ -1146,8 +1164,8 @@ function ProfileMatchHistory({ armaId }) {
                       <ul style={{ margin: 0, paddingLeft: 18, marginBottom: 0 }}>
                         {(!match.kills || match.kills.length === 0) && <li style={{ color: '#bbb' }}>Нет убийств</li>}
                         {match.kills && match.kills.map((k, i) => {
-                          const killer = k.killerId;
-                          const victim = k.victimId;
+                          const killer = renderPlayer(match.players, k.killerId);
+                          const victim = renderPlayer(match.players, k.victimId);
                           let type = 'Убийство';
                           let color = '#fff';
                           if (k.isSuicide) { type = 'Суицид'; color = '#ff4d4f'; }
