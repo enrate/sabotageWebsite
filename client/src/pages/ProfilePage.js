@@ -1100,7 +1100,8 @@ function ProfileMatchHistory({ armaId }) {
                     <b style={{ color: ACCENT }}>Участники:</b>{' '}
                     {match.players.map((p, idx) => (
                       <React.Fragment key={p.playerIdentity ?? p.entityId ?? p.PlayerId ?? idx}>
-                        {renderPlayer(match.players, p.playerIdentity ?? p.entityId ?? p.PlayerId ?? idx)}
+                        {/* Просто текст, без ссылки */}
+                        <b>{p.name || p.playerIdentity || p.PlayerId || (p.entityId ?? idx)}</b>
                         {idx < match.players.length - 1 && ', '}
                       </React.Fragment>
                     ))}
@@ -1150,10 +1151,11 @@ function ProfileMatchHistory({ armaId }) {
                           <Typography sx={{ color: '#fff', fontWeight: 500, mb: 0.5 }}>Участники:</Typography>
                           <ul style={{ margin: 0, paddingLeft: 18, marginBottom: 0 }}>
                             {match.players.filter(p => p.faction === f.factionKey).map((p, idx) => (
-                              <li key={p.playerIdentity ?? p.entityId ?? p.PlayerId ?? idx}>
-                                <b>{p.name || p.playerIdentity || p.PlayerId || (p.entityId ?? idx)}</b>
-                              </li>
-                            ))}
+                                <li key={p.playerIdentity ?? p.entityId ?? p.PlayerId ?? idx}>
+                                  {/* Кликабельный ник */}
+                                  {renderPlayer(match.players, p.playerIdentity ?? p.entityId ?? p.PlayerId ?? idx)}
+                                </li>
+                              ))}
                             {match.players.filter(p => p.faction === f.factionKey).length === 0 && <li style={{ color: '#bbb', fontSize: 13 }}>Нет участников</li>}
                           </ul>
                         </Box>
