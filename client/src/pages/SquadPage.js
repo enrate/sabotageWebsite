@@ -529,8 +529,8 @@ const SquadPage = () => {
                           {squad.description || 'Описание отряда отсутствует'}
                         </Typography>
                         <Divider sx={{ my: 2, borderColor: 'rgba(255, 179, 71, 0.2)' }} />
-                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <Box sx={{ display: 'flex', alignItems: 'left'}}>
+                          <Box sx={{ display: 'flex', alignItems: 'left' }}>
                             <PersonIcon sx={{ fontSize: 16, color: '#ffb347', mr: 1 }} />
                             <Typography
                               variant="body2"
