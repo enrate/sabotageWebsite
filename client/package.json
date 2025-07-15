@@ -7,7 +7,7 @@
     "@emotion/styled": "^11.14.1",
     "@mui/icons-material": "^7.2.0",
     "@mui/material": "^7.2.0",
-    "@mui/x-date-pickers-pro": "^8.8.0",
+    "@mui/x-date-pickers": "^8.8.0",
     "@tinymce/tinymce-react": "^6.2.1",
     "axios": "^1.6.8",
     "dayjs": "^1.11.13",

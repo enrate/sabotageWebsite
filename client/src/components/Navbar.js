@@ -276,11 +276,13 @@ const Navbar = ({ onOpenAuthModal, notifications = [], onNotificationClick, mark
             <Box sx={{ 
               display: { xs: 'none', md: 'flex' }, 
               alignItems: 'center', 
-              gap: 3,
-              justifyContent: 'center',
-              position: 'absolute',
-              left: '50%',
-              transform: 'translateX(-50%)'
+              gap: 1.5,
+              flexGrow: 1,
+              minWidth: 0,
+              justifyContent: 'flex-start',
+              ml: 3,
+              mr: 3,
+              overflow: 'hidden'
             }}>
               <Button
                 component={Link}
@@ -289,8 +291,11 @@ const Navbar = ({ onOpenAuthModal, notifications = [], onNotificationClick, mark
                 sx={{
                   color: isActive('/') ? '#ffb347' : '#fff',
                   textTransform: 'none',
-                  fontSize: '1.1rem',
+                  fontSize: '0.98rem',
+                  minWidth: 0,
+                  px: 1.2,
                   position: 'relative',
+                  whiteSpace: 'nowrap',
                   '&::after': {
                     content: '""',
                     display: isActive('/') ? 'block' : 'none',
@@ -316,8 +321,11 @@ const Navbar = ({ onOpenAuthModal, notifications = [], onNotificationClick, mark
                 sx={{
                   color: isActive('/seasons') ? '#ffb347' : '#fff',
                   textTransform: 'none',
-                  fontSize: '1.1rem',
+                  fontSize: '0.98rem',
+                  minWidth: 0,
+                  px: 1.2,
                   position: 'relative',
+                  whiteSpace: 'nowrap',
                   '&::after': {
                     content: '""',
                     display: isActive('/seasons') ? 'block' : 'none',
@@ -343,8 +351,11 @@ const Navbar = ({ onOpenAuthModal, notifications = [], onNotificationClick, mark
                 sx={{
                   color: isActive('/squads') ? '#ffb347' : '#fff',
                   textTransform: 'none',
-                  fontSize: '1.1rem',
+                  fontSize: '0.98rem',
+                  minWidth: 0,
+                  px: 1.2,
                   position: 'relative',
+                  whiteSpace: 'nowrap',
                   '&::after': {
                     content: '""',
                     display: isActive('/squads') ? 'block' : 'none',
@@ -371,8 +382,11 @@ const Navbar = ({ onOpenAuthModal, notifications = [], onNotificationClick, mark
                   sx={{
                     color: location.pathname === `/squads/${currentUser.squadId}` ? '#ffb347' : '#fff',
                     textTransform: 'none',
-                    fontSize: '1.1rem',
+                    fontSize: '0.98rem',
+                    minWidth: 0,
+                    px: 1.2,
                     position: 'relative',
+                    whiteSpace: 'nowrap',
                     '&::after': {
                       content: '""',
                       display: location.pathname === `/squads/${currentUser.squadId}` ? 'block' : 'none',
@@ -421,8 +435,11 @@ const Navbar = ({ onOpenAuthModal, notifications = [], onNotificationClick, mark
                   sx={{
                     color: isActive('/admin') ? '#ffb347' : '#fff',
                     textTransform: 'none',
-                    fontSize: '1.1rem',
+                    fontSize: '0.98rem',
+                    minWidth: 0,
+                    px: 1.2,
                     position: 'relative',
+                    whiteSpace: 'nowrap',
                     '&::after': {
                       content: '""',
                       display: isActive('/admin') ? 'block' : 'none',

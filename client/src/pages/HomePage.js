@@ -252,20 +252,6 @@ const HomePage = () => {
                         }
                       }}
                     >
-                      {/* YouTube Player если есть ссылка */}
-                      {ytMatch && (
-                        <Box sx={{ mb: 3, display: 'flex', justifyContent: 'center' }}>
-                          <YouTube
-                            videoId={ytMatch[1]}
-                            opts={{
-                              width: '100%',
-                              height: '320',
-                              playerVars: { autoplay: 0 },
-                            }}
-                            style={{ borderRadius: 12, overflow: 'hidden', maxWidth: 700, width: '100%' }}
-                          />
-                        </Box>
-                      )}
                       <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 3 }}>
                         <Avatar
                           sx={{
@@ -337,8 +323,26 @@ const HomePage = () => {
                           '& img': { maxWidth: '100%', height: 'auto', borderRadius: 2, my: 2 },
                           '& video': { maxWidth: '100%', height: 'auto', borderRadius: 2, my: 2 }
                         }}
-                        dangerouslySetInnerHTML={{ __html: item.content }}
+                        dangerouslySetInnerHTML={{
+                          __html: item.content.length > 150 
+                            ? `${item.content.substring(0, 150).replace(/<[^>]*>/g, '')}...` 
+                            : item.content.replace(/<[^>]*>/g, '')
+                        }}
                       />
+                      {/* YouTube Player если есть ссылка — теперь снизу */}
+                      {ytMatch && (
+                        <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
+                          <YouTube
+                            videoId={ytMatch[1]}
+                            opts={{
+                              width: '100%',
+                              height: '320',
+                              playerVars: { autoplay: 0 },
+                            }}
+                            style={{ borderRadius: 12, overflow: 'hidden', maxWidth: 700, width: '100%' }}
+                          />
+                        </Box>
+                      )}
                       <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
                         <Button
                           component={Link}

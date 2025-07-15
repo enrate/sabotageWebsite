@@ -163,20 +163,6 @@ const NewsListPage = ({ sx }) => {
                   }}
                 >
                   <CardContent sx={{ flexGrow: 1, p: 3 }}>
-                    {/* YouTube Player если есть ссылка */}
-                    {ytMatch && (
-                      <Box sx={{ mb: 2, display: 'flex', justifyContent: 'center' }}>
-                        <YouTube
-                          videoId={ytMatch[1]}
-                          opts={{
-                            width: '100%',
-                            height: '320',
-                            playerVars: { autoplay: 0 },
-                          }}
-                          style={{ borderRadius: 12, overflow: 'hidden', maxWidth: 700, width: '100%' }}
-                        />
-                      </Box>
-                    )}
                     {/* Заголовок */}
                     <Link to={`/news/${item.id}`} style={{ textDecoration: 'none' }}>
                       <Typography 
@@ -221,6 +207,21 @@ const NewsListPage = ({ sx }) => {
                           : item.content.replace(/<[^>]*>/g, '')
                       }}
                     />
+
+                    {/* YouTube Player если есть ссылка — теперь снизу */}
+                    {ytMatch && (
+                      <Box sx={{ mt: 2, display: 'flex', justifyContent: 'center' }}>
+                        <YouTube
+                          videoId={ytMatch[1]}
+                          opts={{
+                            width: '100%',
+                            height: '320',
+                            playerVars: { autoplay: 0 },
+                          }}
+                          style={{ borderRadius: 12, overflow: 'hidden', maxWidth: 700, width: '100%' }}
+                        />
+                      </Box>
+                    )}
 
                     {/* Метаданные */}
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2, flexWrap: 'wrap' }}>

@@ -539,7 +539,7 @@ const SquadPage = () => {
                                 fontSize: '0.85rem'
                               }}
                             >
-                              Лидер:
+                              Лидер: 
                             </Typography>
                           </Box>
                           <Typography

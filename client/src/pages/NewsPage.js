@@ -188,20 +188,26 @@ const NewsPage = () => {
 
           <Divider sx={{ mb: 4, borderColor: 'rgba(255, 179, 71, 0.2)' }} />
 
-          {/* YouTube Player если есть ссылка */}
-          {news.youtubeUrl && news.youtubeUrl.match(/(?:youtu.be\/|youtube.com\/(?:watch\?v=|embed\/|v\/))([\w-]{11})/) && (
-            <Box sx={{ mb: 4, display: 'flex', justifyContent: 'center' }}>
-              <YouTube
-                videoId={news.youtubeUrl.match(/(?:youtu.be\/|youtube.com\/(?:watch\?v=|embed\/|v\/))([\w-]{11})/)[1]}
-                opts={{
-                  width: '100%',
-                  height: '380',
-                  playerVars: { autoplay: 0 },
-                }}
-                style={{ borderRadius: 12, overflow: 'hidden', maxWidth: 700, width: '100%' }}
-              />
-            </Box>
-          )}
+          {/* YouTube Player если есть ссылка в тексте */}
+          {(() => {
+            const ytMatch = (news.content || '').match(/(?:https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu.be\/|youtube.com\/embed\/|youtube.com\/v\/))([\w-]{11})/);
+            if (ytMatch) {
+              return (
+                <Box sx={{ mb: 4, display: 'flex', justifyContent: 'center' }}>
+                  <YouTube
+                    videoId={ytMatch[1]}
+                    opts={{
+                      width: '100%',
+                      height: '380',
+                      playerVars: { autoplay: 0 },
+                    }}
+                    style={{ borderRadius: 12, overflow: 'hidden', maxWidth: 700, width: '100%' }}
+                  />
+                </Box>
+              );
+            }
+            return null;
+          })()}
           <Box 
             sx={{ 
               mb: 4, 
