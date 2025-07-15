@@ -351,8 +351,8 @@ const SeasonsPage = () => {
           ) : error ? (
             <Alert severity="error">{error}</Alert>
           ) : (
-            <TableContainer sx={{ width: '100%', minWidth: 1100, mx: 'auto' }}>
-              <Table>
+            <TableContainer sx={{ width: '100%', overflowX: 'auto' }}>
+              <Table sx={{ minWidth: 900, width: '100%' }}>
                 <TableHead>
                   <TableRow>
                     {usedColumns.map(col => (

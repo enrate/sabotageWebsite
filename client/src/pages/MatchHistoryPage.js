@@ -175,24 +175,28 @@ const MatchHistoryPage = () => {
       boxSizing: 'border-box',
     }}>
       {/* Фильтры слева */}
-      <div style={{
-        minWidth: 260,
-        maxWidth: 320,
-        flexShrink: 0,
-        background: CARD_BG,
-        borderRadius: CARD_RADIUS,
-        boxShadow: CARD_SHADOW,
-        padding: '18px 22px 14px 22px',
-        backdropFilter: 'blur(8px)',
-        WebkitBackdropFilter: 'blur(8px)',
-        border: CARD_BORDER,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 18,
-        position: 'sticky',
-        top: 32,
-        height: 'fit-content',
-      }}>
+      <div
+        style={{
+          minWidth: 260,
+          maxWidth: 320,
+          flexShrink: 0,
+          background: CARD_BG,
+          borderRadius: CARD_RADIUS,
+          boxShadow: CARD_SHADOW,
+          padding: '18px 22px 14px 22px',
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
+          border: CARD_BORDER,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 18,
+          position: 'sticky',
+          top: 32,
+          height: 'fit-content',
+          width: '100%',
+        }}
+        className="match-history-filters"
+      >
         {/* Дата */}
         <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="ru">
           <DateTimePicker
@@ -484,5 +488,25 @@ const MatchHistoryPage = () => {
     </div>
   );
 };
+
+// Адаптивные стили для фильтра
+const style = document.createElement('style');
+style.innerHTML = `
+@media (max-width: 900px) {
+  .match-history-filters {
+    position: static !important;
+    top: unset !important;
+    min-width: 0 !important;
+    max-width: 100vw !important;
+    width: 100% !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+    padding: 10px 6px 8px 6px !important;
+    margin-bottom: 12px !important;
+    border-radius: 10px !important;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.13) !important;
+  }
+}`;
+document.head.appendChild(style);
 
 export default MatchHistoryPage; 

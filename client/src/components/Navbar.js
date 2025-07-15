@@ -279,9 +279,7 @@ const Navbar = ({ onOpenAuthModal, notifications = [], onNotificationClick, mark
               gap: 1.5,
               flexGrow: 1,
               minWidth: 0,
-              justifyContent: 'flex-start',
-              ml: 3,
-              mr: 3,
+              justifyContent: 'center',
               overflow: 'hidden'
             }}>
               <Button
@@ -406,26 +404,35 @@ const Navbar = ({ onOpenAuthModal, notifications = [], onNotificationClick, mark
                 </Button>
               )}
 
-              {currentUser?.role === 'admin' && (
-                <Button
-                  color="inherit"
-                  component={Link}
-                  to="/match-history"
-                  startIcon={<History />}
-                  sx={{
-                    fontWeight: 600,
-                    color: isActive('/match-history') ? '#ffb347' : '#fff',
-                    borderBottom: isActive('/match-history') ? '2px solid #ffb347' : 'none',
-                    borderRadius: 0,
-                    mx: 1.5,
-                    fontSize: 16,
-                    textTransform: 'none',
-                    letterSpacing: 0.2
-                  }}
-                >
-                  История матчей
-                </Button>
-              )}
+              <Button
+                component={Link}
+                to="/match-history"
+                startIcon={<History />}
+                sx={{
+                  color: isActive('/match-history') ? '#ffb347' : '#fff',
+                  textTransform: 'none',
+                  fontSize: '0.98rem',
+                  minWidth: 0,
+                  px: 1.2,
+                  position: 'relative',
+                  whiteSpace: 'nowrap',
+                  '&::after': {
+                    content: '""',
+                    display: isActive('/match-history') ? 'block' : 'none',
+                    width: '100%',
+                    height: 2,
+                    background: '#ffb347',
+                    position: 'absolute',
+                    left: 0,
+                    bottom: -2
+                  },
+                  '&:hover': {
+                    color: '#ffb347'
+                  }
+                }}
+              >
+                История матчей
+              </Button>
 
               {currentUser?.role === 'admin' && (
                 <Button
