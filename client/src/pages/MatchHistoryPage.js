@@ -8,6 +8,9 @@ import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
+import { DateRangePicker, LocalizationProvider } from '@mui/x-date-pickers-pro';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import ruLocale from 'date-fns/locale/ru';
 
 const formatDate = (dateStr) => {
   const d = new Date(dateStr);
@@ -48,8 +51,7 @@ const MatchHistoryPage = () => {
   const offsetRef = useRef(0);
 
   // Фильтры
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [dateRange, setDateRange] = useState([null, null]); // [start, end]
   const [missionNames, setMissionNames] = useState([]); // выбранные сценарии
   const [nicknameInput, setNicknameInput] = useState('');
   const [nicknames, setNicknames] = useState([]); // выбранные никнеймы
@@ -83,8 +85,8 @@ const MatchHistoryPage = () => {
         limit: PAGE_SIZE,
         offset: offsetRef.current,
       };
-      if (startDate) params.startDate = startDate;
-      if (endDate) params.endDate = endDate;
+      if (dateRange[0]) params.startDate = dateRange[0].toISOString().slice(0, 10);
+      if (dateRange[1]) params.endDate = dateRange[1].toISOString().slice(0, 10);
       if (missionNames.length > 0) params.missionNames = missionNames;
       if (nicknames.length > 0) params.nicknames = nicknames;
       const res = await axios.get('/api/match-history', { params });
@@ -131,7 +133,7 @@ const MatchHistoryPage = () => {
   useEffect(() => {
     fetchMatches(true);
     // eslint-disable-next-line
-  }, [startDate, endDate, missionNames, nicknames]);
+  }, [dateRange, missionNames, nicknames]);
 
   const handleAddNickname = (e) => {
     e.preventDefault();
@@ -163,13 +165,13 @@ const MatchHistoryPage = () => {
 
   return (
     <div style={{
-      maxWidth: 1200,
-      margin: '0 auto',
+      width: '100%',
       padding: 24,
       display: 'flex',
       flexDirection: 'row',
       gap: 32,
       alignItems: 'flex-start',
+      boxSizing: 'border-box',
     }}>
       {/* Фильтры слева */}
       <div style={{
@@ -191,14 +193,32 @@ const MatchHistoryPage = () => {
         height: 'fit-content',
       }}>
         {/* Дата */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 6 }}>
-          <label style={{ color: '#ffb347', fontWeight: 600, marginBottom: 2, fontSize: 15 }}>Дата с:</label>
-          <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} style={{ padding: '6px 10px', borderRadius: 6, border: '1.5px solid #444', background: '#181818', color: '#fff', fontSize: 15, outline: 'none', transition: 'border 0.2s', boxShadow: '0 1px 4px #0002' }} />
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 6 }}>
-          <label style={{ color: '#ffb347', fontWeight: 600, marginBottom: 2, fontSize: 15 }}>по:</label>
-          <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} style={{ padding: '6px 10px', borderRadius: 6, border: '1.5px solid #444', background: '#181818', color: '#fff', fontSize: 15, outline: 'none', transition: 'border 0.2s', boxShadow: '0 1px 4px #0002' }} />
-        </div>
+        <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ruLocale}>
+          <DateRangePicker
+            startText="Дата с"
+            endText="по"
+            value={dateRange}
+            onChange={setDateRange}
+            localeText={{ start: 'Дата с', end: 'по' }}
+            slotProps={{
+              textField: ({ position }) => ({
+                sx: {
+                  mb: position === 'start' ? 1 : 0,
+                  background: '#181818',
+                  borderRadius: 2,
+                  color: '#fff',
+                  '& .MuiOutlinedInput-notchedOutline': { borderColor: '#444' },
+                  '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#ffb347' },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#ffb347' },
+                  input: { color: '#fff' },
+                  label: { color: '#ffb347' },
+                },
+                size: 'small',
+                fullWidth: true,
+              })
+            }}
+          />
+        </LocalizationProvider>
         {/* Сценарии - MUI Multiselect */}
         <FormControl sx={{ mt: 1, width: '100%' }} size="small">
           <InputLabel id="mission-multiselect-label" sx={{ color: '#ffb347', fontWeight: 600 }}>Сценарии</InputLabel>
@@ -217,6 +237,7 @@ const MatchHistoryPage = () => {
             }}
             input={<OutlinedInput label="Сценарии" />}
             MenuProps={{
+              disableScrollLock: true,
               PaperProps: {
                 style: {
                   maxHeight: 48 * 4.5 + 8,

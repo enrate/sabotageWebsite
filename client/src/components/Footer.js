@@ -16,6 +16,7 @@ const Footer = () => {
     <Box
       component="footer"
       sx={{
+        display: { xs: 'none', sm: 'none', md: 'block' },
         backgroundColor: '#232526',
         color: '#bdbdbd',
         textAlign: 'center',
