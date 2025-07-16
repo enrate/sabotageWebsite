@@ -150,6 +150,13 @@ if (process.env.NODE_ENV === 'production') {
   app.get('*', (req, res) => {
     res.sendFile(path.join(clientBuildPath, 'index.html'));
   });
+
+  // --- ОТДАЧА АДМИНКИ ПО /admin ---
+  const adminBuildPath = path.join(__dirname, 'admin_build');
+  app.use('/admin', express.static(adminBuildPath));
+  app.get('/admin/*', (req, res) => {
+    res.sendFile(path.join(adminBuildPath, 'index.html'));
+  });
 }
 
 // --- REST API ---
