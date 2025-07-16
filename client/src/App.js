@@ -26,6 +26,7 @@ import MuiAlert from '@mui/material/Alert';
 import MatchHistoryPage from './pages/MatchHistoryPage';
 import AdminDashboard from './pages/AdminDashboard';
 import { CssVarsProvider } from '@mui/joy/styles';
+import JoyCssBaseline from '@mui/joy/CssBaseline';
 
 console.log('App rendered');
 
@@ -131,6 +132,7 @@ function App() {
 
   return (
     <CssVarsProvider>
+      <JoyCssBaseline />
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <AuthProvider>
