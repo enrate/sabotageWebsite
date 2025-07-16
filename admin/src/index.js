@@ -3,7 +3,7 @@ import ReactDOM from "react-dom/client";
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AdminAuthProvider } from "./context/AdminAuthContext";
 import AdminLoginPage from "./pages/AdminLoginPage";
-import AdminDashboard from "./AdminDashboard";
+import AdminDashboard from "./components/AdminDashboard";
 import AdminPrivateRoute from "./components/AdminPrivateRoute";
 
 const root = ReactDOM.createRoot(document.getElementById("root"));

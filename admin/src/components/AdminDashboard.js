@@ -12,11 +12,11 @@ import UsersIcon from '@mui/icons-material/Group';
 import AwardIcon from '@mui/icons-material/EmojiEvents';
 import SquadIcon from '@mui/icons-material/Groups';
 import SeasonIcon from '@mui/icons-material/CalendarMonth';
-import AdminNews from './AdminNews';
-import AdminAwards from './AdminAwards';
-import AdminUsers from './AdminUsers';
-import AdminSquads from './AdminSquads';
-import AdminSeasons from './AdminSeasons';
+import AdminNews from '../AdminNews';
+import AdminAwards from '../AdminAwards';
+import AdminUsers from '../AdminUsers';
+import AdminSquads from '../AdminSquads';
+import AdminSeasons from '../AdminSeasons';
 import axios from 'axios';
 
 const sections = [

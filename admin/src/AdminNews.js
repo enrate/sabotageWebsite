@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { useAdminAuth } from '../context/AdminAuthContext';
+import { useAdminAuth } from './context/AdminAuthContext';
 import RichTextEditor from './RichTextEditor';
 import {
   Box,
