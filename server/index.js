@@ -146,7 +146,7 @@ app.use('/youtube', youtubeRoutes);
 // Production static
 if (process.env.NODE_ENV === 'production') {
   // --- ОТДАЧА АДМИНКИ ПО /admin ---
-  const adminBuildPath = path.join(__dirname, 'admin_build');
+  const adminBuildPath = path.join(__dirname, '../admin/build');
   app.use('/admin', express.static(adminBuildPath));
   app.get('/admin/*', (req, res) => {
     res.sendFile(path.join(adminBuildPath, 'index.html'));
