@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { useAuth } from '../../context/AuthContext';
+import { useAdminAuth } from '../context/AdminAuthContext';
 import RichTextEditor from './RichTextEditor';
 import {
   Box,
@@ -30,7 +30,7 @@ import {
 } from '@mui/icons-material';
 
 const AdminNews = ({ news, setNews }) => {
-  const { currentUser } = useAuth();
+  const { currentUser } = useAdminAuth();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [editingId, setEditingId] = useState(null);
