@@ -119,7 +119,6 @@ const AdminNews = ({ news, setNews }) => {
         <NewsIcon />
         Управление новостями
       </Typography>
-
       {/* Ошибки и успех */}
       {error && (
         <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError(null)}>
@@ -131,7 +130,6 @@ const AdminNews = ({ news, setNews }) => {
           {success}
         </Alert>
       )}
-
       {/* Форма добавления/редактирования */}
       <Card sx={{ mb: 4, bgcolor: 'rgba(0, 0, 0, 0.2)', border: '1px solid rgba(255, 179, 71, 0.2)' }}>
         <CardContent>
@@ -210,7 +208,6 @@ const AdminNews = ({ news, setNews }) => {
           </Box>
         </CardContent>
       </Card>
-
       {/* Список новостей */}
       <Grid container spacing={3}>
         {news.map(item => (
@@ -294,7 +291,6 @@ const AdminNews = ({ news, setNews }) => {
           </Grid>
         ))}
       </Grid>
-
       {/* Диалог подтверждения удаления */}
       <Dialog open={deleteDialog.open} onClose={() => setDeleteDialog({ open: false, id: null })}>
         <DialogTitle>Подтверждение удаления</DialogTitle>
