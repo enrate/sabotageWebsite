@@ -1,37 +1,37 @@
 import React, { useEffect, useState } from 'react';
 import { Box, CircularProgress, Alert } from '@mui/material';
-import SquadTable from './components/SquadTable';
+import MatchHistoryTable from './components/MatchHistoryTable';
 import axios from 'axios';
 
-const AdminSquads = () => {
-  const [squads, setSquads] = useState([]);
+const AdminMatchHistory = () => {
+  const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const fetchSquads = async () => {
+  const fetchMatches = async () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
-      const res = await axios.get('/api/squads', {
+      const res = await axios.get('/api/admin/match-history', {
         headers: token ? { Authorization: `Bearer ${token}` } : {}
       });
-      setSquads(res.data);
+      setMatches(res.data);
     } catch (e) {
-      setError('Ошибка загрузки сквадов');
+      setError('Ошибка загрузки истории матчей');
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => { fetchSquads(); }, []);
+  useEffect(() => { fetchMatches(); }, []);
 
   return (
     <Box>
       {loading ? <CircularProgress /> : error ? <Alert severity="error">{error}</Alert> :
-        <SquadTable squads={squads} refreshSquads={fetchSquads} />
+        <MatchHistoryTable matches={matches} refreshMatches={fetchMatches} />
       }
     </Box>
   );
 };
 
-export default AdminSquads;
+export default AdminMatchHistory; 

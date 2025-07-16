@@ -1,77 +1,102 @@
 import React, { useState, useEffect } from "react";
-import Sheet from '@mui/joy/Sheet';
-import Box from '@mui/joy/Box';
-import Typography from '@mui/joy/Typography';
-import List from '@mui/joy/List';
-import ListItem from '@mui/joy/ListItem';
-import ListItemButton from '@mui/joy/ListItemButton';
-import ListItemDecorator from '@mui/joy/ListItemDecorator';
-import Divider from '@mui/joy/Divider';
-import NewsIcon from '@mui/icons-material/Article';
-import UsersIcon from '@mui/icons-material/Group';
-import AwardIcon from '@mui/icons-material/EmojiEvents';
-import SquadIcon from '@mui/icons-material/Groups';
-import SeasonIcon from '@mui/icons-material/CalendarMonth';
+import DashboardLayout from './DashboardLayout';
+import { Grid, Card, CardContent, Typography, CircularProgress } from '@mui/material';
 import AdminNews from '../AdminNews';
 import AdminAwards from '../AdminAwards';
 import AdminUsers from '../AdminUsers';
 import AdminSquads from '../AdminSquads';
 import AdminSeasons from '../AdminSeasons';
+import AdminMatchHistory from '../AdminMatchHistory';
+import AdminComments from '../AdminComments';
+import AdminNotifications from '../AdminNotifications';
+import AdminStatistics from '../AdminStatistics';
+import AdminSettings from '../AdminSettings';
+import AdminLogs from '../AdminLogs';
 import axios from 'axios';
 
-const sections = [
-  { key: 'news', label: 'Новости', icon: <NewsIcon /> },
-  { key: 'awards', label: 'Награды', icon: <AwardIcon /> },
-  { key: 'users', label: 'Пользователи', icon: <UsersIcon /> },
-  { key: 'squads', label: 'Сквады', icon: <SquadIcon /> },
-  { key: 'seasons', label: 'Сезоны', icon: <SeasonIcon /> },
-];
-
 export default function AdminDashboard() {
-  const [section, setSection] = useState('news');
+  const [section, setSection] = useState('dashboard');
+  const [stats, setStats] = useState(null);
+  const [loadingStats, setLoadingStats] = useState(true);
   const [news, setNews] = useState([]);
   const [loadingNews, setLoadingNews] = useState(true);
-  const [errorNews, setErrorNews] = useState(null);
+
+  useEffect(() => {
+    // Загрузка статистики для дашборда
+    setLoadingStats(true);
+    axios.get('/api/admin/stats')
+      .then(res => setStats(res.data))
+      .catch(() => setStats(null))
+      .finally(() => setLoadingStats(false));
+  }, []);
 
   useEffect(() => {
     if (section === 'news') {
       setLoadingNews(true);
       axios.get('/api/news')
         .then(res => setNews(res.data))
-        .catch(() => setErrorNews('Ошибка загрузки новостей'))
+        .catch(() => setNews([]))
         .finally(() => setLoadingNews(false));
     }
   }, [section]);
 
   return (
-    <Sheet sx={{ minHeight: '100vh', bgcolor: 'background.body', display: 'flex' }}>
-      {/* Боковое меню */}
-      <Box sx={{ width: 240, bgcolor: 'background.level1', p: 2, borderRight: '1px solid #222', minHeight: '100vh' }}>
-        <Typography level="h4" sx={{ mb: 3, color: '#ffb347', fontWeight: 700 }}>
-          Админ-панель
-        </Typography>
-        <List>
-          {sections.map(s => (
-            <ListItem key={s.key}>
-              <ListItemButton selected={section === s.key} onClick={() => setSection(s.key)}>
-                <ListItemDecorator>{s.icon}</ListItemDecorator>
-                {s.label}
-              </ListItemButton>
-            </ListItem>
-          ))}
-        </List>
-      </Box>
-      {/* Контент */}
-      <Box sx={{ flex: 1, p: { xs: 1, md: 4 }, minHeight: '100vh', bgcolor: 'background.body' }}>
-        {section === 'news' && (
-          loadingNews ? <Typography>Загрузка новостей...</Typography> :
-          <AdminNews news={news} setNews={setNews} />
-        )}
-        {section === 'awards' && <AdminAwards />}
-        {section === 'users' && <AdminUsers />}
-        {section === 'squads' && <AdminSquads />}
-        {section === 'seasons' && <AdminSeasons />}
-      </Box>
-    </Sheet>
+    <DashboardLayout section={section} setSection={setSection}>
+      {section === 'dashboard' && (
+        <>
+          <Typography variant="h4" gutterBottom>Общая статистика</Typography>
+          {loadingStats ? <CircularProgress /> : (
+            <Grid container spacing={3} sx={{ mb: 4 }}>
+              <Grid item xs={12} sm={6} md={3}>
+                <Card sx={{ bgcolor: '#222', color: '#fff' }}>
+                  <CardContent>
+                    <Typography variant="h6">Пользователи</Typography>
+                    <Typography variant="h4">{stats?.users ?? '-'}</Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+              <Grid item xs={12} sm={6} md={3}>
+                <Card sx={{ bgcolor: '#222', color: '#fff' }}>
+                  <CardContent>
+                    <Typography variant="h6">Новости</Typography>
+                    <Typography variant="h4">{stats?.news ?? '-'}</Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+              <Grid item xs={12} sm={6} md={3}>
+                <Card sx={{ bgcolor: '#222', color: '#fff' }}>
+                  <CardContent>
+                    <Typography variant="h6">Сквады</Typography>
+                    <Typography variant="h4">{stats?.squads ?? '-'}</Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+              <Grid item xs={12} sm={6} md={3}>
+                <Card sx={{ bgcolor: '#222', color: '#fff' }}>
+                  <CardContent>
+                    <Typography variant="h6">Сезоны</Typography>
+                    <Typography variant="h4">{stats?.seasons ?? '-'}</Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+            </Grid>
+          )}
+        </>
+      )}
+      {section === 'news' && (
+        loadingNews ? <Typography>Загрузка новостей...</Typography> :
+        <AdminNews news={news} setNews={setNews} />
+      )}
+      {section === 'awards' && <AdminAwards />}
+      {section === 'users' && <AdminUsers />}
+      {section === 'squads' && <AdminSquads />}
+      {section === 'seasons' && <AdminSeasons />}
+      {section === 'matches' && <AdminMatchHistory />}
+      {section === 'comments' && <AdminComments />}
+      {section === 'notifications' && <AdminNotifications />}
+      {section === 'statistics' && <AdminStatistics />}
+      {section === 'settings' && <AdminSettings />}
+      {section === 'logs' && <AdminLogs />}
+    </DashboardLayout>
   );
 } 
