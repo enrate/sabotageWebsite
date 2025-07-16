@@ -73,11 +73,11 @@ import UsersIcon from '@mui/icons-material/Group';
 import AwardIcon from '@mui/icons-material/EmojiEvents';
 import SquadIcon from '@mui/icons-material/Groups';
 import SeasonIcon from '@mui/icons-material/CalendarMonth';
-import AdminNews from '../components/admin/AdminNews';
-import AdminUsers from '../components/admin/AdminUsers';
-import AdminAwards from '../components/admin/AdminAwards';
-import AdminSquads from '../components/admin/AdminSquads';
-import AdminSeasons from '../components/admin/AdminSeasons';
+import AdminNews from '../admin/AdminNews';
+import AdminUsers from '../admin/AdminUsers';
+import AdminAwards from '../admin/AdminAwards';
+import AdminSquads from '../admin/AdminSquads';
+import AdminSeasons from '../admin/AdminSeasons';
 
 const ProfilePage = () => {
   const { id } = useParams();
