@@ -25,6 +25,7 @@ import Snackbar from '@mui/material/Snackbar';
 import MuiAlert from '@mui/material/Alert';
 import MatchHistoryPage from './pages/MatchHistoryPage';
 import AdminDashboard from './pages/AdminDashboard';
+import { CssVarsProvider } from '@mui/joy/styles';
 
 console.log('App rendered');
 
@@ -129,83 +130,85 @@ function App() {
   };
 
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <AuthProvider>
-        <SocketProvider onNewMessage={handleGlobalNewMessage} onNewNotification={handleGlobalNewNotification}>
-        <Router>
-          <div className="app-container">
-              <Navbar onOpenAuthModal={() => setShowAuthModal(true)} notifications={notifications.filter(n => !n.isRead)} onNotificationClick={handleNotificationClick} markAllNotificationsRead={markAllNotificationsRead} />
-            <main className="main-content">
-              <Routes>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/news/:id" element={<NewsPage />} />
-                <Route path="/squads" element={<SquadPage />} />
-                <Route path="/squads/:id" element={<SquadDetailPage />} />
-                <Route 
-                  path="/admin" 
-                  element={
-                    <PrivateRoute adminOnly>
-                      <AdminPage />
-                    </PrivateRoute>
-                  } 
-                />
-                <Route 
-                  path="/admin-dashboard" 
-                  element={
-                    <PrivateRoute adminOnly>
-                      <AdminDashboard />
-                    </PrivateRoute>
-                  } 
-                />
-                <Route 
-                  path="/profile/:id" 
-                  element={<ProfilePage />} 
-                />
+    <CssVarsProvider>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <AuthProvider>
+          <SocketProvider onNewMessage={handleGlobalNewMessage} onNewNotification={handleGlobalNewNotification}>
+          <Router>
+            <div className="app-container">
+                <Navbar onOpenAuthModal={() => setShowAuthModal(true)} notifications={notifications.filter(n => !n.isRead)} onNotificationClick={handleNotificationClick} markAllNotificationsRead={markAllNotificationsRead} />
+              <main className="main-content">
+                <Routes>
+                  <Route path="/" element={<HomePage />} />
+                  <Route path="/news/:id" element={<NewsPage />} />
+                  <Route path="/squads" element={<SquadPage />} />
+                  <Route path="/squads/:id" element={<SquadDetailPage />} />
                   <Route 
-                    path="/settings" 
+                    path="/admin" 
                     element={
-                      <PrivateRoute>
-                        <SettingsPage />
+                      <PrivateRoute adminOnly>
+                        <AdminPage />
                       </PrivateRoute>
-                    }
+                    } 
                   />
                   <Route 
-                    path="/messages" 
+                    path="/admin-dashboard" 
                     element={
-                      <PrivateRoute>
-                        <MessagesPage />
+                      <PrivateRoute adminOnly>
+                        <AdminDashboard />
                       </PrivateRoute>
-                    }
+                    } 
                   />
                   <Route 
-                    path="/match-history" 
-                    element={<MatchHistoryPage />} 
+                    path="/profile/:id" 
+                    element={<ProfilePage />} 
                   />
-                                  <Route 
-                  path="/seasons" 
-                  element={<SeasonsPage />} 
-                />
-                <Route path="/verify-email" element={<VerifyEmailPage />} />
-              </Routes>
-            </main>
-            <Footer />
-            {showAuthModal && <AuthModal onClose={() => setShowAuthModal(false)} onShowSnackbar={handleShowSnackbar} />}
-            <Snackbar
-              open={snackbar.open}
-              autoHideDuration={7000}
-              onClose={handleCloseSnackbar}
-              anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-            >
-              <MuiAlert onClose={handleCloseSnackbar} severity="success" sx={{ width: '100%' }}>
-                {snackbar.message}
-              </MuiAlert>
-            </Snackbar>
-          </div>
-        </Router>
-        </SocketProvider>
-      </AuthProvider>
-    </ThemeProvider>
+                    <Route 
+                      path="/settings" 
+                      element={
+                        <PrivateRoute>
+                          <SettingsPage />
+                        </PrivateRoute>
+                      }
+                    />
+                    <Route 
+                      path="/messages" 
+                      element={
+                        <PrivateRoute>
+                          <MessagesPage />
+                        </PrivateRoute>
+                      }
+                    />
+                    <Route 
+                      path="/match-history" 
+                      element={<MatchHistoryPage />} 
+                    />
+                                    <Route 
+                    path="/seasons" 
+                    element={<SeasonsPage />} 
+                  />
+                  <Route path="/verify-email" element={<VerifyEmailPage />} />
+                </Routes>
+              </main>
+              <Footer />
+              {showAuthModal && <AuthModal onClose={() => setShowAuthModal(false)} onShowSnackbar={handleShowSnackbar} />}
+              <Snackbar
+                open={snackbar.open}
+                autoHideDuration={7000}
+                onClose={handleCloseSnackbar}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+              >
+                <MuiAlert onClose={handleCloseSnackbar} severity="success" sx={{ width: '100%' }}>
+                  {snackbar.message}
+                </MuiAlert>
+              </Snackbar>
+            </div>
+          </Router>
+          </SocketProvider>
+        </AuthProvider>
+      </ThemeProvider>
+    </CssVarsProvider>
   );
 }
 
