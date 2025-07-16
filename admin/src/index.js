@@ -12,7 +12,7 @@ root.render(
     <AdminAuthProvider>
       <BrowserRouter>
         <Routes>
-          <Route path="/login" element={<AdminLoginPage />} />
+          <Route path="/admin/login" element={<AdminLoginPage />} />
           <Route path="/*" element={
             <AdminPrivateRoute>
               <AdminDashboard />

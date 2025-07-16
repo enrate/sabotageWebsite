@@ -5,7 +5,7 @@ import { useAdminAuth } from '../context/AdminAuthContext';
 const AdminPrivateRoute = ({ children }) => {
   const { user, loading } = useAdminAuth();
   if (loading) return null;
-  if (!user || user.role !== 'admin') return <Navigate to="/login" replace />;
+  if (!user || user.role !== 'admin') return <Navigate to="/admin/login" replace />;
   return children;
 };
 
