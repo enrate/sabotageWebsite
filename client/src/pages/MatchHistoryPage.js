@@ -364,7 +364,7 @@ const MatchHistoryPage = () => {
                 key={match.sessionId}
                 style={{
                   background: CARD_BG,
-                  border: open[match.sessionId] ? BORDER : CARD_BORDER,
+                  border: CARD_BORDER, // Всегда только тонкий бордер
                   borderRadius: CARD_RADIUS,
                   boxShadow: CARD_SHADOW,
                   padding: 0,

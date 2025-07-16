@@ -47,4 +47,8 @@ router.post('/seasons', protect, admin, seasonController.createSeason);
 router.put('/seasons/:id', protect, admin, seasonController.updateSeason);
 router.delete('/seasons/:id', protect, admin, seasonController.deleteSeason);
 
+// --- Роуты для токена админа ---
+router.post('/generate-token', protect, admin, adminController.generateAdminToken);
+router.post('/verify-token', adminController.verifyAdminToken);
+
 module.exports = router;

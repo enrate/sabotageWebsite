@@ -59,6 +59,25 @@ import PercentIcon from '@mui/icons-material/Percent';
 import SportsScoreIcon from '@mui/icons-material/SportsScore';
 import { DateTimePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import Sheet from '@mui/joy/Sheet';
+import TypographyJoy from '@mui/joy/Typography';
+import BoxJoy from '@mui/joy/Box';
+import ButtonJoy from '@mui/joy/Button';
+import DividerJoy from '@mui/joy/Divider';
+import ListJoy from '@mui/joy/List';
+import ListItemJoy from '@mui/joy/ListItem';
+import ListItemButtonJoy from '@mui/joy/ListItemButton';
+import ListItemDecoratorJoy from '@mui/joy/ListItemDecorator';
+import NewsIcon from '@mui/icons-material/Article';
+import UsersIcon from '@mui/icons-material/Group';
+import AwardIcon from '@mui/icons-material/EmojiEvents';
+import SquadIcon from '@mui/icons-material/Groups';
+import SeasonIcon from '@mui/icons-material/CalendarMonth';
+import AdminNews from '../components/admin/AdminNews';
+import AdminUsers from '../components/admin/AdminUsers';
+import AdminAwards from '../components/admin/AdminAwards';
+import AdminSquads from '../components/admin/AdminSquads';
+import AdminSeasons from '../components/admin/AdminSeasons';
 
 const ProfilePage = () => {
   const { id } = useParams();
@@ -1073,7 +1092,7 @@ function ProfileMatchHistory({ armaId }) {
               key={match.sessionId}
               sx={{
                 background: CARD_BG,
-                border: open[match.sessionId] ? BORDER : CARD_BORDER,
+                border: CARD_BORDER,
                 borderRadius: 0,
                 boxShadow: CARD_SHADOW,
                 p: 0,

@@ -24,6 +24,7 @@ import VerifyEmailPage from './pages/VerifyEmailPage';
 import Snackbar from '@mui/material/Snackbar';
 import MuiAlert from '@mui/material/Alert';
 import MatchHistoryPage from './pages/MatchHistoryPage';
+import AdminDashboard from './pages/AdminDashboard';
 
 console.log('App rendered');
 
@@ -146,6 +147,14 @@ function App() {
                   element={
                     <PrivateRoute adminOnly>
                       <AdminPage />
+                    </PrivateRoute>
+                  } 
+                />
+                <Route 
+                  path="/admin-dashboard" 
+                  element={
+                    <PrivateRoute adminOnly>
+                      <AdminDashboard />
                     </PrivateRoute>
                   } 
                 />

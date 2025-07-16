@@ -170,8 +170,11 @@ const AuthModal = ({ onClose, onShowSnackbar }) => {
                 placeholder="Email или никнейм"
               />
             </div>
+            <div className="form-group" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <label style={{ marginBottom: 0 }}>Пароль</label>
+              <button type="button" style={{ background: 'none', color: '#ffb347', border: 'none', cursor: 'pointer', textDecoration: 'underline', fontSize: 14, padding: 0 }} onClick={() => { setMode('forgot'); setError(''); setForgotSuccess(''); }}>Забыли пароль?</button>
+            </div>
             <div className="form-group">
-              <label>Пароль</label>
               <input
                 type="password"
                 value={password}
@@ -183,9 +186,6 @@ const AuthModal = ({ onClose, onShowSnackbar }) => {
             <div className="modal-actions">
               <button type="button" onClick={onClose} disabled={loading}>Отмена</button>
               <button type="submit" disabled={loading}>{loading ? 'Вход...' : 'Войти'}</button>
-            </div>
-            <div style={{ marginTop: 16, textAlign: 'center' }}>
-              <button type="button" style={{ background: 'none', color: '#ffb347', border: 'none', cursor: 'pointer', textDecoration: 'underline' }} onClick={() => { setMode('forgot'); setError(''); setForgotSuccess(''); }}>Забыли пароль?</button>
             </div>
             <div style={{ marginTop: 8, textAlign: 'center' }}>
               Нет аккаунта?{' '}
@@ -272,7 +272,7 @@ const AuthModal = ({ onClose, onShowSnackbar }) => {
               <button type="submit" disabled={loading}>{loading ? 'Отправка...' : 'Восстановить пароль'}</button>
             </div>
             <div style={{ marginTop: 16, textAlign: 'center' }}>
-              <button type="button" style={{ background: 'none', color: '#ffb347', border: 'none', cursor: 'pointer', textDecoration: 'underline' }} onClick={() => { setMode('login'); setError(''); setForgotSuccess(''); }}>Войти</button>
+              <button type="button" style={{ background: 'none', color: '#ffb347', border: 'none', cursor: 'pointer', textDecoration: 'underline' }} onClick={() => { setMode('login'); setError(''); setForgotSuccess(''); }}>Вернуться к авторизации</button>
             </div>
           </form>
         )}

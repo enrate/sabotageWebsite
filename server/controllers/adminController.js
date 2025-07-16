@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const { User, Squad, News, SquadWarning, SquadHistory, UserWarning, Notification } = require('../models');
 
 // Получить всех пользователей (для админки)
@@ -277,4 +278,24 @@ exports.cancelUserWarning = async (req, res) => {
     console.error('Ошибка отмены предупреждения пользователя:', err);
     res.status(500).json({ message: 'Ошибка отмены предупреждения' });
   }
+};
+
+// Генерация уникального adminToken для администратора
+exports.generateAdminToken = async (req, res) => {
+  if (!req.user || req.user.role !== 'admin') {
+    return res.status(403).json({ message: 'Нет прав' });
+  }
+  const token = crypto.randomBytes(32).toString('hex');
+  req.user.adminToken = token;
+  await req.user.save();
+  res.json({ adminToken: token });
+};
+
+// Проверка adminToken
+exports.verifyAdminToken = async (req, res) => {
+  const { token } = req.body;
+  if (!token) return res.status(400).json({ message: 'Токен обязателен' });
+  const user = await User.findOne({ where: { adminToken: token, role: 'admin' } });
+  if (!user) return res.status(401).json({ message: 'Неверный токен' });
+  res.json({ valid: true, userId: user.id });
 };

@@ -166,6 +166,11 @@ module.exports = (sequelize) => {
       onUpdate: 'CASCADE',
       onDelete: 'SET NULL',
       comment: 'ID активной награды пользователя для отображения в профиле'
+    },
+    adminToken: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'Уникальный токен для входа в админ-панель'
     }
   }, {
     tableName: 'users',
