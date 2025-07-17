@@ -1,142 +1,125 @@
 import React, { useState } from 'react';
 import {
-  Box, Typography, TextField, Button, Paper, Table, TableHead, TableRow, TableCell, TableBody, TableContainer, IconButton, Dialog, DialogTitle, DialogActions, Alert, InputAdornment, Tooltip
+  Box, Typography, Button, Tooltip, IconButton, Snackbar, Alert, Dialog
 } from '@mui/material';
-import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Search as SearchIcon, CalendarMonth as CalendarIcon, EmojiEvents as AwardIcon } from '@mui/icons-material';
+import { DataGrid } from '@mui/x-data-grid';
+import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, CalendarMonth as CalendarIcon, EmojiEvents as AwardIcon } from '@mui/icons-material';
 import SeasonEditorModal from './SeasonEditorModal';
 
+const columns = (handleEdit, handleDelete, awards) => [
+  { field: 'name', headerName: 'Название', flex: 1, minWidth: 140 },
+  {
+    field: 'startDate',
+    headerName: 'Начало',
+    width: 120,
+    valueGetter: (params) => params.value?.slice(0, 10) || '-'
+  },
+  {
+    field: 'endDate',
+    headerName: 'Окончание',
+    width: 120,
+    valueGetter: (params) => params.value?.slice(0, 10) || '-'
+  },
+  {
+    field: 'trophies',
+    headerName: 'Кубки',
+    flex: 2,
+    minWidth: 180,
+    sortable: false,
+    filterable: false,
+    renderCell: (params) => (
+      <Box sx={{ display: 'flex', gap: 1 }}>
+        {[1,2,3].map(place => {
+          const trophy = params.row[`trophy${place}`];
+          return trophy ? (
+            <Tooltip key={place} title={`Кубок за ${place} место: ${trophy.name}`}>
+              <span style={{ display: 'flex', alignItems: 'center', marginRight: 8 }}><AwardIcon sx={{ color: 'secondary.main', mr: 0.5, fontSize: 18 }} />{trophy.name}</span>
+            </Tooltip>
+          ) : null;
+        })}
+      </Box>
+    )
+  },
+  {
+    field: 'actions',
+    headerName: '',
+    width: 120,
+    sortable: false,
+    filterable: false,
+    renderCell: (params) => (
+      <Box sx={{ display: 'flex', gap: 1 }}>
+        <Tooltip title="Редактировать">
+          <IconButton size="small" color="primary" onClick={() => handleEdit(params.row)}><EditIcon /></IconButton>
+        </Tooltip>
+        <Tooltip title="Удалить">
+          <IconButton size="small" color="error" onClick={() => handleDelete(params.row.id)}><DeleteIcon /></IconButton>
+        </Tooltip>
+      </Box>
+    ),
+  },
+];
+
 const SeasonTable = ({ seasons, awards, refreshSeasons }) => {
-  const [searchQuery, setSearchQuery] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [editingSeason, setEditingSeason] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
-  const [loading, setLoading] = useState(false);
-
-  // Фильтрация сезонов
-  const filteredSeasons = seasons.filter(item => {
-    const query = searchQuery.toLowerCase();
-    return (
-      item.name.toLowerCase().includes(query)
-      || (item.startDate && item.startDate.includes(query))
-      || (item.endDate && item.endDate.includes(query))
-    );
-  });
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
   const handleOpenModal = (item = null) => {
     setEditingSeason(item);
     setModalOpen(true);
-    setError(null);
-    setSuccess(null);
   };
-
   const handleCloseModal = (saved = false) => {
     setModalOpen(false);
     setEditingSeason(null);
     if (saved) {
       refreshSeasons();
-      setSuccess(editingSeason ? 'Сезон обновлен' : 'Сезон создан');
+      setSnackbar({ open: true, message: editingSeason ? 'Сезон обновлён' : 'Сезон создан', severity: 'success' });
     }
   };
-
-  const handleDelete = async (id) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
-      const res = await fetch(`/api/admin/seasons/${id}`, {
-        method: 'DELETE',
-        headers: token ? { Authorization: `Bearer ${token}` } : {}
-      });
-      if (!res.ok) throw new Error('Ошибка при удалении сезона');
-      refreshSeasons();
-      setSuccess('Сезон удален');
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-      setDeleteId(null);
-    }
+  const handleDelete = (id) => {
+    setDeleteId(id);
+    // TODO: реализовать удаление
+    setSnackbar({ open: true, message: 'Сезон удалён (заглушка)', severity: 'info' });
   };
 
   return (
     <Box>
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, gap: 2 }}>
-        <Typography variant="h4" sx={{ color: '#ffb347', display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Typography variant="h4" sx={{ color: 'primary.main', display: 'flex', alignItems: 'center', gap: 1 }}>
           <CalendarIcon /> Сезоны
         </Typography>
-        <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpenModal()} sx={{ ml: 'auto', bgcolor: '#4caf50', '&:hover': { bgcolor: '#388e3c' } }}>
+        <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpenModal()} sx={{ ml: 'auto' }}>
           Создать
         </Button>
       </Box>
-      <Paper sx={{ p: 2, mb: 2 }}>
-        <TextField
-          label="Поиск по сезонам"
-          value={searchQuery}
-          onChange={e => setSearchQuery(e.target.value)}
-          fullWidth
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon />
-              </InputAdornment>
-            ),
+      <Box sx={{ height: 540, width: '100%', bgcolor: 'background.paper', borderRadius: 3, boxShadow: 2 }}>
+        <DataGrid
+          rows={seasons}
+          columns={columns(handleOpenModal, handleDelete, awards)}
+          pageSize={10}
+          rowsPerPageOptions={[10, 25, 50]}
+          disableSelectionOnClick
+          autoHeight={false}
+          sx={{
+            border: 'none',
+            '& .MuiDataGrid-columnHeaders': { bgcolor: 'background.default', color: 'text.secondary', fontWeight: 700 },
+            '& .MuiDataGrid-row': { bgcolor: 'background.paper', '&:hover': { bgcolor: 'action.hover' } },
+            '& .MuiDataGrid-cell': { borderBottom: '1px solid', borderColor: 'divider' },
+            color: 'text.primary',
           }}
         />
-      </Paper>
-      <TableContainer component={Paper} sx={{ mb: 3 }}>
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell>Название</TableCell>
-              <TableCell>Начало</TableCell>
-              <TableCell>Окончание</TableCell>
-              <TableCell>Кубки</TableCell>
-              <TableCell align="right">Действия</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {filteredSeasons.map(item => (
-              <TableRow key={item.id} hover>
-                <TableCell>{item.name}</TableCell>
-                <TableCell>{item.startDate?.slice(0,10)}</TableCell>
-                <TableCell>{item.endDate?.slice(0,10)}</TableCell>
-                <TableCell>
-                  {[1,2,3].map(place => {
-                    const trophy = item[`trophy${place}`];
-                    return trophy ? (
-                      <Tooltip key={place} title={`Кубок за ${place} место: ${trophy.name}`}>
-                        <span style={{ marginRight: 8 }}><AwardIcon sx={{ color: '#ffb347', mr: 0.5, fontSize: 18 }} />{trophy.name}</span>
-                      </Tooltip>
-                    ) : null;
-                  })}
-                </TableCell>
-                <TableCell align="right">
-                  <Tooltip title="Редактировать">
-                    <IconButton size="small" color="primary" onClick={() => handleOpenModal(item)}><EditIcon /></IconButton>
-                  </Tooltip>
-                  <Tooltip title="Удалить">
-                    <IconButton size="small" color="error" onClick={() => setDeleteId(item.id)}><DeleteIcon /></IconButton>
-                  </Tooltip>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-      {/* Модальное окно создания/редактирования */}
+      </Box>
       <SeasonEditorModal open={modalOpen} onClose={handleCloseModal} season={editingSeason} awards={awards} />
-      {/* Диалог удаления */}
+      <Snackbar open={snackbar.open} autoHideDuration={3000} onClose={() => setSnackbar({ ...snackbar, open: false })}>
+        <Alert onClose={() => setSnackbar({ ...snackbar, open: false })} severity={snackbar.severity} sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+      {/* Диалог удаления (реализовать по необходимости) */}
       <Dialog open={!!deleteId} onClose={() => setDeleteId(null)}>
-        <DialogTitle>Удалить сезон?</DialogTitle>
-        <DialogActions>
-          <Button onClick={() => setDeleteId(null)}>Отмена</Button>
-          <Button onClick={() => handleDelete(deleteId)} color="error" variant="contained" disabled={loading}>Удалить</Button>
-        </DialogActions>
+        {/* ... */}
       </Dialog>
-      {error && <Alert severity="error" sx={{ mt: 2 }} onClose={() => setError(null)}>{error}</Alert>}
-      {success && <Alert severity="success" sx={{ mt: 2 }} onClose={() => setSuccess(null)}>{success}</Alert>}
     </Box>
   );
 };

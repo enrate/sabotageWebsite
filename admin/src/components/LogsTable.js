@@ -1,25 +1,53 @@
 import React, { useState } from 'react';
 import {
-  Box, Typography, TextField, Paper, Table, TableHead, TableRow, TableCell, TableBody, TableContainer, IconButton, InputAdornment, Tooltip, Button
+  Box, Typography, Tooltip, IconButton, Snackbar, Alert, Dialog
 } from '@mui/material';
-import { Search as SearchIcon, Visibility as VisibilityIcon, ListAlt as LogIcon } from '@mui/icons-material';
+import { DataGrid } from '@mui/x-data-grid';
+import { Visibility as VisibilityIcon, ListAlt as LogIcon } from '@mui/icons-material';
 import LogDetailModal from './LogDetailModal';
 
+const columns = (handleDetail) => [
+  { field: 'id', headerName: 'ID', width: 80 },
+  { field: 'type', headerName: 'Тип', width: 120 },
+  {
+    field: 'user',
+    headerName: 'Пользователь',
+    width: 180,
+    valueGetter: (params) => params.value?.username || '-'
+  },
+  {
+    field: 'createdAt',
+    headerName: 'Дата',
+    width: 180,
+    valueGetter: (params) => params.value ? new Date(params.value).toLocaleString('ru-RU') : '-'
+  },
+  {
+    field: 'message',
+    headerName: 'Сообщение',
+    flex: 2,
+    minWidth: 200,
+    valueGetter: (params) => params.value?.slice(0, 60) + '...'
+  },
+  {
+    field: 'actions',
+    headerName: '',
+    width: 100,
+    sortable: false,
+    filterable: false,
+    renderCell: (params) => (
+      <Box sx={{ display: 'flex', gap: 1 }}>
+        <Tooltip title="Просмотр">
+          <IconButton size="small" color="primary" onClick={() => handleDetail(params.row)}><VisibilityIcon /></IconButton>
+        </Tooltip>
+      </Box>
+    ),
+  },
+];
+
 const LogsTable = ({ logs }) => {
-  const [searchQuery, setSearchQuery] = useState('');
   const [detailOpen, setDetailOpen] = useState(false);
   const [selectedLog, setSelectedLog] = useState(null);
-
-  // Фильтрация логов
-  const filteredLogs = logs.filter(item => {
-    const query = searchQuery.toLowerCase();
-    return (
-      String(item.id).includes(query) ||
-      (item.type && item.type.toLowerCase().includes(query)) ||
-      (item.user?.username && item.user.username.toLowerCase().includes(query)) ||
-      (item.message && item.message.toLowerCase().includes(query))
-    );
-  });
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
   const handleOpenDetail = (log) => {
     setSelectedLog(log);
@@ -33,57 +61,33 @@ const LogsTable = ({ logs }) => {
   return (
     <Box>
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, gap: 2 }}>
-        <Typography variant="h4" sx={{ color: '#ffb347', display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Typography variant="h4" sx={{ color: 'primary.main', display: 'flex', alignItems: 'center', gap: 1 }}>
           <LogIcon /> Системные логи
         </Typography>
       </Box>
-      <Paper sx={{ p: 2, mb: 2 }}>
-        <TextField
-          label="Поиск по логам"
-          value={searchQuery}
-          onChange={e => setSearchQuery(e.target.value)}
-          fullWidth
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon />
-              </InputAdornment>
-            ),
+      <Box sx={{ height: 540, width: '100%', bgcolor: 'background.paper', borderRadius: 3, boxShadow: 2 }}>
+        <DataGrid
+          rows={logs}
+          columns={columns(handleOpenDetail)}
+          pageSize={10}
+          rowsPerPageOptions={[10, 25, 50]}
+          disableSelectionOnClick
+          autoHeight={false}
+          sx={{
+            border: 'none',
+            '& .MuiDataGrid-columnHeaders': { bgcolor: 'background.default', color: 'text.secondary', fontWeight: 700 },
+            '& .MuiDataGrid-row': { bgcolor: 'background.paper', '&:hover': { bgcolor: 'action.hover' } },
+            '& .MuiDataGrid-cell': { borderBottom: '1px solid', borderColor: 'divider' },
+            color: 'text.primary',
           }}
         />
-      </Paper>
-      <TableContainer component={Paper} sx={{ mb: 3 }}>
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell>ID</TableCell>
-              <TableCell>Тип</TableCell>
-              <TableCell>Пользователь</TableCell>
-              <TableCell>Дата</TableCell>
-              <TableCell>Сообщение</TableCell>
-              <TableCell align="right">Действия</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {filteredLogs.map(item => (
-              <TableRow key={item.id} hover>
-                <TableCell>{item.id}</TableCell>
-                <TableCell>{item.type}</TableCell>
-                <TableCell>{item.user?.username}</TableCell>
-                <TableCell>{item.createdAt ? new Date(item.createdAt).toLocaleString('ru-RU') : '-'}</TableCell>
-                <TableCell>{item.message?.slice(0, 60)}...</TableCell>
-                <TableCell align="right">
-                  <Tooltip title="Просмотр">
-                    <IconButton size="small" color="primary" onClick={() => handleOpenDetail(item)}><VisibilityIcon /></IconButton>
-                  </Tooltip>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-      {/* Модальное окно просмотра деталей */}
+      </Box>
       <LogDetailModal open={detailOpen} onClose={handleCloseDetail} log={selectedLog} />
+      <Snackbar open={snackbar.open} autoHideDuration={3000} onClose={() => setSnackbar({ ...snackbar, open: false })}>
+        <Alert onClose={() => setSnackbar({ ...snackbar, open: false })} severity={snackbar.severity} sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

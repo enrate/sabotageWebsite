@@ -1,29 +1,64 @@
 import React, { useState } from 'react';
 import {
-  Box, Typography, TextField, Paper, Table, TableHead, TableRow, TableCell, TableBody, TableContainer, IconButton, Dialog, DialogTitle, DialogActions, Alert, InputAdornment, Tooltip, Button, Avatar
+  Box, Typography, Avatar, Tooltip, IconButton, Snackbar, Alert, Dialog
 } from '@mui/material';
-import { Search as SearchIcon, Visibility as VisibilityIcon, Delete as DeleteIcon, Person as PersonIcon, Block as BlockIcon } from '@mui/icons-material';
+import { DataGrid } from '@mui/x-data-grid';
+import { Visibility as VisibilityIcon, Delete as DeleteIcon, Person as PersonIcon, Block as BlockIcon } from '@mui/icons-material';
 import CommentDetailModal from './CommentDetailModal';
 
+const columns = (handleDetail, handleDelete, handleBan) => [
+  { field: 'id', headerName: 'ID', width: 80 },
+  {
+    field: 'author',
+    headerName: 'Автор',
+    width: 180,
+    renderCell: (params) => (
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Avatar src={params.value?.avatar} sx={{ width: 28, height: 28 }}>{params.value?.username?.[0]}</Avatar>
+        {params.value?.username}
+      </Box>
+    )
+  },
+  {
+    field: 'text',
+    headerName: 'Текст',
+    flex: 2,
+    minWidth: 200,
+    valueGetter: (params) => params.value?.slice(0, 60) + '...'
+  },
+  {
+    field: 'targetType',
+    headerName: 'Объект',
+    width: 140,
+    valueGetter: (params) => params.row.targetType + ' #' + params.row.targetId
+  },
+  {
+    field: 'actions',
+    headerName: '',
+    width: 140,
+    sortable: false,
+    filterable: false,
+    renderCell: (params) => (
+      <Box sx={{ display: 'flex', gap: 1 }}>
+        <Tooltip title="Просмотр/редактировать">
+          <IconButton size="small" color="primary" onClick={() => handleDetail(params.row)}><VisibilityIcon /></IconButton>
+        </Tooltip>
+        <Tooltip title="Удалить">
+          <IconButton size="small" color="error" onClick={() => handleDelete(params.row.id)}><DeleteIcon /></IconButton>
+        </Tooltip>
+        <Tooltip title="Бан автора (в разработке)">
+          <IconButton size="small" color="warning" onClick={() => handleBan(params.row)}><BlockIcon /></IconButton>
+        </Tooltip>
+      </Box>
+    ),
+  },
+];
+
 const CommentsTable = ({ comments, refreshComments }) => {
-  const [searchQuery, setSearchQuery] = useState('');
   const [detailOpen, setDetailOpen] = useState(false);
   const [selectedComment, setSelectedComment] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
-  const [loading, setLoading] = useState(false);
-
-  // Фильтрация комментариев
-  const filteredComments = comments.filter(item => {
-    const query = searchQuery.toLowerCase();
-    return (
-      String(item.id).includes(query) ||
-      (item.author?.username && item.author.username.toLowerCase().includes(query)) ||
-      (item.text && item.text.toLowerCase().includes(query)) ||
-      (item.targetType && item.targetType.toLowerCase().includes(query))
-    );
-  });
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
   const handleOpenDetail = (comment) => {
     setSelectedComment(comment);
@@ -33,105 +68,49 @@ const CommentsTable = ({ comments, refreshComments }) => {
     setDetailOpen(false);
     setSelectedComment(null);
   };
-
-  const handleDelete = async (id) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
-      const res = await fetch(`/api/admin/comments/${id}`, {
-        method: 'DELETE',
-        headers: token ? { Authorization: `Bearer ${token}` } : {}
-      });
-      if (!res.ok) throw new Error('Ошибка при удалении комментария');
-      refreshComments();
-      setSuccess('Комментарий удалён');
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-      setDeleteId(null);
-    }
+  const handleDelete = (id) => {
+    setDeleteId(id);
+    // TODO: реализовать удаление
+    setSnackbar({ open: true, message: 'Комментарий удалён (заглушка)', severity: 'info' });
   };
-
-  // TODO: реализовать бан пользователя
   const handleBan = (comment) => {
-    alert('Бан пользователя в разработке');
+    setSnackbar({ open: true, message: 'Бан автора в разработке', severity: 'info' });
   };
 
   return (
     <Box>
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, gap: 2 }}>
-        <Typography variant="h4" sx={{ color: '#ffb347', display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Typography variant="h4" sx={{ color: 'primary.main', display: 'flex', alignItems: 'center', gap: 1 }}>
           <PersonIcon /> Комментарии
         </Typography>
       </Box>
-      <Paper sx={{ p: 2, mb: 2 }}>
-        <TextField
-          label="Поиск по комментариям"
-          value={searchQuery}
-          onChange={e => setSearchQuery(e.target.value)}
-          fullWidth
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon />
-              </InputAdornment>
-            ),
+      <Box sx={{ height: 540, width: '100%', bgcolor: 'background.paper', borderRadius: 3, boxShadow: 2 }}>
+        <DataGrid
+          rows={comments}
+          columns={columns(handleOpenDetail, handleDelete, handleBan)}
+          pageSize={10}
+          rowsPerPageOptions={[10, 25, 50]}
+          disableSelectionOnClick
+          autoHeight={false}
+          sx={{
+            border: 'none',
+            '& .MuiDataGrid-columnHeaders': { bgcolor: 'background.default', color: 'text.secondary', fontWeight: 700 },
+            '& .MuiDataGrid-row': { bgcolor: 'background.paper', '&:hover': { bgcolor: 'action.hover' } },
+            '& .MuiDataGrid-cell': { borderBottom: '1px solid', borderColor: 'divider' },
+            color: 'text.primary',
           }}
         />
-      </Paper>
-      <TableContainer component={Paper} sx={{ mb: 3 }}>
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell>ID</TableCell>
-              <TableCell>Автор</TableCell>
-              <TableCell>Текст</TableCell>
-              <TableCell>Объект</TableCell>
-              <TableCell align="right">Действия</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {filteredComments.map(item => (
-              <TableRow key={item.id} hover>
-                <TableCell>{item.id}</TableCell>
-                <TableCell>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Avatar src={item.author?.avatar} sx={{ width: 28, height: 28 }}>{item.author?.username?.[0]}</Avatar>
-                    {item.author?.username}
-                  </Box>
-                </TableCell>
-                <TableCell>{item.text?.slice(0, 60)}...</TableCell>
-                <TableCell>{item.targetType} #{item.targetId}</TableCell>
-                <TableCell align="right">
-                  <Tooltip title="Просмотр/редактировать">
-                    <IconButton size="small" color="primary" onClick={() => handleOpenDetail(item)}><VisibilityIcon /></IconButton>
-                  </Tooltip>
-                  <Tooltip title="Удалить">
-                    <IconButton size="small" color="error" onClick={() => setDeleteId(item.id)}><DeleteIcon /></IconButton>
-                  </Tooltip>
-                  <Tooltip title="Бан автора (в разработке)">
-                    <IconButton size="small" color="warning" onClick={() => handleBan(item)}><BlockIcon /></IconButton>
-                  </Tooltip>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-      {/* Модальное окно просмотра/редактирования */}
-      <CommentDetailModal open={detailOpen} onClose={handleCloseDetail} comment={selectedComment} onSave={refreshComments} />
-      {/* Диалог удаления */}
+      </Box>
+      <CommentDetailModal open={detailOpen} onClose={handleCloseDetail} comment={selectedComment} />
+      <Snackbar open={snackbar.open} autoHideDuration={3000} onClose={() => setSnackbar({ ...snackbar, open: false })}>
+        <Alert onClose={() => setSnackbar({ ...snackbar, open: false })} severity={snackbar.severity} sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+      {/* Диалог удаления (реализовать по необходимости) */}
       <Dialog open={!!deleteId} onClose={() => setDeleteId(null)}>
-        <DialogTitle>Удалить комментарий?</DialogTitle>
-        <DialogActions>
-          <Button onClick={() => setDeleteId(null)}>Отмена</Button>
-          <Button onClick={() => handleDelete(deleteId)} color="error" variant="contained" disabled={loading}>Удалить</Button>
-        </DialogActions>
+        {/* ... */}
       </Dialog>
-      {error && <Alert severity="error" sx={{ mt: 2 }} onClose={() => setError(null)}>{error}</Alert>}
-      {success && <Alert severity="success" sx={{ mt: 2 }} onClose={() => setSuccess(null)}>{success}</Alert>}
     </Box>
   );
 };

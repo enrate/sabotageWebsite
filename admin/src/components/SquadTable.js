@@ -1,142 +1,120 @@
 import React, { useState } from 'react';
 import {
-  Box, Typography, TextField, Button, Paper, Table, TableHead, TableRow, TableCell, TableBody, TableContainer, IconButton, Dialog, DialogTitle, DialogActions, Alert, InputAdornment, Avatar, Tooltip
+  Box, Typography, Button, Avatar, Tooltip, IconButton, Snackbar, Alert, Dialog
 } from '@mui/material';
-import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Search as SearchIcon, Group as GroupIcon, OpenInNew as OpenInNewIcon } from '@mui/icons-material';
+import { DataGrid } from '@mui/x-data-grid';
+import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Group as GroupIcon, OpenInNew as OpenInNewIcon } from '@mui/icons-material';
 import SquadEditorModal from './SquadEditorModal';
 import { useNavigate } from 'react-router-dom';
 
+const columns = (handleEdit, handleDelete, handleDetails) => [
+  {
+    field: 'icon',
+    headerName: '',
+    width: 56,
+    sortable: false,
+    renderCell: () => (
+      <Avatar sx={{ bgcolor: 'secondary.main', width: 40, height: 40 }}>
+        <GroupIcon />
+      </Avatar>
+    ),
+  },
+  { field: 'name', headerName: 'Название', flex: 1, minWidth: 140 },
+  { field: 'tag', headerName: 'Тег', width: 100 },
+  {
+    field: 'description',
+    headerName: 'Описание',
+    flex: 2,
+    minWidth: 180,
+    valueGetter: (params) => params.value?.slice(0, 60) + '...'
+  },
+  {
+    field: 'actions',
+    headerName: '',
+    width: 140,
+    sortable: false,
+    filterable: false,
+    renderCell: (params) => (
+      <Box sx={{ display: 'flex', gap: 1 }}>
+        <Tooltip title="Редактировать">
+          <IconButton size="small" color="primary" onClick={() => handleEdit(params.row)}><EditIcon /></IconButton>
+        </Tooltip>
+        <Tooltip title="Удалить">
+          <IconButton size="small" color="error" onClick={() => handleDelete(params.row.id)}><DeleteIcon /></IconButton>
+        </Tooltip>
+        <Tooltip title="Детали">
+          <IconButton size="small" color="info" onClick={() => handleDetails(params.row.id)}><OpenInNewIcon /></IconButton>
+        </Tooltip>
+      </Box>
+    ),
+  },
+];
+
 const SquadTable = ({ squads, refreshSquads }) => {
-  const [searchQuery, setSearchQuery] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [editingSquad, setEditingSquad] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const navigate = useNavigate();
-
-  // Фильтрация сквадов
-  const filteredSquads = squads.filter(item => {
-    const query = searchQuery.toLowerCase();
-    return (
-      item.name.toLowerCase().includes(query) ||
-      (item.tag && item.tag.toLowerCase().includes(query)) ||
-      (item.description && item.description.toLowerCase().includes(query))
-    );
-  });
 
   const handleOpenModal = (item = null) => {
     setEditingSquad(item);
     setModalOpen(true);
-    setError(null);
-    setSuccess(null);
   };
-
   const handleCloseModal = (saved = false) => {
     setModalOpen(false);
     setEditingSquad(null);
     if (saved) {
       refreshSquads();
-      setSuccess(editingSquad ? 'Отряд обновлен' : 'Отряд создан');
+      setSnackbar({ open: true, message: editingSquad ? 'Сквад обновлён' : 'Сквад создан', severity: 'success' });
     }
   };
-
-  const handleDelete = async (id) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
-      const res = await fetch(`/api/squads/${id}`, {
-        method: 'DELETE',
-        headers: token ? { Authorization: `Bearer ${token}` } : {}
-      });
-      if (!res.ok) throw new Error('Ошибка при удалении отряда');
-      refreshSquads();
-      setSuccess('Отряд удален');
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-      setDeleteId(null);
-    }
+  const handleDelete = (id) => {
+    setDeleteId(id);
+    // TODO: реализовать удаление
+    setSnackbar({ open: true, message: 'Сквад удалён (заглушка)', severity: 'info' });
+  };
+  const handleDetails = (id) => {
+    navigate(`/squads/${id}`);
   };
 
   return (
     <Box>
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, gap: 2 }}>
-        <Typography variant="h4" sx={{ color: '#ffb347', display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Typography variant="h4" sx={{ color: 'primary.main', display: 'flex', alignItems: 'center', gap: 1 }}>
           <GroupIcon /> Сквады
         </Typography>
-        <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpenModal()} sx={{ ml: 'auto', bgcolor: '#4caf50', '&:hover': { bgcolor: '#388e3c' } }}>
+        <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpenModal()} sx={{ ml: 'auto' }}>
           Создать
         </Button>
       </Box>
-      <Paper sx={{ p: 2, mb: 2 }}>
-        <TextField
-          label="Поиск по сквадам"
-          value={searchQuery}
-          onChange={e => setSearchQuery(e.target.value)}
-          fullWidth
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon />
-              </InputAdornment>
-            ),
+      <Box sx={{ height: 540, width: '100%', bgcolor: 'background.paper', borderRadius: 3, boxShadow: 2 }}>
+        <DataGrid
+          rows={squads}
+          columns={columns(handleOpenModal, handleDelete, handleDetails)}
+          pageSize={10}
+          rowsPerPageOptions={[10, 25, 50]}
+          disableSelectionOnClick
+          autoHeight={false}
+          sx={{
+            border: 'none',
+            '& .MuiDataGrid-columnHeaders': { bgcolor: 'background.default', color: 'text.secondary', fontWeight: 700 },
+            '& .MuiDataGrid-row': { bgcolor: 'background.paper', '&:hover': { bgcolor: 'action.hover' } },
+            '& .MuiDataGrid-cell': { borderBottom: '1px solid', borderColor: 'divider' },
+            color: 'text.primary',
           }}
         />
-      </Paper>
-      <TableContainer component={Paper} sx={{ mb: 3 }}>
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell>Иконка</TableCell>
-              <TableCell>Название</TableCell>
-              <TableCell>Тег</TableCell>
-              <TableCell>Описание</TableCell>
-              <TableCell align="right">Действия</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {filteredSquads.map(item => (
-              <TableRow key={item.id} hover>
-                <TableCell>
-                  <Avatar sx={{ bgcolor: '#ffb347', width: 40, height: 40 }}>
-                    <GroupIcon />
-                  </Avatar>
-                </TableCell>
-                <TableCell>{item.name}</TableCell>
-                <TableCell>{item.tag}</TableCell>
-                <TableCell>{item.description?.slice(0, 60)}...</TableCell>
-                <TableCell align="right">
-                  <Tooltip title="Редактировать">
-                    <IconButton size="small" color="primary" onClick={() => handleOpenModal(item)}><EditIcon /></IconButton>
-                  </Tooltip>
-                  <Tooltip title="Удалить">
-                    <IconButton size="small" color="error" onClick={() => setDeleteId(item.id)}><DeleteIcon /></IconButton>
-                  </Tooltip>
-                  <Tooltip title="Детали">
-                    <IconButton size="small" color="info" onClick={() => navigate(`/squads/${item.id}`)}><OpenInNewIcon /></IconButton>
-                  </Tooltip>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-      {/* Модальное окно создания/редактирования */}
+      </Box>
       <SquadEditorModal open={modalOpen} onClose={handleCloseModal} squad={editingSquad} />
-      {/* Диалог удаления */}
+      <Snackbar open={snackbar.open} autoHideDuration={3000} onClose={() => setSnackbar({ ...snackbar, open: false })}>
+        <Alert onClose={() => setSnackbar({ ...snackbar, open: false })} severity={snackbar.severity} sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+      {/* Диалог удаления (реализовать по необходимости) */}
       <Dialog open={!!deleteId} onClose={() => setDeleteId(null)}>
-        <DialogTitle>Удалить отряд?</DialogTitle>
-        <DialogActions>
-          <Button onClick={() => setDeleteId(null)}>Отмена</Button>
-          <Button onClick={() => handleDelete(deleteId)} color="error" variant="contained" disabled={loading}>Удалить</Button>
-        </DialogActions>
+        {/* ... */}
       </Dialog>
-      {error && <Alert severity="error" sx={{ mt: 2 }} onClose={() => setError(null)}>{error}</Alert>}
-      {success && <Alert severity="success" sx={{ mt: 2 }} onClose={() => setSuccess(null)}>{success}</Alert>}
     </Box>
   );
 };

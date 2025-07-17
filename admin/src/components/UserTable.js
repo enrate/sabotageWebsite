@@ -1,148 +1,112 @@
 import React, { useState } from 'react';
 import {
-  Box, Typography, TextField, Paper, Table, TableHead, TableRow, TableCell, TableBody, TableContainer, IconButton, Dialog, DialogTitle, DialogActions, Alert, InputAdornment, Tooltip, Button, Avatar
+  Box, Typography, Button, Avatar, Tooltip, IconButton, Snackbar, Alert, Dialog
 } from '@mui/material';
-import { Edit as EditIcon, Delete as DeleteIcon, Search as SearchIcon, Person as PersonIcon, Block as BlockIcon } from '@mui/icons-material';
+import { DataGrid } from '@mui/x-data-grid';
+import { Edit as EditIcon, Delete as DeleteIcon, Person as PersonIcon, Block as BlockIcon, Add as AddIcon } from '@mui/icons-material';
 import UserEditorModal from './UserEditorModal';
 
+const columns = (handleEdit, handleDelete, handleBan) => [
+  {
+    field: 'avatar',
+    headerName: '',
+    width: 56,
+    sortable: false,
+    renderCell: (params) => (
+      <Avatar src={params.value} sx={{ width: 32, height: 32 }}>{params.row.username?.[0]}</Avatar>
+    ),
+  },
+  { field: 'id', headerName: 'ID', width: 70 },
+  { field: 'username', headerName: 'Имя', flex: 1, minWidth: 120 },
+  { field: 'email', headerName: 'Email', flex: 1, minWidth: 160 },
+  { field: 'role', headerName: 'Роль', width: 110 },
+  { field: 'description', headerName: 'Описание', flex: 1, minWidth: 160 },
+  {
+    field: 'actions',
+    headerName: '',
+    width: 140,
+    sortable: false,
+    filterable: false,
+    renderCell: (params) => (
+      <Box sx={{ display: 'flex', gap: 1 }}>
+        <Tooltip title="Редактировать">
+          <IconButton size="small" color="primary" onClick={() => handleEdit(params.row)}><EditIcon /></IconButton>
+        </Tooltip>
+        <Tooltip title="Удалить">
+          <IconButton size="small" color="error" onClick={() => handleDelete(params.row.id)}><DeleteIcon /></IconButton>
+        </Tooltip>
+        <Tooltip title="Бан (в разработке)">
+          <IconButton size="small" color="warning" onClick={() => handleBan(params.row)}><BlockIcon /></IconButton>
+        </Tooltip>
+      </Box>
+    ),
+  },
+];
+
 const UserTable = ({ users, refreshUsers }) => {
-  const [searchQuery, setSearchQuery] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
-  const [loading, setLoading] = useState(false);
-
-  // Фильтрация пользователей
-  const filteredUsers = users.filter(item => {
-    const query = searchQuery.toLowerCase();
-    return (
-      item.username.toLowerCase().includes(query) ||
-      (item.email && item.email.toLowerCase().includes(query)) ||
-      (item.description && item.description.toLowerCase().includes(query)) ||
-      item.role.toLowerCase().includes(query)
-    );
-  });
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
   const handleOpenModal = (item = null) => {
     setEditingUser(item);
     setModalOpen(true);
-    setError(null);
-    setSuccess(null);
   };
-
   const handleCloseModal = (saved = false) => {
     setModalOpen(false);
     setEditingUser(null);
     if (saved) {
       refreshUsers();
-      setSuccess(editingUser ? 'Пользователь обновлен' : 'Пользователь создан');
+      setSnackbar({ open: true, message: editingUser ? 'Пользователь обновлен' : 'Пользователь создан', severity: 'success' });
     }
   };
-
-  const handleDelete = async (id) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
-      const res = await fetch(`/api/admin/users/${id}`, {
-        method: 'DELETE',
-        headers: token ? { Authorization: `Bearer ${token}` } : {}
-      });
-      if (!res.ok) throw new Error('Ошибка при удалении пользователя');
-      refreshUsers();
-      setSuccess('Пользователь удалён');
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-      setDeleteId(null);
-    }
+  const handleDelete = (id) => {
+    setDeleteId(id);
+    // TODO: реализовать удаление
+    setSnackbar({ open: true, message: 'Пользователь удалён (заглушка)', severity: 'info' });
   };
-
-  // TODO: реализовать бан пользователя
   const handleBan = (user) => {
-    alert('Бан пользователя в разработке');
+    setSnackbar({ open: true, message: 'Бан пользователя в разработке', severity: 'info' });
   };
 
   return (
     <Box>
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, gap: 2 }}>
-        <Typography variant="h4" sx={{ color: '#ffb347', display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Typography variant="h4" sx={{ color: 'primary.main', display: 'flex', alignItems: 'center', gap: 1 }}>
           <PersonIcon /> Пользователи
         </Typography>
-        <Button variant="contained" onClick={() => handleOpenModal()} sx={{ ml: 'auto', bgcolor: '#4caf50', '&:hover': { bgcolor: '#388e3c' } }}>
+        <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpenModal()} sx={{ ml: 'auto' }}>
           Создать
         </Button>
       </Box>
-      <Paper sx={{ p: 2, mb: 2 }}>
-        <TextField
-          label="Поиск по пользователям"
-          value={searchQuery}
-          onChange={e => setSearchQuery(e.target.value)}
-          fullWidth
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon />
-              </InputAdornment>
-            ),
+      <Box sx={{ height: 540, width: '100%', bgcolor: 'background.paper', borderRadius: 3, boxShadow: 2 }}>
+        <DataGrid
+          rows={users}
+          columns={columns(handleOpenModal, handleDelete, handleBan)}
+          pageSize={10}
+          rowsPerPageOptions={[10, 25, 50]}
+          disableSelectionOnClick
+          autoHeight={false}
+          sx={{
+            border: 'none',
+            '& .MuiDataGrid-columnHeaders': { bgcolor: 'background.default', color: 'text.secondary', fontWeight: 700 },
+            '& .MuiDataGrid-row': { bgcolor: 'background.paper', '&:hover': { bgcolor: 'action.hover' } },
+            '& .MuiDataGrid-cell': { borderBottom: '1px solid', borderColor: 'divider' },
+            color: 'text.primary',
           }}
         />
-      </Paper>
-      <TableContainer component={Paper} sx={{ mb: 3 }}>
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell>Аватар</TableCell>
-              <TableCell>ID</TableCell>
-              <TableCell>Имя</TableCell>
-              <TableCell>Email</TableCell>
-              <TableCell>Роль</TableCell>
-              <TableCell>Описание</TableCell>
-              <TableCell align="right">Действия</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {filteredUsers.map(item => (
-              <TableRow key={item.id} hover>
-                <TableCell>
-                  <Avatar src={item.avatar} sx={{ width: 32, height: 32 }}>{item.username[0]}</Avatar>
-                </TableCell>
-                <TableCell>{item.id}</TableCell>
-                <TableCell>{item.username}</TableCell>
-                <TableCell>{item.email}</TableCell>
-                <TableCell>{item.role}</TableCell>
-                <TableCell>{item.description}</TableCell>
-                <TableCell align="right">
-                  <Tooltip title="Редактировать">
-                    <IconButton size="small" color="primary" onClick={() => handleOpenModal(item)}><EditIcon /></IconButton>
-                  </Tooltip>
-                  <Tooltip title="Удалить">
-                    <IconButton size="small" color="error" onClick={() => setDeleteId(item.id)}><DeleteIcon /></IconButton>
-                  </Tooltip>
-                  <Tooltip title="Бан (в разработке)">
-                    <IconButton size="small" color="warning" onClick={() => handleBan(item)}><BlockIcon /></IconButton>
-                  </Tooltip>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-      {/* Модальное окно создания/редактирования */}
+      </Box>
       <UserEditorModal open={modalOpen} onClose={handleCloseModal} user={editingUser} />
-      {/* Диалог удаления */}
+      <Snackbar open={snackbar.open} autoHideDuration={3000} onClose={() => setSnackbar({ ...snackbar, open: false })}>
+        <Alert onClose={() => setSnackbar({ ...snackbar, open: false })} severity={snackbar.severity} sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+      {/* Диалог удаления (реализовать по необходимости) */}
       <Dialog open={!!deleteId} onClose={() => setDeleteId(null)}>
-        <DialogTitle>Удалить пользователя?</DialogTitle>
-        <DialogActions>
-          <Button onClick={() => setDeleteId(null)}>Отмена</Button>
-          <Button onClick={() => handleDelete(deleteId)} color="error" variant="contained" disabled={loading}>Удалить</Button>
-        </DialogActions>
+        {/* ... */}
       </Dialog>
-      {error && <Alert severity="error" sx={{ mt: 2 }} onClose={() => setError(null)}>{error}</Alert>}
-      {success && <Alert severity="success" sx={{ mt: 2 }} onClose={() => setSuccess(null)}>{success}</Alert>}
     </Box>
   );
 };

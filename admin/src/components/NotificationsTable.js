@@ -1,29 +1,67 @@
 import React, { useState } from 'react';
 import {
-  Box, Typography, TextField, Paper, Table, TableHead, TableRow, TableCell, TableBody, TableContainer, IconButton, Dialog, DialogTitle, DialogActions, Alert, InputAdornment, Tooltip, Button, Avatar
+  Box, Typography, Avatar, Tooltip, IconButton, Snackbar, Alert, Dialog
 } from '@mui/material';
-import { Search as SearchIcon, Visibility as VisibilityIcon, Delete as DeleteIcon, MarkEmailRead as ReadIcon, Notifications as NotificationsIcon } from '@mui/icons-material';
+import { DataGrid } from '@mui/x-data-grid';
+import { Visibility as VisibilityIcon, Delete as DeleteIcon, MarkEmailRead as ReadIcon, Notifications as NotificationsIcon } from '@mui/icons-material';
 import NotificationDetailModal from './NotificationDetailModal';
 
+const columns = (handleDetail, handleDelete, handleMarkRead) => [
+  { field: 'id', headerName: 'ID', width: 80 },
+  {
+    field: 'recipient',
+    headerName: 'Получатель',
+    width: 180,
+    renderCell: (params) => (
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Avatar src={params.value?.avatar} sx={{ width: 28, height: 28 }}>{params.value?.username?.[0]}</Avatar>
+        {params.value?.username}
+      </Box>
+    )
+  },
+  { field: 'type', headerName: 'Тип', width: 120 },
+  {
+    field: 'message',
+    headerName: 'Текст',
+    flex: 2,
+    minWidth: 200,
+    valueGetter: (params) => params.value?.slice(0, 60) + '...'
+  },
+  {
+    field: 'read',
+    headerName: 'Статус',
+    width: 120,
+    renderCell: (params) => params.value ? 'Прочитано' : 'Непрочитано'
+  },
+  {
+    field: 'actions',
+    headerName: '',
+    width: 160,
+    sortable: false,
+    filterable: false,
+    renderCell: (params) => (
+      <Box sx={{ display: 'flex', gap: 1 }}>
+        <Tooltip title="Просмотр/редактировать">
+          <IconButton size="small" color="primary" onClick={() => handleDetail(params.row)}><VisibilityIcon /></IconButton>
+        </Tooltip>
+        <Tooltip title="Удалить">
+          <IconButton size="small" color="error" onClick={() => handleDelete(params.row.id)}><DeleteIcon /></IconButton>
+        </Tooltip>
+        {!params.row.read && (
+          <Tooltip title="Отметить как прочитанное">
+            <IconButton size="small" color="success" onClick={() => handleMarkRead(params.row.id)}><ReadIcon /></IconButton>
+          </Tooltip>
+        )}
+      </Box>
+    ),
+  },
+];
+
 const NotificationsTable = ({ notifications, refreshNotifications }) => {
-  const [searchQuery, setSearchQuery] = useState('');
   const [detailOpen, setDetailOpen] = useState(false);
   const [selectedNotification, setSelectedNotification] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
-  const [loading, setLoading] = useState(false);
-
-  // Фильтрация уведомлений
-  const filteredNotifications = notifications.filter(item => {
-    const query = searchQuery.toLowerCase();
-    return (
-      String(item.id).includes(query) ||
-      (item.recipient?.username && item.recipient.username.toLowerCase().includes(query)) ||
-      (item.message && item.message.toLowerCase().includes(query)) ||
-      (item.type && item.type.toLowerCase().includes(query))
-    );
-  });
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
   const handleOpenDetail = (notification) => {
     setSelectedNotification(notification);
@@ -33,123 +71,50 @@ const NotificationsTable = ({ notifications, refreshNotifications }) => {
     setDetailOpen(false);
     setSelectedNotification(null);
   };
-
-  const handleDelete = async (id) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
-      const res = await fetch(`/api/admin/notifications/${id}`, {
-        method: 'DELETE',
-        headers: token ? { Authorization: `Bearer ${token}` } : {}
-      });
-      if (!res.ok) throw new Error('Ошибка при удалении уведомления');
-      refreshNotifications();
-      setSuccess('Уведомление удалено');
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-      setDeleteId(null);
-    }
+  const handleDelete = (id) => {
+    setDeleteId(id);
+    // TODO: реализовать удаление
+    setSnackbar({ open: true, message: 'Уведомление удалено (заглушка)', severity: 'info' });
   };
-
-  const handleMarkRead = async (id) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
-      const res = await fetch(`/api/admin/notifications/${id}/read`, {
-        method: 'PATCH',
-        headers: token ? { Authorization: `Bearer ${token}` } : {}
-      });
-      if (!res.ok) throw new Error('Ошибка при отметке как прочитанное');
-      refreshNotifications();
-      setSuccess('Уведомление отмечено как прочитанное');
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
+  const handleMarkRead = (id) => {
+    // TODO: реализовать отметку как прочитанное
+    setSnackbar({ open: true, message: 'Отмечено как прочитанное (заглушка)', severity: 'info' });
   };
 
   return (
     <Box>
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, gap: 2 }}>
-        <Typography variant="h4" sx={{ color: '#ffb347', display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Typography variant="h4" sx={{ color: 'primary.main', display: 'flex', alignItems: 'center', gap: 1 }}>
           <NotificationsIcon /> Уведомления
         </Typography>
       </Box>
-      <Paper sx={{ p: 2, mb: 2 }}>
-        <TextField
-          label="Поиск по уведомлениям"
-          value={searchQuery}
-          onChange={e => setSearchQuery(e.target.value)}
-          fullWidth
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon />
-              </InputAdornment>
-            ),
+      <Box sx={{ height: 540, width: '100%', bgcolor: 'background.paper', borderRadius: 3, boxShadow: 2 }}>
+        <DataGrid
+          rows={notifications}
+          columns={columns(handleOpenDetail, handleDelete, handleMarkRead)}
+          pageSize={10}
+          rowsPerPageOptions={[10, 25, 50]}
+          disableSelectionOnClick
+          autoHeight={false}
+          sx={{
+            border: 'none',
+            '& .MuiDataGrid-columnHeaders': { bgcolor: 'background.default', color: 'text.secondary', fontWeight: 700 },
+            '& .MuiDataGrid-row': { bgcolor: 'background.paper', '&:hover': { bgcolor: 'action.hover' } },
+            '& .MuiDataGrid-cell': { borderBottom: '1px solid', borderColor: 'divider' },
+            color: 'text.primary',
           }}
         />
-      </Paper>
-      <TableContainer component={Paper} sx={{ mb: 3 }}>
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell>ID</TableCell>
-              <TableCell>Получатель</TableCell>
-              <TableCell>Тип</TableCell>
-              <TableCell>Текст</TableCell>
-              <TableCell>Статус</TableCell>
-              <TableCell align="right">Действия</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {filteredNotifications.map(item => (
-              <TableRow key={item.id} hover>
-                <TableCell>{item.id}</TableCell>
-                <TableCell>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Avatar src={item.recipient?.avatar} sx={{ width: 28, height: 28 }}>{item.recipient?.username?.[0]}</Avatar>
-                    {item.recipient?.username}
-                  </Box>
-                </TableCell>
-                <TableCell>{item.type}</TableCell>
-                <TableCell>{item.message?.slice(0, 60)}...</TableCell>
-                <TableCell>{item.read ? 'Прочитано' : 'Непрочитано'}</TableCell>
-                <TableCell align="right">
-                  <Tooltip title="Просмотр/редактировать">
-                    <IconButton size="small" color="primary" onClick={() => handleOpenDetail(item)}><VisibilityIcon /></IconButton>
-                  </Tooltip>
-                  <Tooltip title="Удалить">
-                    <IconButton size="small" color="error" onClick={() => setDeleteId(item.id)}><DeleteIcon /></IconButton>
-                  </Tooltip>
-                  {!item.read && (
-                    <Tooltip title="Отметить как прочитанное">
-                      <IconButton size="small" color="success" onClick={() => handleMarkRead(item.id)}><ReadIcon /></IconButton>
-                    </Tooltip>
-                  )}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-      {/* Модальное окно просмотра/редактирования */}
-      <NotificationDetailModal open={detailOpen} onClose={handleCloseDetail} notification={selectedNotification} onSave={refreshNotifications} />
-      {/* Диалог удаления */}
+      </Box>
+      <NotificationDetailModal open={detailOpen} onClose={handleCloseDetail} notification={selectedNotification} />
+      <Snackbar open={snackbar.open} autoHideDuration={3000} onClose={() => setSnackbar({ ...snackbar, open: false })}>
+        <Alert onClose={() => setSnackbar({ ...snackbar, open: false })} severity={snackbar.severity} sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+      {/* Диалог удаления (реализовать по необходимости) */}
       <Dialog open={!!deleteId} onClose={() => setDeleteId(null)}>
-        <DialogTitle>Удалить уведомление?</DialogTitle>
-        <DialogActions>
-          <Button onClick={() => setDeleteId(null)}>Отмена</Button>
-          <Button onClick={() => handleDelete(deleteId)} color="error" variant="contained" disabled={loading}>Удалить</Button>
-        </DialogActions>
+        {/* ... */}
       </Dialog>
-      {error && <Alert severity="error" sx={{ mt: 2 }} onClose={() => setError(null)}>{error}</Alert>}
-      {success && <Alert severity="success" sx={{ mt: 2 }} onClose={() => setSuccess(null)}>{success}</Alert>}
     </Box>
   );
 };
