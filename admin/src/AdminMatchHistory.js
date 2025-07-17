@@ -15,7 +15,12 @@ const AdminMatchHistory = () => {
       const res = await axios.get('/api/admin/match-history', {
         headers: token ? { Authorization: `Bearer ${token}` } : {}
       });
-      setMatches(res.data);
+      // Гарантируем уникальный id для каждой строки
+      const rows = Array.isArray(res.data) ? res.data.map(row => ({
+        ...row,
+        id: row.id || row.matchId || row._id || row.uuid
+      })) : [];
+      setMatches(rows);
     } catch (e) {
       setError('Ошибка загрузки истории матчей');
     } finally {
