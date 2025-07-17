@@ -9,7 +9,6 @@ import HomePage from './pages/HomePage';
 import NewsPage from './pages/NewsPage';
 import SquadPage from './pages/SquadPage';
 import SquadDetailPage from './pages/SquadDetailPage';
-import AdminPage from './admin/AdminPage';
 import PrivateRoute from './components/PrivateRoute';
 import AuthModal from './components/AuthModal';
 import ProfilePage from './pages/ProfilePage';
@@ -24,7 +23,6 @@ import VerifyEmailPage from './pages/VerifyEmailPage';
 import Snackbar from '@mui/material/Snackbar';
 import MuiAlert from '@mui/material/Alert';
 import MatchHistoryPage from './pages/MatchHistoryPage';
-import AdminDashboard from './admin/AdminDashboard';
 import { CssVarsProvider } from '@mui/joy/styles';
 import JoyCssBaseline from '@mui/joy/CssBaseline';
 
@@ -146,22 +144,6 @@ function App() {
                   <Route path="/news/:id" element={<NewsPage />} />
                   <Route path="/squads" element={<SquadPage />} />
                   <Route path="/squads/:id" element={<SquadDetailPage />} />
-                  <Route 
-                    path="/admin" 
-                    element={
-                      <PrivateRoute adminOnly>
-                        <AdminPage />
-                      </PrivateRoute>
-                    } 
-                  />
-                  <Route 
-                    path="/admin-dashboard" 
-                    element={
-                      <PrivateRoute adminOnly>
-                        <AdminDashboard />
-                      </PrivateRoute>
-                    } 
-                  />
                   <Route 
                     path="/profile/:id" 
                     element={<ProfilePage />} 
