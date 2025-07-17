@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React from "react";
+import { Routes, Route, useNavigate, useLocation, Navigate } from "react-router-dom";
 import DashboardLayout from "./components/DashboardLayout";
 import AdminDashboard from "./components/AdminDashboard";
 import AdminNews from "./AdminNews";
@@ -13,54 +14,38 @@ import AdminStatistics from "./AdminStatistics";
 import AdminSettings from "./AdminSettings";
 import AdminLogs from "./AdminLogs";
 
-export default function AdminPage() {
-  const [section, setSection] = useState("dashboard");
+const tabRoutes = [
+  { key: "dashboard", path: "/dashboard", element: <AdminDashboard /> },
+  { key: "news", path: "/news", element: <AdminNews /> },
+  { key: "awards", path: "/awards", element: <AdminAwards /> },
+  { key: "users", path: "/users", element: <AdminUsers /> },
+  { key: "squads", path: "/squads", element: <AdminSquads /> },
+  { key: "seasons", path: "/seasons", element: <AdminSeasons /> },
+  { key: "matches", path: "/matches", element: <AdminMatchHistory /> },
+  { key: "comments", path: "/comments", element: <AdminComments /> },
+  { key: "notifications", path: "/notifications", element: <AdminNotifications /> },
+  { key: "statistics", path: "/statistics", element: <AdminStatistics /> },
+  { key: "settings", path: "/settings", element: <AdminSettings /> },
+  { key: "logs", path: "/logs", element: <AdminLogs /> },
+];
 
-  let content = null;
-  switch (section) {
-    case "dashboard":
-      content = <AdminDashboard />;
-      break;
-    case "news":
-      content = <AdminNews />;
-      break;
-    case "awards":
-      content = <AdminAwards />;
-      break;
-    case "users":
-      content = <AdminUsers />;
-      break;
-    case "squads":
-      content = <AdminSquads />;
-      break;
-    case "seasons":
-      content = <AdminSeasons />;
-      break;
-    case "matches":
-      content = <AdminMatchHistory />;
-      break;
-    case "comments":
-      content = <AdminComments />;
-      break;
-    case "notifications":
-      content = <AdminNotifications />;
-      break;
-    case "statistics":
-      content = <AdminStatistics />;
-      break;
-    case "settings":
-      content = <AdminSettings />;
-      break;
-    case "logs":
-      content = <AdminLogs />;
-      break;
-    default:
-      content = <AdminDashboard />;
-  }
+export default function AdminPage() {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Определяем активный раздел по URL
+  const activeTab = tabRoutes.find(tab => location.pathname.startsWith(`/admin${tab.path}`))?.key || "dashboard";
 
   return (
-    <DashboardLayout section={section} setSection={setSection}>
-      {content}
+    <DashboardLayout section={activeTab} navigate={navigate}>
+      <Routes>
+        <Route path="/" element={<Navigate to="/admin/dashboard" replace />} />
+        {tabRoutes.map(tab => (
+          <Route key={tab.key} path={tab.path} element={tab.element} />
+        ))}
+        {/* fallback */}
+        <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
+      </Routes>
     </DashboardLayout>
   );
 } 

@@ -19,27 +19,30 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import ListAltIcon from '@mui/icons-material/ListAlt';
 
 const tabs = [
-  { key: 'dashboard', label: 'Дашборд', icon: <HomeRoundedIcon /> },
-  { key: 'news', label: 'Новости', icon: <ArticleIcon /> },
-  { key: 'awards', label: 'Награды', icon: <EmojiEventsIcon /> },
-  { key: 'users', label: 'Пользователи', icon: <GroupIcon /> },
-  { key: 'squads', label: 'Сквады', icon: <GroupsIcon /> },
-  { key: 'seasons', label: 'Сезоны', icon: <CalendarMonthIcon /> },
-  { key: 'matches', label: 'Матчи', icon: <AssignmentIcon /> },
-  { key: 'comments', label: 'Комментарии', icon: <CommentIcon /> },
-  { key: 'notifications', label: 'Уведомления', icon: <NotificationsIcon /> },
-  { key: 'statistics', label: 'Статистика', icon: <BarChartIcon /> },
-  { key: 'settings', label: 'Настройки', icon: <SettingsIcon /> },
-  { key: 'logs', label: 'Системные логи', icon: <ListAltIcon /> },
+  { key: 'dashboard', label: 'Дашборд', icon: <HomeRoundedIcon />, path: '/dashboard' },
+  { key: 'news', label: 'Новости', icon: <ArticleIcon />, path: '/news' },
+  { key: 'awards', label: 'Награды', icon: <EmojiEventsIcon />, path: '/awards' },
+  { key: 'users', label: 'Пользователи', icon: <GroupIcon />, path: '/users' },
+  { key: 'squads', label: 'Сквады', icon: <GroupsIcon />, path: '/squads' },
+  { key: 'seasons', label: 'Сезоны', icon: <CalendarMonthIcon />, path: '/seasons' },
+  { key: 'matches', label: 'Матчи', icon: <AssignmentIcon />, path: '/matches' },
+  { key: 'comments', label: 'Комментарии', icon: <CommentIcon />, path: '/comments' },
+  { key: 'notifications', label: 'Уведомления', icon: <NotificationsIcon />, path: '/notifications' },
+  { key: 'statistics', label: 'Статистика', icon: <BarChartIcon />, path: '/statistics' },
+  { key: 'settings', label: 'Настройки', icon: <SettingsIcon />, path: '/settings' },
+  { key: 'logs', label: 'Системные логи', icon: <ListAltIcon />, path: '/logs' },
 ];
 
-export default function MenuContent({ section, setSection }) {
+export default function MenuContent({ section, navigate }) {
   return (
     <Stack sx={{ flexGrow: 1, p: 1, justifyContent: 'space-between' }}>
       <List dense>
         {tabs.map((item) => (
           <ListItem key={item.key} disablePadding sx={{ display: 'block' }}>
-            <ListItemButton selected={section === item.key} onClick={() => setSection(item.key)}>
+            <ListItemButton
+              selected={section === item.key}
+              onClick={() => navigate(`/admin${item.path}`)}
+            >
               <ListItemIcon>{item.icon}</ListItemIcon>
               <ListItemText primary={item.label} />
             </ListItemButton>
