@@ -2,6 +2,10 @@ const { News, User, Comment } = require('../models');
 
 // Получение всех новостей
 exports.getNews = async (req, res) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '0');
+  res.set('Surrogate-Control', 'no-store');
   try {
     const news = await News.findAll({
       include: [
