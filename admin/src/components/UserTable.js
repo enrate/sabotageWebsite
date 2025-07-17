@@ -7,8 +7,8 @@ import { Edit as EditIcon, Delete as DeleteIcon, Person as PersonIcon, Block as 
 import UserEditorModal from './UserEditorModal';
 import axios from 'axios';
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import ruLocale from 'date-fns/locale/ru';
+import dayjs from 'dayjs';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 
 const columns = (handleEdit, handleDelete, handleBan, handleUnban, handleWarnings) => [
   {
@@ -230,7 +230,7 @@ const UserTable = ({ users, refreshUsers }) => {
           size="small"
           sx={{ ml: 2, minWidth: 220 }}
         />
-        <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ruLocale}>
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
           <DatePicker
             label="Дата регистрации от"
             value={dateFrom}
