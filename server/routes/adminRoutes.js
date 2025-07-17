@@ -5,6 +5,7 @@ const { protect, admin } = require('../middleware/authMiddleware');
 const awardController = require('../controllers/awardController');
 const seasonController = require('../controllers/seasonController');
 const { uploadImage, handleUploadError } = require('../middleware/uploadMiddleware');
+const newsController = require('../controllers/newsController');
 
 // Маршруты для управления пользователями
 router.get('/users', protect, admin, adminController.getUsers);
@@ -46,6 +47,13 @@ router.get('/seasons/:id', protect, admin, seasonController.getSeason);
 router.post('/seasons', protect, admin, seasonController.createSeason);
 router.put('/seasons/:id', protect, admin, seasonController.updateSeason);
 router.delete('/seasons/:id', protect, admin, seasonController.deleteSeason);
+
+// --- Роуты для новостей (админка) ---
+router.get('/news', protect, admin, newsController.getNews);
+router.get('/news/:id', protect, admin, newsController.getNewsById);
+router.post('/news', protect, admin, newsController.createNews);
+router.put('/news/:id', protect, admin, newsController.updateNews);
+router.delete('/news/:id', protect, admin, newsController.deleteNews);
 
 // --- Роуты для токена админа ---
 router.post('/generate-token', protect, admin, adminController.generateAdminToken);
