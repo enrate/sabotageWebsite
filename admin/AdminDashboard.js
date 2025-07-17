@@ -1,12 +1,5 @@
 import React, { useState, useEffect } from "react";
-import Sheet from '@mui/joy/Sheet';
-import Box from '@mui/joy/Box';
-import Typography from '@mui/joy/Typography';
-import List from '@mui/joy/List';
-import ListItem from '@mui/joy/ListItem';
-import ListItemButton from '@mui/joy/ListItemButton';
-import ListItemDecorator from '@mui/joy/ListItemDecorator';
-import Divider from '@mui/joy/Divider';
+import { Box, Typography, List, ListItem, ListItemButton, Divider } from '@mui/material';
 import NewsIcon from '@mui/icons-material/Article';
 import UsersIcon from '@mui/icons-material/Group';
 import AwardIcon from '@mui/icons-material/EmojiEvents';
@@ -44,25 +37,26 @@ export default function AdminDashboard() {
   }, [section]);
 
   return (
-    <Sheet sx={{ minHeight: '100vh', bgcolor: 'background.body', display: 'flex' }}>
+    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', display: 'flex' }}>
       {/* Боковое меню */}
-      <Box sx={{ width: 240, bgcolor: 'background.level1', p: 2, borderRight: '1px solid #222', minHeight: '100vh' }}>
-        <Typography level="h4" sx={{ mb: 3, color: '#ffb347', fontWeight: 700 }}>
+      <Box sx={{ width: 240, bgcolor: 'background.paper', p: 2, borderRight: '1px solid #222', minHeight: '100vh' }}>
+        <Typography variant="h5" sx={{ mb: 3, color: 'secondary.main', fontWeight: 700 }}>
           Админ-панель
         </Typography>
         <List>
           {sections.map(s => (
-            <ListItem key={s.key}>
-              <ListItemButton selected={section === s.key} onClick={() => setSection(s.key)}>
-                <ListItemDecorator>{s.icon}</ListItemDecorator>
-                {s.label}
+            <ListItem key={s.key} disablePadding>
+              <ListItemButton selected={section === s.key} onClick={() => setSection(s.key)} sx={{ borderRadius: 2, gap: 1 }}>
+                {s.icon}
+                <Typography sx={{ ml: 1 }}>{s.label}</Typography>
               </ListItemButton>
             </ListItem>
           ))}
         </List>
+        <Divider sx={{ mt: 2 }} />
       </Box>
       {/* Контент */}
-      <Box sx={{ flex: 1, p: { xs: 1, md: 4 }, minHeight: '100vh', bgcolor: 'background.body' }}>
+      <Box sx={{ flex: 1, p: { xs: 1, md: 4 }, minHeight: '100vh', bgcolor: 'background.default' }}>
         {section === 'news' && (
           loadingNews ? <Typography>Загрузка новостей...</Typography> :
           <AdminNews news={news} setNews={setNews} />
@@ -72,6 +66,6 @@ export default function AdminDashboard() {
         {section === 'squads' && <AdminSquads />}
         {section === 'seasons' && <AdminSeasons />}
       </Box>
-    </Sheet>
+    </Box>
   );
 } 
