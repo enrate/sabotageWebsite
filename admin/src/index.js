@@ -5,15 +5,12 @@ import { AdminAuthProvider } from "./context/AdminAuthContext";
 import AdminLoginPage from "./pages/AdminLoginPage";
 import AdminPage from "./AdminPage";
 import AdminPrivateRoute from "./components/AdminPrivateRoute";
-import { ThemeProvider } from '@mui/material/styles';
-import CssBaseline from '@mui/material/CssBaseline';
-import theme from './theme';
+import AppTheme from './AppTheme';
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
+    <AppTheme>
       <AdminAuthProvider>
         <BrowserRouter>
           <Routes>
@@ -26,6 +23,6 @@ root.render(
           </Routes>
         </BrowserRouter>
       </AdminAuthProvider>
-    </ThemeProvider>
+    </AppTheme>
   </React.StrictMode>
 ); 

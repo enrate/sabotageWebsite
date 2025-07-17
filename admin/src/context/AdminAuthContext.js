@@ -7,7 +7,7 @@ export const useAdminAuth = () => useContext(AdminAuthContext);
 export const AdminAuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem('adminToken') || null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
