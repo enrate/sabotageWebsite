@@ -21,12 +21,13 @@ const columns = (handleDetail, handleDelete) => [
     valueGetter: (params) => params.value || '-'
   },
   {
-    field: 'playersCount',
+    field: 'players',
     headerName: 'Игроков',
     width: 100,
     valueGetter: (params) => {
-      console.log('[DEBUG] params:', params);
-      if (params && params.row && Array.isArray(params.row.players)) return params.row.players.length;
+      console.log("DEUG", params);
+      // params.value — это players
+      if (Array.isArray(params.value)) return params.value.length;
       return '-';
     }
   },
