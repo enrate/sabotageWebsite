@@ -355,8 +355,15 @@ async function processMatchResults(req, res) {
           score += (kills * 0.1) - (deaths * 0.02) - (teamkills * 0.1);
           score = Math.max(0, Math.min(1, score));
           const expected = 1 / (1 + Math.pow(10, ((avgOpponentElo - stats.elo) / 400)));
+          const oldElo = oldEloMap[armaId] ?? stats.elo;
           const newElo = eloService.calculateElo(stats.elo, score, expected, K);
           await stats.update({ elo: newElo, lastUpdated: new Date() });
+          // --- Обновляем eloChange в PlayerResult ---
+          const eloChange = newElo - oldElo;
+          await db.PlayerResult.update(
+            { eloChange },
+            { where: { sessionId, playerIdentity: armaId } }
+          );
           if (stats.userId) {
             const userStats = await db.UserStats.findOne({ where: { userId: stats.userId } });
             if (userStats && (userStats.maxElo === null || newElo > userStats.maxElo)) {
