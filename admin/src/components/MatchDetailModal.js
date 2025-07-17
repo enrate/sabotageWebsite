@@ -1,47 +1,78 @@
 import React from 'react';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, Table, TableHead, TableRow, TableCell, TableBody, Box } from '@mui/material';
 
+const getPlayerStats = (player, match) => {
+  // Имя игрока
+  const name = player.name || player.playerIdentity || player.PlayerId || '-';
+  // Результат (по фракции и factionObjectives)
+  let result = '-';
+  if (player.faction && Array.isArray(match.factionObjectives)) {
+    const obj = match.factionObjectives.find(f => f.factionKey === player.faction);
+    if (obj) {
+      if (obj.resultName && obj.resultName.toLowerCase().includes('victory')) result = 'Победа';
+      else if (obj.resultName && obj.resultName.toLowerCase().includes('loss')) result = 'Поражение';
+      else result = obj.resultName || '-';
+    }
+  }
+  // Убийства
+  let kills = 0;
+  if (Array.isArray(match.kills)) {
+    kills = match.kills.filter(k => {
+      // killerId может быть PlayerId или entityId
+      return k.killerId === player.PlayerId || k.killerId === player.entityId;
+    }).length;
+  }
+  // Смерти
+  let deaths = 0;
+  if (Array.isArray(match.kills)) {
+    deaths = match.kills.filter(k => {
+      return k.victimId === player.PlayerId || k.victimId === player.entityId;
+    }).length;
+  }
+  return { name, result, kills, deaths };
+};
+
 const MatchDetailModal = ({ open, onClose, match }) => {
   if (!match) return null;
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-      <DialogTitle>Детали матча #{match.id}</DialogTitle>
+      <DialogTitle>Детали матча #{match.id || match.sessionId}</DialogTitle>
       <DialogContent>
         <Typography variant="subtitle1" sx={{ mb: 2 }}>
           {match.date ? new Date(match.date).toLocaleString('ru-RU') : ''}
         </Typography>
         <Box sx={{ mb: 2 }}>
-          <Typography variant="body1">Тип: {match.type || '-'}</Typography>
-          <Typography variant="body1">Статус: {match.status || '-'}</Typography>
+          <Typography variant="body1">Сценарий: {match.missionName || '-'}</Typography>
         </Box>
-        <Table size="small">
+        <Table>
           <TableHead>
             <TableRow>
-              <TableCell>Игрок/Отряд</TableCell>
+              <TableCell>Игрок</TableCell>
               <TableCell>Результат</TableCell>
               <TableCell>Убийства</TableCell>
               <TableCell>Смерти</TableCell>
-              <TableCell>Очки</TableCell>
               <TableCell>Δ Эло</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {(match.results || match.players || []).map((res, idx) => (
-              <TableRow key={idx}>
-                <TableCell>{res.playerName || res.name || res.squadName || '-'}</TableCell>
-                <TableCell>{res.result || '-'}</TableCell>
-                <TableCell>{res.kills ?? '-'}</TableCell>
-                <TableCell>{res.deaths ?? '-'}</TableCell>
-                <TableCell>{res.score ?? '-'}</TableCell>
-                <TableCell>{
-  typeof res.eloAfter === 'number' && typeof res.eloChange === 'number'
-    ? `${res.eloAfter} (${res.eloChange > 0 ? '+' : ''}${res.eloChange})`
-    : typeof res.eloChange === 'number'
-      ? (res.eloChange > 0 ? `+${res.eloChange}` : res.eloChange)
-      : '—'
-}</TableCell>
-              </TableRow>
-            ))}
+            {(match.players || []).map((player, idx) => {
+              const stats = getPlayerStats(player, match);
+              return (
+                <TableRow key={player.playerIdentity || player.PlayerId || idx}>
+                  <TableCell>{stats.name}</TableCell>
+                  <TableCell>{stats.result}</TableCell>
+                  <TableCell>{stats.kills}</TableCell>
+                  <TableCell>{stats.deaths}</TableCell>
+                  <TableCell>{
+                    typeof player.eloAfter === 'number' && typeof player.eloChange === 'number'
+                      ? `${player.eloAfter} (${player.eloChange > 0 ? '+' : ''}${player.eloChange})`
+                      : typeof player.eloChange === 'number'
+                        ? (player.eloChange > 0 ? `+${player.eloChange}` : player.eloChange)
+                        : '—'
+                  }</TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </DialogContent>

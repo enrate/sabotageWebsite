@@ -18,16 +18,14 @@ const columns = (handleDetail, handleDelete) => [
     field: 'missionName',
     headerName: 'Сценарий',
     width: 200,
-    valueGetter: (params) => params.value || '-'
+    valueGetter: (params) => params || '-'
   },
   {
     field: 'players',
     headerName: 'Игроков',
     width: 100,
     valueGetter: (params) => {
-      console.log("DEUG", params);
-      // params.value — это players
-      if (Array.isArray(params.value)) return params.value.length;
+      if (Array.isArray(params)) return params.length;
       return '-';
     }
   },
