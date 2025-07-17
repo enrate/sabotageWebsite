@@ -39,12 +39,12 @@ export default function AdminPage() {
   return (
     <DashboardLayout section={activeTab} navigate={navigate}>
       <Routes>
-        <Route path="/" element={<Navigate to="dashboard" replace />} />
+        <Route path="/" element={<Navigate to="/admin/dashboard" replace />} />
         {tabRoutes.map(tab => (
           <Route key={tab.key} path={tab.path} element={tab.element} />
         ))}
         {/* fallback */}
-        <Route path="*" element={<Navigate to="dashboard" replace />} />
+        <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
       </Routes>
     </DashboardLayout>
   );
