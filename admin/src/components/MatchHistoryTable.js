@@ -35,6 +35,11 @@ const columns = (handleDetail, handleDelete) => [
   },
 ];
 
+const mapMatchRow = (row) => ({
+  ...row,
+  id: row.id || row.sessionId || row.matchId || row._id || row.uuid
+});
+
 const MatchHistoryTable = ({ matches, refreshMatches }) => {
   const [detailOpen, setDetailOpen] = useState(false);
   const [selectedMatch, setSelectedMatch] = useState(null);
@@ -64,7 +69,7 @@ const MatchHistoryTable = ({ matches, refreshMatches }) => {
       </Box>
       <Box sx={{ height: 540, width: '100%', bgcolor: 'background.paper', borderRadius: 3, boxShadow: 2 }}>
         <DataGrid
-          rows={matches}
+          rows={matches.map(mapMatchRow)}
           columns={columns(handleOpenDetail, handleDelete)}
           pageSize={10}
           rowsPerPageOptions={[10, 25, 50]}
