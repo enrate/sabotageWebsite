@@ -30,7 +30,7 @@ export default function AdminDashboard() {
     if (section === 'news') {
       setLoadingNews(true);
       axios.get('/api/news')
-        .then(res => setNews(res.data))
+        .then(res => setNews(Array.isArray(res.data) ? res.data : []))
         .catch(() => setErrorNews('Ошибка загрузки новостей'))
         .finally(() => setLoadingNews(false));
     }
