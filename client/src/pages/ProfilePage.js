@@ -1102,6 +1102,11 @@ function ProfileMatchHistory({ armaId }) {
                       <React.Fragment key={p.playerIdentity ?? p.entityId ?? p.PlayerId ?? idx}>
                         {/* Просто текст, без ссылки */}
                         <b>{p.name || p.playerIdentity || p.PlayerId || (p.entityId ?? idx)}</b>
+                        {typeof p.eloChange === 'number' && (
+                          <span style={{ color: p.eloChange > 0 ? '#4caf50' : p.eloChange < 0 ? '#ff4d4f' : '#bbb', fontWeight: 500, marginLeft: 6 }}>
+                            (Δ Эло: {p.eloChange > 0 ? '+' : ''}{p.eloChange})
+                          </span>
+                        )}
                         {idx < match.players.length - 1 && ', '}
                       </React.Fragment>
                     ))}
@@ -1154,6 +1159,11 @@ function ProfileMatchHistory({ armaId }) {
                                 <li key={p.playerIdentity ?? p.entityId ?? p.PlayerId ?? idx}>
                                   {/* Кликабельный ник */}
                                   {renderPlayer(match.players, p.playerIdentity ?? p.entityId ?? p.PlayerId ?? idx)}
+                                  {typeof p.eloChange === 'number' && (
+                                    <span style={{ color: p.eloChange > 0 ? '#4caf50' : p.eloChange < 0 ? '#ff4d4f' : '#bbb', fontWeight: 500, marginLeft: 6 }}>
+                                      (Δ Эло: {p.eloChange > 0 ? '+' : ''}{p.eloChange})
+                                    </span>
+                                  )}
                                 </li>
                               ))}
                             {match.players.filter(p => p.faction === f.factionKey).length === 0 && <li style={{ color: '#bbb', fontSize: 13 }}>Нет участников</li>}

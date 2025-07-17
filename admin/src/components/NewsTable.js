@@ -27,7 +27,10 @@ const columns = (handleEdit, handleDelete) => [
     field: 'createdAt',
     headerName: 'Дата',
     width: 120,
-    valueGetter: (params) => formatDate(params.row.createdAt),
+    valueGetter: (params) => {
+      if (!params.row || !params.row.createdAt) return '—';
+      return formatDate(params.row.createdAt);
+    },
   },
   {
     field: 'content',
