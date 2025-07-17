@@ -70,6 +70,7 @@ const MatchHistoryTable = ({ matches, refreshMatches }) => {
           rowsPerPageOptions={[10, 25, 50]}
           disableSelectionOnClick
           autoHeight={false}
+          getRowId={row => row.id || row.matchId}
           sx={{
             border: 'none',
             '& .MuiDataGrid-columnHeaders': { bgcolor: 'background.default', color: 'text.secondary', fontWeight: 700 },
