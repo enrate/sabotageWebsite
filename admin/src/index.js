@@ -3,7 +3,7 @@ import ReactDOM from "react-dom/client";
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AdminAuthProvider } from "./context/AdminAuthContext";
 import AdminLoginPage from "./pages/AdminLoginPage";
-import AdminDashboard from "./components/AdminDashboard";
+import AdminPage from "./AdminPage";
 import AdminPrivateRoute from "./components/AdminPrivateRoute";
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -20,7 +20,7 @@ root.render(
             <Route path="/admin/login" element={<AdminLoginPage />} />
             <Route path="/*" element={
               <AdminPrivateRoute>
-                <AdminDashboard />
+                <AdminPage />
               </AdminPrivateRoute>
             } />
           </Routes>
