@@ -10,7 +10,7 @@ import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import dayjs from 'dayjs';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 
-const columns = (handleEdit, handleDelete, handleBan, handleUnban, handleWarnings) => [
+const columns = (handleEdit, handleBan, handleUnban, handleWarnings) => [
   {
     field: 'avatar',
     headerName: '',
@@ -243,7 +243,7 @@ const UserTable = ({ users, refreshUsers }) => {
       <Box sx={{ height: 540, width: '100%', bgcolor: 'background.paper', borderRadius: 3, boxShadow: 2 }}>
         <DataGrid
           rows={filteredUsers}
-          columns={columns(handleOpenModal, handleDelete, handleBan, handleUnban, handleWarnings)}
+          columns={columns(handleOpenModal, handleBan, handleUnban, handleWarnings)}
           pageSize={10}
           rowsPerPageOptions={[10, 25, 50]}
           disableSelectionOnClick
