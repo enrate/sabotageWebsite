@@ -10,7 +10,7 @@ const AdminLoginPage = () => {
   const navigate = useNavigate();
 
   React.useEffect(() => {
-    if (user) navigate('/');
+    if (user) navigate('/admin');
   }, [user, navigate]);
 
   const handleSubmit = async (e) => {
