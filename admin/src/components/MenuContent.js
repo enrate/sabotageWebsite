@@ -6,45 +6,42 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import Stack from '@mui/material/Stack';
 import HomeRoundedIcon from '@mui/icons-material/HomeRounded';
-import AnalyticsRoundedIcon from '@mui/icons-material/AnalyticsRounded';
-import PeopleRoundedIcon from '@mui/icons-material/PeopleRounded';
-import AssignmentRoundedIcon from '@mui/icons-material/AssignmentRounded';
-import SettingsRoundedIcon from '@mui/icons-material/SettingsRounded';
-import InfoRoundedIcon from '@mui/icons-material/InfoRounded';
-import HelpRoundedIcon from '@mui/icons-material/HelpRounded';
+import ArticleIcon from '@mui/icons-material/Article';
+import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
+import GroupIcon from '@mui/icons-material/Group';
+import GroupsIcon from '@mui/icons-material/Groups';
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+import AssignmentIcon from '@mui/icons-material/Assignment';
+import CommentIcon from '@mui/icons-material/Comment';
+import NotificationsIcon from '@mui/icons-material/Notifications';
+import BarChartIcon from '@mui/icons-material/BarChart';
+import SettingsIcon from '@mui/icons-material/Settings';
+import ListAltIcon from '@mui/icons-material/ListAlt';
 
-const mainListItems = [
-  { text: 'Home', icon: <HomeRoundedIcon /> },
-  { text: 'Analytics', icon: <AnalyticsRoundedIcon /> },
-  { text: 'Clients', icon: <PeopleRoundedIcon /> },
-  { text: 'Tasks', icon: <AssignmentRoundedIcon /> },
+const tabs = [
+  { key: 'dashboard', label: 'Дашборд', icon: <HomeRoundedIcon /> },
+  { key: 'news', label: 'Новости', icon: <ArticleIcon /> },
+  { key: 'awards', label: 'Награды', icon: <EmojiEventsIcon /> },
+  { key: 'users', label: 'Пользователи', icon: <GroupIcon /> },
+  { key: 'squads', label: 'Сквады', icon: <GroupsIcon /> },
+  { key: 'seasons', label: 'Сезоны', icon: <CalendarMonthIcon /> },
+  { key: 'matches', label: 'Матчи', icon: <AssignmentIcon /> },
+  { key: 'comments', label: 'Комментарии', icon: <CommentIcon /> },
+  { key: 'notifications', label: 'Уведомления', icon: <NotificationsIcon /> },
+  { key: 'statistics', label: 'Статистика', icon: <BarChartIcon /> },
+  { key: 'settings', label: 'Настройки', icon: <SettingsIcon /> },
+  { key: 'logs', label: 'Системные логи', icon: <ListAltIcon /> },
 ];
 
-const secondaryListItems = [
-  { text: 'Settings', icon: <SettingsRoundedIcon /> },
-  { text: 'About', icon: <InfoRoundedIcon /> },
-  { text: 'Feedback', icon: <HelpRoundedIcon /> },
-];
-
-export default function MenuContent() {
+export default function MenuContent({ section, setSection }) {
   return (
     <Stack sx={{ flexGrow: 1, p: 1, justifyContent: 'space-between' }}>
       <List dense>
-        {mainListItems.map((item, index) => (
-          <ListItem key={index} disablePadding sx={{ display: 'block' }}>
-            <ListItemButton selected={index === 0}>
+        {tabs.map((item) => (
+          <ListItem key={item.key} disablePadding sx={{ display: 'block' }}>
+            <ListItemButton selected={section === item.key} onClick={() => setSection(item.key)}>
               <ListItemIcon>{item.icon}</ListItemIcon>
-              <ListItemText primary={item.text} />
-            </ListItemButton>
-          </ListItem>
-        ))}
-      </List>
-      <List dense>
-        {secondaryListItems.map((item, index) => (
-          <ListItem key={index} disablePadding sx={{ display: 'block' }}>
-            <ListItemButton>
-              <ListItemIcon>{item.icon}</ListItemIcon>
-              <ListItemText primary={item.text} />
+              <ListItemText primary={item.label} />
             </ListItemButton>
           </ListItem>
         ))}
