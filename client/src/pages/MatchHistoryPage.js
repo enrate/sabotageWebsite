@@ -439,10 +439,15 @@ const MatchHistoryPage = () => {
                               ))}
                             </ul>
                             <div style={{ color: '#fff', fontWeight: 500, marginBottom: 4 }}>Участники:</div>
-                            <ul style={{ margin: 0, paddingLeft: 18 }}>
+                            <ul style={{ margin: 0, paddingLeft: 18, marginBottom: 0 }}>
                               {getFactionPlayers(match.players, f.factionKey).map((p, idx) => (
                                 <li key={p.playerIdentity ?? p.entityId ?? p.PlayerId ?? idx}>
                                   {renderPlayer(match.players, p.playerIdentity ?? p.entityId ?? p.PlayerId ?? idx)}
+                                  {typeof p.eloAfter === 'number' && typeof p.eloChange === 'number' && (
+                                    <span style={{ color: p.eloChange > 0 ? '#4caf50' : p.eloChange < 0 ? '#ff4d4f' : '#bbb', fontWeight: 500, marginLeft: 6 }}>
+                                      {p.eloAfter} ({p.eloChange > 0 ? '+' : ''}{p.eloChange})
+                                    </span>
+                                  )}
                                 </li>
                               ))}
                               {getFactionPlayers(match.players, f.factionKey).length === 0 && <li style={{ color: '#bbb', fontSize: 15 }}>Нет участников</li>}
@@ -450,6 +455,24 @@ const MatchHistoryPage = () => {
                           </div>
                         ))}
                       </div>
+                      {/* Зрители */}
+                      {match.players.filter(p => !p.faction).length > 0 && (
+                        <div style={{ color: '#bbb', fontSize: 15, marginBottom: 12 }}>
+                          <b style={{ color: '#ffb347' }}>Зрители:</b>{' '}
+                          {match.players.filter(p => !p.faction).map((p, idx, arr) => (
+                            <span key={p.playerIdentity ?? p.entityId ?? p.PlayerId ?? idx}>
+                              <b>{p.name || p.playerIdentity || p.PlayerId || (p.entityId ?? idx)}</b>
+                              {typeof p.eloAfter === 'number' && typeof p.eloChange === 'number' && (
+                                <span style={{ color: p.eloChange > 0 ? '#4caf50' : p.eloChange < 0 ? '#ff4d4f' : '#bbb', fontWeight: 500, marginLeft: 6 }}>
+                                  {p.eloAfter} ({p.eloChange > 0 ? '+' : ''}{p.eloChange})
+                                </span>
+                              )}
+                              {idx < arr.length - 1 && ', '}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      {/* История убийств */}
                       <div style={{ color: '#fff', fontSize: 15, marginTop: 18 }}>
                         <b>История убийств:</b>
                         <ul style={{ margin: '8px 0 0 18px', padding: 0 }}>

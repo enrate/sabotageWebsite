@@ -33,7 +33,13 @@ const MatchDetailModal = ({ open, onClose, match }) => {
                 <TableCell>{res.kills ?? '-'}</TableCell>
                 <TableCell>{res.deaths ?? '-'}</TableCell>
                 <TableCell>{res.score ?? '-'}</TableCell>
-                <TableCell>{typeof res.eloChange === 'number' ? (res.eloChange > 0 ? `+${res.eloChange}` : res.eloChange) : '—'}</TableCell>
+                <TableCell>{
+  typeof res.eloAfter === 'number' && typeof res.eloChange === 'number'
+    ? `${res.eloAfter} (${res.eloChange > 0 ? '+' : ''}${res.eloChange})`
+    : typeof res.eloChange === 'number'
+      ? (res.eloChange > 0 ? `+${res.eloChange}` : res.eloChange)
+      : '—'
+}</TableCell>
               </TableRow>
             ))}
           </TableBody>

@@ -101,12 +101,22 @@ exports.getMatchHistory = async (req, res) => {
         attributes: ['sessionId', 'playerIdentity', 'eloChange']
       });
     }
-    // Мапа для быстрого поиска eloChange
+    // Получаем все PlayerSeasonStats для этих игроков и сезона (берём последнее эло)
+    let allPlayerStats = [];
+    if (allArmaIds.length > 0) {
+      allPlayerStats = await db.PlayerSeasonStats.findAll({
+        where: { armaId: allArmaIds },
+        attributes: ['armaId', 'elo', 'seasonId']
+      });
+    }
     const eloChangeMap = {};
     for (const pr of allPlayerResults) {
       eloChangeMap[`${pr.sessionId}_${pr.playerIdentity}`] = pr.eloChange;
     }
-
+    const eloAfterMap = {};
+    for (const stat of allPlayerStats) {
+      eloAfterMap[stat.armaId] = stat.elo;
+    }
     // Формируем ответ для фронта
     const result = matchesData.map(({ m, data, players }) => {
       // --- Сопоставления для фракций ---
@@ -137,7 +147,8 @@ exports.getMatchHistory = async (req, res) => {
         const armaId = p.GUID ? String(p.GUID).trim().toLowerCase() : null;
         const userId = armaId ? armaIdToUserId[armaId] || null : null;
         const eloChange = eloChangeMap[`${m.sessionId}_${p.GUID}`] ?? null;
-        return { playerIdentity: p.GUID, name: p.Name, faction, entityId, userId, PlayerId: p.PlayerId, eloChange };
+        const eloAfter = armaId ? eloAfterMap[armaId] ?? null : null;
+        return { playerIdentity: p.GUID, name: p.Name, faction, entityId, userId, PlayerId: p.PlayerId, eloChange, eloAfter };
       }) : [];
       // --- Определение тимкиллов ---
       const kills = Array.isArray(data.Kills) ? data.Kills.map(k => {

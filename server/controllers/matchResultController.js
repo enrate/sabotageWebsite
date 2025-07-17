@@ -336,6 +336,8 @@ async function processMatchResults(req, res) {
           if (!stats) continue;
           const playerResult = playersResults.find(p => p.playerIdentity === armaId);
           if (!playerResult) continue;
+          // --- Новая проверка: если нет фракции, эло не меняется ---
+          if (!playerResult.faction) continue;
           let isWin = playerResult.result === 'win';
           let isLose = playerResult.result === 'lose';
           let isDraw = playerResult.result === 'draw';
