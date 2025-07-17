@@ -41,7 +41,7 @@ export default function MenuContent({ section, navigate }) {
           <ListItem key={item.key} disablePadding sx={{ display: 'block' }}>
             <ListItemButton
               selected={section === item.key}
-              onClick={() => navigate(item.path)}
+              onClick={() => navigate(`/admin/${item.path}`)}
             >
               <ListItemIcon>{item.icon}</ListItemIcon>
               <ListItemText primary={item.label} />
