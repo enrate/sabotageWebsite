@@ -24,7 +24,7 @@ export default function AdminDashboard() {
       .finally(() => setLoadingActivity(false));
     setLoadingTop(true);
     axios.get('/api/admin/top-players')
-      .then(res => setTopPlayers(res.data))
+      .then(res => setTopPlayers(Array.isArray(res.data) ? res.data : []))
       .catch(() => setTopPlayers([]))
       .finally(() => setLoadingTop(false));
   }, []);
@@ -109,7 +109,7 @@ export default function AdminDashboard() {
               </Box>
             </Box>
             <Box component="tbody">
-              {topPlayers.map((p, idx) => (
+              {(Array.isArray(topPlayers) ? topPlayers : []).map((p, idx) => (
                 <Box component="tr" key={p.id} sx={{ borderBottom: '1px solid', borderColor: 'divider' }}>
                   <Box component="td" sx={{ py: 1, px: 2 }}>{idx + 1}</Box>
                   <Box component="td" sx={{ py: 1, px: 2 }}>{p.username}</Box>
