@@ -26,7 +26,10 @@ const columns = (handleEdit, handleDelete) => [
     headerName: 'Кратко',
     flex: 2,
     minWidth: 200,
-    valueGetter: (params) => params.value.replace(/<[^>]*>/g, '').slice(0, 60) + '...'
+    valueGetter: (params) => {
+      const text = params.value || '';
+      return text.replace(/<[^>]*>/g, '').slice(0, 60) + '...';
+    }
   },
   {
     field: 'actions',
