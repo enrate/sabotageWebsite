@@ -12,6 +12,7 @@ export const AdminAuthProvider = ({ children }) => {
 
   useEffect(() => {
     if (token && !user) {
+      setLoading(true);
       fetch('/api/auth/me', {
         headers: { Authorization: `Bearer ${token}` },
       })
@@ -23,9 +24,11 @@ export const AdminAuthProvider = ({ children }) => {
             logout();
           }
         })
-        .catch(() => logout());
+        .catch(() => logout())
+        .finally(() => setLoading(false));
+    } else {
+      setLoading(false);
     }
-    // eslint-disable-next-line
   }, [token]);
 
   const login = async (email, password) => {

@@ -99,7 +99,7 @@ export default function AdminDashboard() {
               <Typography variant="subtitle2" color="text.secondary">Сезоны</Typography>
               <Typography variant="h4" sx={{ fontWeight: 700 }}>
                 {loadingStats ? <CircularProgress size={24} /> : stats?.seasons ?? '-'}
-              </Typography>
+        </Typography>
             </CardContent>
           </Card>
         </Grid>
@@ -149,9 +149,9 @@ export default function AdminDashboard() {
                 </Box>
               ))}
             </Box>
-          </Box>
+      </Box>
         )}
       </Paper>
-    </Box>
+      </Box>
   );
 } 
