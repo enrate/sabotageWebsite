@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import {
-  Box, Typography, Avatar, Tooltip, IconButton, Snackbar, Alert, Dialog, Button
+  Box, Typography, Avatar, Tooltip, IconButton, Snackbar, Alert, Dialog, Button, DialogTitle, DialogContent, DialogContentText, DialogActions
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, EmojiEvents as AwardIcon, People as PeopleIcon } from '@mui/icons-material';
 import AwardEditorModal from '../AwardEditorModal';
+import axios from 'axios';
 
 const columns = (handleEdit, handleDelete, handleRecipients) => [
   {
@@ -70,12 +71,24 @@ const AwardTable = ({ awards, refreshAwards, onShowRecipients }) => {
   };
   const handleDelete = (id) => {
     setDeleteId(id);
-    // TODO: реализовать удаление
-    setSnackbar({ open: true, message: 'Награда удалена (заглушка)', severity: 'info' });
+  };
+  const confirmDelete = async () => {
+    if (!deleteId) return;
+    try {
+      const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
+      await axios.delete(`/api/admin/awards/${deleteId}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      });
+      setSnackbar({ open: true, message: 'Награда удалена', severity: 'success' });
+      setDeleteId(null);
+      refreshAwards();
+    } catch (e) {
+      setSnackbar({ open: true, message: e?.response?.data?.error || 'Ошибка при удалении', severity: 'error' });
+      setDeleteId(null);
+    }
   };
   const handleRecipients = (award) => {
     if (onShowRecipients) onShowRecipients(award);
-    setSnackbar({ open: true, message: 'Открыт список получателей (заглушка)', severity: 'info' });
   };
 
   return (
@@ -113,7 +126,16 @@ const AwardTable = ({ awards, refreshAwards, onShowRecipients }) => {
       </Snackbar>
       {/* Диалог удаления (реализовать по необходимости) */}
       <Dialog open={!!deleteId} onClose={() => setDeleteId(null)}>
-        {/* ... */}
+        <DialogTitle>Удалить награду?</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Вы действительно хотите удалить эту награду? Это действие необратимо. Нельзя удалить награду, если она уже выдана хотя бы одному получателю.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteId(null)}>Отмена</Button>
+          <Button onClick={confirmDelete} color="error" variant="contained">Удалить</Button>
+        </DialogActions>
       </Dialog>
     </Box>
   );

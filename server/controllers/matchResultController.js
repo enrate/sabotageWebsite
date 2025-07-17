@@ -190,7 +190,23 @@ async function processMatchResults(req, res) {
     const seasonId = currentSeason ? currentSeason.id : null;
     await processKillsFromMatchData(req.body, seasonId);
     // --- СТАРАЯ ЛОГИКА УДАЛЕНА ---
+    const armaIds = playersResults ? playersResults.map(p => p.playerIdentity) : [];
     if (playersResults && Array.isArray(playersResults)) {
+      // --- Мапа для eloChange ---
+      const eloChangeMap = {};
+      // --- Получаем старое эло до обновления ---
+      let playerStatsBefore = [];
+      try {
+        playerStatsBefore = await db.PlayerSeasonStats.findAll({ where: { seasonId, armaId: armaIds } });
+      } catch (err) {
+        console.error('[MatchResultController] Ошибка при получении PlayerSeasonStats (до):', err);
+      }
+      // --- Сохраняем старое эло ---
+      const oldEloMap = {};
+      for (const s of playerStatsBefore) {
+        oldEloMap[s.armaId] = s.elo;
+      }
+      // --- Основная логика (оставляю как есть) ---
       for (const player of playersResults) {
         try {
           await db.PlayerResult.create({
@@ -198,13 +214,13 @@ async function processMatchResults(req, res) {
             result: player.result,
             sessionId,
             timestamp,
+            eloChange: null // временно, обновим ниже
           });
         } catch (err) {
           console.error('[MatchResultController] Ошибка при создании PlayerResult:', err, player);
         }
       }
-      const armaIds = playersResults.map(p => p.playerIdentity);
-      let users = [];
+      const users = [];
       try {
         users = await db.User.findAll({ where: { armaId: armaIds } });
       } catch (err) {
@@ -302,6 +318,7 @@ async function processMatchResults(req, res) {
           }
         }
       }
+      const unprocessedLogs = await db.KillLog.findAll({ where: { processed: false } });
       for (const log of unprocessedLogs) {
         if (log.victimIdentity && !playerStats.find(s => s.armaId === log.victimIdentity)) {
           try {

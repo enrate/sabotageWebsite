@@ -22,16 +22,18 @@ const MatchDetailModal = ({ open, onClose, match }) => {
               <TableCell>Убийства</TableCell>
               <TableCell>Смерти</TableCell>
               <TableCell>Очки</TableCell>
+              <TableCell>Δ Эло</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {(match.results || []).map((res, idx) => (
+            {(match.results || match.players || []).map((res, idx) => (
               <TableRow key={idx}>
-                <TableCell>{res.playerName || res.squadName || '-'}</TableCell>
+                <TableCell>{res.playerName || res.name || res.squadName || '-'}</TableCell>
                 <TableCell>{res.result || '-'}</TableCell>
                 <TableCell>{res.kills ?? '-'}</TableCell>
                 <TableCell>{res.deaths ?? '-'}</TableCell>
                 <TableCell>{res.score ?? '-'}</TableCell>
+                <TableCell>{typeof res.eloChange === 'number' ? (res.eloChange > 0 ? `+${res.eloChange}` : res.eloChange) : '—'}</TableCell>
               </TableRow>
             ))}
           </TableBody>

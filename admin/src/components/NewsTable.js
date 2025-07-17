@@ -5,21 +5,29 @@ import {
 import { DataGrid } from '@mui/x-data-grid';
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Article as NewsIcon } from '@mui/icons-material';
 import RichTextEditor from '../RichTextEditor';
+import axios from 'axios';
 
 function formatDate(date) {
-  if (!date) return '-';
-  return new Date(date).toLocaleString('ru-RU');
+  if (!date) return '—';
+  const d = new Date(date);
+  if (isNaN(d.getTime())) return '—';
+  return d.toLocaleDateString('ru-RU');
 }
 
 const columns = (handleEdit, handleDelete) => [
   { field: 'id', headerName: 'ID', width: 70 },
   { field: 'title', headerName: 'Заголовок', flex: 1, minWidth: 160 },
-  { field: 'author', headerName: 'Автор', width: 140 },
+  {
+    field: 'author',
+    headerName: 'Автор',
+    width: 140,
+    valueGetter: (params) => params.value?.username || ''
+  },
   {
     field: 'createdAt',
     headerName: 'Дата',
-    width: 160,
-    valueGetter: (params) => formatDate(params.value),
+    width: 120,
+    valueGetter: (params) => formatDate(params.row.createdAt),
   },
   {
     field: 'content',
@@ -43,7 +51,7 @@ const columns = (handleEdit, handleDelete) => [
           <IconButton size="small" color="primary" onClick={() => handleEdit(params.row)}><EditIcon /></IconButton>
         </Tooltip>
         <Tooltip title="Удалить">
-          <IconButton size="small" color="error" onClick={() => handleDelete(params.row.id)}><DeleteIcon /></IconButton>
+          <IconButton size="small" color="error" onClick={() => handleDelete(params.row)}><DeleteIcon /></IconButton>
         </Tooltip>
       </Box>
     ),
@@ -57,6 +65,7 @@ const NewsTable = ({ news, setNews }) => {
   const [content, setContent] = useState('');
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [deleteId, setDeleteId] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const handleOpenModal = (item = null) => {
     setEditingNews(item);
@@ -70,16 +79,54 @@ const NewsTable = ({ news, setNews }) => {
     setTitle('');
     setContent('');
   };
-  const handleSubmit = (e) => {
+
+  // --- СОХРАНЕНИЕ (создание/редактирование) ---
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // TODO: реализовать сохранение через API
-    setSnackbar({ open: true, message: editingNews ? 'Новость обновлена' : 'Новость создана', severity: 'success' });
-    handleCloseModal();
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
+      let response;
+      if (editingNews) {
+        // Редактирование
+        response = await axios.put(`/api/admin/news/${editingNews.id}`, { title, content }, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {}
+        });
+        setNews(prev => prev.map(n => n.id === editingNews.id ? { ...response.data, id: response.data.id || response.data.newsId } : n));
+        setSnackbar({ open: true, message: 'Новость обновлена', severity: 'success' });
+      } else {
+        // Создание
+        response = await axios.post('/api/admin/news', { title, content }, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {}
+        });
+        setNews(prev => [{ ...response.data, id: response.data.id || response.data.newsId }, ...prev]);
+        setSnackbar({ open: true, message: 'Новость создана', severity: 'success' });
+      }
+      handleCloseModal();
+    } catch (err) {
+      setSnackbar({ open: true, message: 'Ошибка при сохранении', severity: 'error' });
+    } finally {
+      setLoading(false);
+    }
   };
-  const handleDelete = (id) => {
-    setDeleteId(id);
-    // TODO: реализовать удаление
-    setSnackbar({ open: true, message: 'Новость удалена (заглушка)', severity: 'info' });
+
+  // --- УДАЛЕНИЕ ---
+  const handleDelete = async (item) => {
+    setDeleteId(item.id);
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('adminToken') || localStorage.getItem('token');
+      await axios.delete(`/api/admin/news/${item.id}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      });
+      setNews(prev => prev.filter(n => n.id !== item.id));
+      setSnackbar({ open: true, message: 'Новость удалена', severity: 'info' });
+    } catch (err) {
+      setSnackbar({ open: true, message: 'Ошибка при удалении', severity: 'error' });
+    } finally {
+      setDeleteId(null);
+      setLoading(false);
+    }
   };
 
   return (
@@ -100,6 +147,7 @@ const NewsTable = ({ news, setNews }) => {
           rowsPerPageOptions={[10, 25, 50]}
           disableSelectionOnClick
           autoHeight={false}
+          getRowId={row => row.id || row.newsId}
           sx={{
             border: 'none',
             '& .MuiDataGrid-columnHeaders': { bgcolor: 'background.default', color: 'text.secondary', fontWeight: 700 },
@@ -119,7 +167,7 @@ const NewsTable = ({ news, setNews }) => {
             <RichTextEditor value={content} onChange={setContent} placeholder="Введите текст новости..." />
             <Box sx={{ display: 'flex', gap: 2, mt: 2, justifyContent: 'flex-end' }}>
               <Button onClick={handleCloseModal}>Отмена</Button>
-              <Button type="submit" variant="contained" disabled={!title || !content}>{editingNews ? 'Сохранить' : 'Добавить'}</Button>
+              <Button type="submit" variant="contained" disabled={!title || !content || loading}>{editingNews ? 'Сохранить' : 'Добавить'}</Button>
             </Box>
           </Box>
         </form>
@@ -131,7 +179,13 @@ const NewsTable = ({ news, setNews }) => {
       </Snackbar>
       {/* Диалог удаления (реализовать по необходимости) */}
       <Dialog open={!!deleteId} onClose={() => setDeleteId(null)}>
-        {/* ... */}
+        <Box sx={{ p: 3 }}>
+          <Typography>Вы уверены, что хотите удалить новость?</Typography>
+          <Box sx={{ display: 'flex', gap: 2, mt: 2, justifyContent: 'flex-end' }}>
+            <Button onClick={() => setDeleteId(null)}>Отмена</Button>
+            <Button color="error" variant="contained" onClick={() => handleDelete({ id: deleteId })} disabled={loading}>Удалить</Button>
+          </Box>
+        </Box>
       </Dialog>
     </Box>
   );

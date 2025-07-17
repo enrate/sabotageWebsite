@@ -22,6 +22,11 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.DATE,
       allowNull: false,
     },
+    eloChange: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      comment: 'Изменение эло за матч'
+    },
   }, {
     tableName: 'player_results',
     timestamps: true,

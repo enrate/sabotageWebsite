@@ -39,7 +39,8 @@ exports.getMatchHistory = async (req, res) => {
       let nicksArr = Array.isArray(nicknames) ? nicknames : [nicknames];
       filteredMatches = filteredMatches.filter(m => {
         const players = m.data?.Players || [];
-        return nicksArr.some(nick => players.some(p => (p.Name || '').toLowerCase() === nick.toLowerCase()));
+        // Все никнеймы должны быть найдены среди игроков матча
+        return nicksArr.every(nick => players.some(p => (p.Name || '').toLowerCase() === nick.toLowerCase()));
       });
     }
     // Фильтр по armaId (GUID)
@@ -91,6 +92,21 @@ exports.getMatchHistory = async (req, res) => {
       if (u.armaId) armaIdToUserId[String(u.armaId).trim().toLowerCase()] = u.id;
     });
 
+    // Получаем все PlayerResult для этих матчей (по sessionId)
+    const sessionIds = matches.map(m => m.sessionId);
+    let allPlayerResults = [];
+    if (sessionIds.length > 0) {
+      allPlayerResults = await db.PlayerResult.findAll({
+        where: { sessionId: sessionIds },
+        attributes: ['sessionId', 'playerIdentity', 'eloChange']
+      });
+    }
+    // Мапа для быстрого поиска eloChange
+    const eloChangeMap = {};
+    for (const pr of allPlayerResults) {
+      eloChangeMap[`${pr.sessionId}_${pr.playerIdentity}`] = pr.eloChange;
+    }
+
     // Формируем ответ для фронта
     const result = matchesData.map(({ m, data, players }) => {
       // --- Сопоставления для фракций ---
@@ -120,7 +136,8 @@ exports.getMatchHistory = async (req, res) => {
         const faction = entityToFaction[entityId] || null;
         const armaId = p.GUID ? String(p.GUID).trim().toLowerCase() : null;
         const userId = armaId ? armaIdToUserId[armaId] || null : null;
-        return { playerIdentity: p.GUID, name: p.Name, faction, entityId, userId, PlayerId: p.PlayerId };
+        const eloChange = eloChangeMap[`${m.sessionId}_${p.GUID}`] ?? null;
+        return { playerIdentity: p.GUID, name: p.Name, faction, entityId, userId, PlayerId: p.PlayerId, eloChange };
       }) : [];
       // --- Определение тимкиллов ---
       const kills = Array.isArray(data.Kills) ? data.Kills.map(k => {

@@ -23,7 +23,7 @@ const tabs = [
   { key: 'news', label: 'Новости', icon: <ArticleIcon />, path: '/news' },
   { key: 'awards', label: 'Награды', icon: <EmojiEventsIcon />, path: '/awards' },
   { key: 'users', label: 'Пользователи', icon: <GroupIcon />, path: '/users' },
-  { key: 'squads', label: 'Сквады', icon: <GroupsIcon />, path: '/squads' },
+  { key: 'squads', label: 'Отряды', icon: <GroupsIcon />, path: '/squads' },
   { key: 'seasons', label: 'Сезоны', icon: <CalendarMonthIcon />, path: '/seasons' },
   { key: 'matches', label: 'Матчи', icon: <AssignmentIcon />, path: '/matches' },
   { key: 'comments', label: 'Комментарии', icon: <CommentIcon />, path: '/comments' },

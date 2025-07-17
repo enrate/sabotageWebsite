@@ -22,11 +22,37 @@ const columns = (handleEdit, handleDelete, handleDetails) => [
   { field: 'name', headerName: 'Название', flex: 1, minWidth: 140 },
   { field: 'tag', headerName: 'Тег', width: 100 },
   {
+    field: 'createdAt',
+    headerName: 'Создан',
+    width: 110,
+    valueGetter: (params) => {
+      if (!params.value) return '—';
+      const d = new Date(params.value);
+      return d.toLocaleDateString('ru-RU');
+    }
+  },
+  {
+    field: 'membersCount',
+    headerName: 'Участники',
+    width: 110,
+    valueGetter: (params) => Array.isArray(params.row.members) ? params.row.members.length : 0
+  },
+  {
+    field: 'leaderName',
+    headerName: 'Лидер',
+    width: 140,
+    valueGetter: (params) => params.row.leader?.username || '—'
+  },
+  {
     field: 'description',
     headerName: 'Описание',
     flex: 2,
     minWidth: 180,
-    valueGetter: (params) => params.value?.slice(0, 60) + '...'
+    valueGetter: (params) => {
+      const desc = params.value;
+      if (!desc || desc.trim() === '') return '—';
+      return desc.length > 60 ? desc.slice(0, 60) + '…' : desc;
+    }
   },
   {
     field: 'actions',
@@ -82,7 +108,7 @@ const SquadTable = ({ squads, refreshSquads }) => {
     <Box>
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, gap: 2 }}>
         <Typography variant="h4" sx={{ color: 'primary.main', display: 'flex', alignItems: 'center', gap: 1 }}>
-          <GroupIcon /> Сквады
+          <GroupIcon /> Отряды
         </Typography>
         <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpenModal()} sx={{ ml: 'auto' }}>
           Создать

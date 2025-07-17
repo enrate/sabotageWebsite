@@ -12,13 +12,21 @@ const columns = (handleEdit, handleDelete, awards) => [
     field: 'startDate',
     headerName: 'Начало',
     width: 120,
-    valueGetter: (params) => params.value?.slice(0, 10) || '-'
+    valueGetter: (params) => {
+      if (!params.value) return '—';
+      const d = new Date(params.value);
+      return d.toLocaleDateString('ru-RU');
+    }
   },
   {
     field: 'endDate',
     headerName: 'Окончание',
     width: 120,
-    valueGetter: (params) => params.value?.slice(0, 10) || '-'
+    valueGetter: (params) => {
+      if (!params.value) return '—';
+      const d = new Date(params.value);
+      return d.toLocaleDateString('ru-RU');
+    }
   },
   {
     field: 'trophies',

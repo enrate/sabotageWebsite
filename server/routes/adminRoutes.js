@@ -6,6 +6,7 @@ const awardController = require('../controllers/awardController');
 const seasonController = require('../controllers/seasonController');
 const { uploadImage, handleUploadError } = require('../middleware/uploadMiddleware');
 const newsController = require('../controllers/newsController');
+const matchHistoryController = require('../controllers/matchHistoryController');
 
 // Маршруты для управления пользователями
 router.get('/users', protect, admin, adminController.getUsers);
@@ -32,7 +33,7 @@ router.put('/awards/:id', protect, admin, uploadImage, handleUploadError, awardC
 router.delete('/awards/:id', protect, admin, awardController.deleteAward);
 // Выдача наград
 router.post('/awards/give/user', protect, admin, awardController.assignAwardToUser);
-// router.post('/awards/give/squad', protect, admin, awardController.giveAwardToSquad); // TODO: добавить метод
+router.post('/awards/give/squad', protect, admin, awardController.giveAwardToSquad);
 // Получение наград пользователя/отряда
 router.get('/awards/user/:userId', protect, admin, awardController.getUserAwards);
 // router.get('/awards/squad/:squadId', protect, admin, awardController.getSquadAwards); // TODO: добавить метод
@@ -54,6 +55,9 @@ router.get('/news/:id', protect, admin, newsController.getNewsById);
 router.post('/news', protect, admin, newsController.createNews);
 router.put('/news/:id', protect, admin, newsController.updateNews);
 router.delete('/news/:id', protect, admin, newsController.deleteNews);
+
+// --- Роуты для истории матчей (админка) ---
+router.get('/match-history', protect, admin, matchHistoryController.getMatchHistory);
 
 // --- Роуты для токена админа ---
 router.post('/generate-token', protect, admin, adminController.generateAdminToken);

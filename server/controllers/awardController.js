@@ -1,4 +1,4 @@
-const { Award, User, UserAward, Season } = require('../models');
+const { Award, User, UserAward, Season, Squad, SquadAward } = require('../models');
 
 // Получить все награды
 exports.getAllAwards = async (req, res) => {
@@ -311,6 +311,58 @@ exports.assignAwardToUser = async (req, res) => {
   } catch (err) {
     console.error('Ошибка при назначении награды:', err);
     res.status(500).json({ error: 'Ошибка при назначении награды' });
+  }
+};
+
+// Назначить награду отряду
+exports.giveAwardToSquad = async (req, res) => {
+  try {
+    const { squadId, awardId, comment } = req.body;
+    const issuedBy = req.user.id;
+
+    // Проверяем существование отряда и награды
+    const [squad, award] = await Promise.all([
+      Squad.findByPk(squadId),
+      Award.findByPk(awardId)
+    ]);
+
+    if (!squad) {
+      return res.status(404).json({ error: 'Отряд не найден' });
+    }
+    if (!award) {
+      return res.status(404).json({ error: 'Награда не найдена' });
+    }
+    if (!award.isActive) {
+      return res.status(400).json({ error: 'Награда неактивна' });
+    }
+
+    // Проверяем, не получил ли отряд уже эту награду
+    const existingAward = await SquadAward.findOne({
+      where: { squadId, awardId }
+    });
+    if (existingAward) {
+      return res.status(400).json({ error: 'Отряд уже получил эту награду' });
+    }
+
+    // TODO: Проверка лимита получателей (если нужно)
+
+    // Создаем запись о выдаче награды
+    const squadAward = await SquadAward.create({
+      squadId,
+      awardId,
+      issuedBy,
+      issuedAt: new Date(),
+      comment: comment || null
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Награда успешно назначена отряду',
+      squadAward
+    });
+  } catch (err) {
+    console.error('Ошибка при назначении награды отряду:', err);
+    res.status(500).json({ error: 'Ошибка при назначении награды отряду' });
   }
 };
 
