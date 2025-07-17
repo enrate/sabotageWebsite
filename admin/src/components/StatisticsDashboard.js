@@ -66,18 +66,18 @@ const StatisticsDashboard = () => {
         <Typography variant="h6" sx={{ mb: 2 }}>Активность по дням</Typography>
         <Line
           data={{
-            labels: stats.activity?.map(d => d.date),
+            labels: Array.isArray(stats.activity) ? stats.activity.map(d => d.date) : [],
             datasets: [
               {
                 label: 'Новые пользователи',
-                data: stats.activity?.map(d => d.newUsers),
+                data: Array.isArray(stats.activity) ? stats.activity.map(d => d.newUsers) : [],
                 borderColor: '#ffb347',
                 backgroundColor: 'rgba(255,179,71,0.2)',
                 tension: 0.3
               },
               {
                 label: 'Матчи',
-                data: stats.activity?.map(d => d.matches),
+                data: Array.isArray(stats.activity) ? stats.activity.map(d => d.matches) : [],
                 borderColor: '#4f8cff',
                 backgroundColor: 'rgba(79,140,255,0.1)',
                 tension: 0.3

@@ -19,8 +19,15 @@ export default function AdminDashboard() {
       .finally(() => setLoadingStats(false));
     setLoadingActivity(true);
     axios.get('/api/admin/activity')
-      .then(res => setActivity(res.data))
-      .catch(() => setActivity(null))
+      .then(res => {
+        const data = res.data;
+        setActivity(
+          data && Array.isArray(data.labels) && Array.isArray(data.datasets)
+            ? data
+            : { labels: [], datasets: [] }
+        );
+      })
+      .catch(() => setActivity({ labels: [], datasets: [] }))
       .finally(() => setLoadingActivity(false));
     setLoadingTop(true);
     axios.get('/api/admin/top-players')
@@ -80,7 +87,10 @@ export default function AdminDashboard() {
         <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>Активность пользователей</Typography>
         {loadingActivity ? <CircularProgress /> : activity && (
           <Bar
-            data={activity}
+            data={{
+              labels: Array.isArray(activity?.labels) ? activity.labels : [],
+              datasets: Array.isArray(activity?.datasets) ? activity.datasets : [],
+            }}
             options={{
               responsive: true,
               plugins: {
