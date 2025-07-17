@@ -59,25 +59,6 @@ import PercentIcon from '@mui/icons-material/Percent';
 import SportsScoreIcon from '@mui/icons-material/SportsScore';
 import { DateTimePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import Sheet from '@mui/joy/Sheet';
-import TypographyJoy from '@mui/joy/Typography';
-import BoxJoy from '@mui/joy/Box';
-import ButtonJoy from '@mui/joy/Button';
-import DividerJoy from '@mui/joy/Divider';
-import ListJoy from '@mui/joy/List';
-import ListItemJoy from '@mui/joy/ListItem';
-import ListItemButtonJoy from '@mui/joy/ListItemButton';
-import ListItemDecoratorJoy from '@mui/joy/ListItemDecorator';
-import NewsIcon from '@mui/icons-material/Article';
-import UsersIcon from '@mui/icons-material/Group';
-import AwardIcon from '@mui/icons-material/EmojiEvents';
-import SquadIcon from '@mui/icons-material/Groups';
-import SeasonIcon from '@mui/icons-material/CalendarMonth';
-import AdminNews from '../admin/AdminNews';
-import AdminUsers from '../admin/AdminUsers';
-import AdminAwards from '../admin/AdminAwards';
-import AdminSquads from '../admin/AdminSquads';
-import AdminSeasons from '../admin/AdminSeasons';
 
 const ProfilePage = () => {
   const { id } = useParams();
