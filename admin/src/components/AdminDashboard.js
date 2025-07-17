@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Grid, Card, CardContent, Typography, CircularProgress, Box, Paper, Table, TableHead, TableRow, TableCell, TableBody, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
+import { Grid, Card, CardContent, Typography, CircularProgress, Box, Paper, Table, TableHead, TableRow, TableCell, TableBody, Select, MenuItem, FormControl, InputLabel, Tabs, Tab, Dialog, DialogTitle, DialogContent, DialogActions, Button, TableContainer } from '@mui/material';
+import { RadarChart } from '@mui/x-charts/RadarChart';
 import { Bar } from 'react-chartjs-2';
 import axios from 'axios';
 import {
@@ -37,6 +38,10 @@ export default function AdminDashboard() {
   const [onlineStats, setOnlineStats] = useState([]);
   const [loadingOnline, setLoadingOnline] = useState(true);
   const [onlinePeriod, setOnlinePeriod] = useState(7);
+  const [scenarioTab, setScenarioTab] = useState(0);
+  const [onlinePlayersByDay, setOnlinePlayersByDay] = useState({}); // { [date]: [{nickname, uuid}] }
+  const [selectedDay, setSelectedDay] = useState(null);
+  const [modalOpen, setModalOpen] = useState(false);
 
   useEffect(() => {
     setLoadingStats(true);
@@ -121,25 +126,34 @@ export default function AdminDashboard() {
           headers: token ? { Authorization: `Bearer ${token}` } : {}
         });
         const matches = Array.isArray(res.data.matches) ? res.data.matches : [];
-        // Группируем по дате (день) и считаем уникальных игроков
+        // Группируем по дате (день) и собираем уникальных игроков
         const dayMap = {};
+        const playersMap = {};
         matches.forEach(m => {
           if (!m.date || !Array.isArray(m.players)) return;
           const day = new Date(m.date);
           day.setHours(0,0,0,0);
           const dayStr = day.toISOString().slice(0,10);
           if (!dayMap[dayStr]) dayMap[dayStr] = new Set();
+          if (!playersMap[dayStr]) playersMap[dayStr] = {};
           m.players.forEach(p => {
-            if (p.playerIdentity) dayMap[dayStr].add(p.playerIdentity);
-            else if (p.PlayerId) dayMap[dayStr].add('pid_' + p.PlayerId);
+            const uuid = p.playerIdentity || (p.PlayerId ? 'pid_' + p.PlayerId : null);
+            if (!uuid) return;
+            dayMap[dayStr].add(uuid);
+            // Сохраняем никнейм и uuid
+            if (!playersMap[dayStr][uuid]) {
+              playersMap[dayStr][uuid] = { nickname: p.name || p.username || p.nickname || uuid, uuid };
+            }
           });
         });
         // Преобразуем в массив и сортируем по дате
         const statsArr = Object.entries(dayMap).map(([date, set]) => ({ date, online: set.size }));
         statsArr.sort((a, b) => a.date.localeCompare(b.date));
         setOnlineStats(statsArr);
+        setOnlinePlayersByDay(playersMap);
       } catch {
         setOnlineStats([]);
+        setOnlinePlayersByDay({});
       } finally {
         setLoadingOnline(false);
       }
@@ -193,76 +207,51 @@ export default function AdminDashboard() {
           </Card>
         </Grid>
       </Grid>
-      {/* График активности */}
-      <Paper sx={{ p: 3, mb: 4 }}>
-        <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>Активность пользователей</Typography>
-        {loadingActivity ? <CircularProgress /> : activity && (
-          <Bar
-            data={{
-              labels: Array.isArray(activity?.labels) ? activity.labels : [],
-              datasets: Array.isArray(activity?.datasets) ? activity.datasets : [],
-            }}
-            options={{
-              responsive: true,
-              plugins: {
-                legend: { display: false },
-                title: { display: false },
-              },
-              scales: {
-                x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#b8c5d6' } },
-                y: { grid: { color: 'rgba(255,255,255,0.08)' }, ticks: { color: '#b8c5d6' } },
-              },
-            }}
-            height={220}
-          />
-        )}
-      </Paper>
-      {/* Таблица топ-игроков */}
-      <Paper sx={{ p: 3 }}>
-        <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>Топ-игроки</Typography>
-        {loadingTop ? <CircularProgress /> : (
-          <Box component="table" sx={{ width: '100%', borderCollapse: 'collapse' }}>
-            <Box component="thead">
-              <Box component="tr" sx={{ bgcolor: 'background.paper' }}>
-                <Box component="th" sx={{ textAlign: 'left', py: 1, px: 2, color: 'text.secondary', fontWeight: 700 }}>#</Box>
-                <Box component="th" sx={{ textAlign: 'left', py: 1, px: 2, color: 'text.secondary', fontWeight: 700 }}>Игрок</Box>
-                <Box component="th" sx={{ textAlign: 'right', py: 1, px: 2, color: 'text.secondary', fontWeight: 700 }}>Очки</Box>
-              </Box>
-            </Box>
-            <Box component="tbody">
-              {(Array.isArray(topPlayers) ? topPlayers : []).map((p, idx) => (
-                <Box component="tr" key={p.id} sx={{ borderBottom: '1px solid', borderColor: 'divider' }}>
-                  <Box component="td" sx={{ py: 1, px: 2 }}>{idx + 1}</Box>
-                  <Box component="td" sx={{ py: 1, px: 2 }}>{p.username}</Box>
-                  <Box component="td" sx={{ py: 1, px: 2, textAlign: 'right', fontWeight: 600 }}>{p.score}</Box>
-                </Box>
-              ))}
-            </Box>
-      </Box>
-        )}
-      </Paper>
       <Paper sx={{ p: 3, mt: 4 }}>
         <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>Статистика по сценариям (30 дней)</Typography>
-        {loadingScenarios ? <CircularProgress /> : (
-          <Table size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell>Сценарий</TableCell>
-                <TableCell align="right">Матчей</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {scenarioStats.length === 0 && (
-                <TableRow><TableCell colSpan={2} align="center">Нет данных</TableCell></TableRow>
-              )}
-              {scenarioStats.map((row, idx) => (
-                <TableRow key={row.missionName || idx}>
-                  <TableCell>{row.missionName}</TableCell>
-                  <TableCell align="right">{row.count}</TableCell>
+        <Tabs value={scenarioTab} onChange={(_, v) => setScenarioTab(v)} sx={{ mb: 2 }}>
+          <Tab label="Таблица" />
+          <Tab label="Radar Chart" />
+        </Tabs>
+        {scenarioTab === 0 && (
+          loadingScenarios ? <CircularProgress /> : (
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>Сценарий</TableCell>
+                  <TableCell align="right">Матчей</TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHead>
+              <TableBody>
+                {scenarioStats.length === 0 && (
+                  <TableRow><TableCell colSpan={2} align="center">Нет данных</TableCell></TableRow>
+                )}
+                {scenarioStats.map((row, idx) => (
+                  <TableRow key={row.missionName || idx}>
+                    <TableCell>{row.missionName}</TableCell>
+                    <TableCell align="right">{row.count}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )
+        )}
+        {scenarioTab === 1 && (
+          loadingScenarios ? <CircularProgress /> : (
+            <Box sx={{ width: '100%', minHeight: 350 }}>
+              <RadarChart
+                series={[
+                  {
+                    data: scenarioStats.map(row => row.count),
+                    label: 'Матчей',
+                  },
+                ]}
+                height={350}
+                width={500}
+                axisAngleLabels={scenarioStats.map(row => row.missionName)}
+              />
+            </Box>
+          )
         )}
       </Paper>
       <Paper sx={{ p: 3, mt: 4 }}>
@@ -293,7 +282,12 @@ export default function AdminDashboard() {
                 <TableRow><TableCell colSpan={2} align="center">Нет данных</TableCell></TableRow>
               )}
               {onlineStats.map((row, idx) => (
-                <TableRow key={row.date || idx}>
+                <TableRow key={row.date || idx} hover style={{ cursor: 'pointer' }}
+                  onClick={() => {
+                    setSelectedDay(row.date);
+                    setModalOpen(true);
+                  }}
+                >
                   <TableCell>{row.date}</TableCell>
                   <TableCell align="right">{row.online}</TableCell>
                 </TableRow>
@@ -302,6 +296,37 @@ export default function AdminDashboard() {
           </Table>
         )}
       </Paper>
+      {/* Модалка с игроками онлайн за день */}
+      <Dialog open={modalOpen} onClose={() => setModalOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>Онлайн за {selectedDay}</DialogTitle>
+        <DialogContent>
+          <TableContainer>
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>Никнейм</TableCell>
+                  <TableCell>UUID</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {(selectedDay && onlinePlayersByDay[selectedDay]) ?
+                  Object.values(onlinePlayersByDay[selectedDay]).map((player, idx) => (
+                    <TableRow key={player.uuid || idx}>
+                      <TableCell>{player.nickname}</TableCell>
+                      <TableCell>{player.uuid}</TableCell>
+                    </TableRow>
+                  )) : (
+                    <TableRow><TableCell colSpan={2} align="center">Нет данных</TableCell></TableRow>
+                  )
+                }
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setModalOpen(false)}>Закрыть</Button>
+        </DialogActions>
+      </Dialog>
       </Box>
   );
 } 

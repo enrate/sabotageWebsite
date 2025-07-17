@@ -9,7 +9,6 @@ import AdminSquads from "./AdminSquads";
 import AdminSeasons from "./AdminSeasons";
 import AdminMatchHistory from "./AdminMatchHistory";
 import AdminComments from "./AdminComments";
-import AdminNotifications from "./AdminNotifications";
 import AdminStatistics from "./AdminStatistics";
 import AdminSettings from "./AdminSettings";
 import AdminLogs from "./AdminLogs";
@@ -23,7 +22,6 @@ const tabRoutes = [
   { key: "seasons", path: "seasons", element: <AdminSeasons /> },
   { key: "matches", path: "matches", element: <AdminMatchHistory /> },
   { key: "comments", path: "comments", element: <AdminComments /> },
-  { key: "notifications", path: "notifications", element: <AdminNotifications /> },
   { key: "statistics", path: "statistics", element: <AdminStatistics /> },
   { key: "settings", path: "settings", element: <AdminSettings /> },
   { key: "logs", path: "logs", element: <AdminLogs /> },

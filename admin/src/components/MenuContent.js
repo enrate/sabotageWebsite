@@ -13,7 +13,6 @@ import GroupsIcon from '@mui/icons-material/Groups';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import CommentIcon from '@mui/icons-material/Comment';
-import NotificationsIcon from '@mui/icons-material/Notifications';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import SettingsIcon from '@mui/icons-material/Settings';
 import ListAltIcon from '@mui/icons-material/ListAlt';
@@ -27,7 +26,6 @@ const tabs = [
   { key: 'seasons', label: 'Сезоны', icon: <CalendarMonthIcon />, path: '/seasons' },
   { key: 'matches', label: 'Матчи', icon: <AssignmentIcon />, path: '/matches' },
   { key: 'comments', label: 'Комментарии', icon: <CommentIcon />, path: '/comments' },
-  { key: 'notifications', label: 'Уведомления', icon: <NotificationsIcon />, path: '/notifications' },
   { key: 'statistics', label: 'Статистика', icon: <BarChartIcon />, path: '/statistics' },
   { key: 'settings', label: 'Настройки', icon: <SettingsIcon />, path: '/settings' },
   { key: 'logs', label: 'Системные логи', icon: <ListAltIcon />, path: '/logs' },

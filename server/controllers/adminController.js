@@ -1,5 +1,5 @@
 const crypto = require('crypto');
-const { User, Squad, News, SquadWarning, SquadHistory, UserWarning, Notification } = require('../models');
+const { User, Squad, News, SquadWarning, SquadHistory, UserWarning, Notification, Comment } = require('../models');
 
 // Получить всех пользователей (для админки)
 exports.getUsers = async (req, res) => {
@@ -277,6 +277,23 @@ exports.cancelUserWarning = async (req, res) => {
   } catch (err) {
     console.error('Ошибка отмены предупреждения пользователя:', err);
     res.status(500).json({ message: 'Ошибка отмены предупреждения' });
+  }
+};
+
+// Получить все комментарии (админка)
+exports.getAllComments = async (req, res) => {
+  try {
+    const comments = await Comment.findAll({
+      include: [
+        { model: User, as: 'user', attributes: ['id', 'username', 'avatar'] },
+        { model: News, as: 'news', attributes: ['id', 'title'] }
+      ],
+      order: [['createdAt', 'DESC']]
+    });
+    res.json(comments);
+  } catch (err) {
+    console.error('Ошибка получения комментариев:', err);
+    res.status(500).json({ message: 'Ошибка получения комментариев' });
   }
 };
 

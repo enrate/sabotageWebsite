@@ -7,6 +7,7 @@ const seasonController = require('../controllers/seasonController');
 const { uploadImage, handleUploadError } = require('../middleware/uploadMiddleware');
 const newsController = require('../controllers/newsController');
 const matchHistoryController = require('../controllers/matchHistoryController');
+const commentController = require('../controllers/commentController');
 
 // Маршруты для управления пользователями
 router.get('/users', protect, admin, adminController.getUsers);
@@ -58,6 +59,9 @@ router.delete('/news/:id', protect, admin, newsController.deleteNews);
 
 // --- Роуты для истории матчей (админка) ---
 router.get('/match-history', protect, admin, matchHistoryController.getMatchHistory);
+
+// --- Роуты для комментариев (админка) ---
+router.get('/comments', protect, admin, adminController.getAllComments);
 
 // --- Роуты для токена админа ---
 router.post('/generate-token', protect, admin, adminController.generateAdminToken);
