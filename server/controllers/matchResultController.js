@@ -220,26 +220,12 @@ async function processMatchResults(req, res) {
           console.error('[MatchResultController] Ошибка при создании PlayerResult:', err, player);
         }
       }
-      const users = [];
+      let users = [];
       try {
         users = await db.User.findAll({ where: { armaId: armaIds } });
       } catch (err) {
         console.error('[MatchResultController] Ошибка при получении пользователей:', err);
       }
-      const now = new Date();
-      let currentSeason = null;
-      try {
-        currentSeason = await db.Season.findOne({
-          where: {
-            startDate: { [db.Sequelize.Op.lte]: now },
-            endDate: { [db.Sequelize.Op.gte]: now }
-          },
-          order: [['startDate', 'DESC']]
-        });
-      } catch (err) {
-        console.error('[MatchResultController] Ошибка при получении сезона:', err);
-      }
-      const seasonId = currentSeason ? currentSeason.id : null;
       if (seasonId) {
         for (const player of playersResults) {
           try {
@@ -318,7 +304,12 @@ async function processMatchResults(req, res) {
           }
         }
       }
-      const unprocessedLogs = await db.KillLog.findAll({ where: { processed: false } });
+      let unprocessedLogs = [];
+      try {
+        unprocessedLogs = await db.KillLog.findAll({ where: { processed: false } });
+      } catch (err) {
+        console.error('[MatchResultController] Ошибка при получении KillLog:', err);
+      }
       for (const log of unprocessedLogs) {
         if (log.victimIdentity && !playerStats.find(s => s.armaId === log.victimIdentity)) {
           try {

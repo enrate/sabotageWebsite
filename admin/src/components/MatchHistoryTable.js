@@ -14,8 +14,18 @@ const columns = (handleDetail, handleDelete) => [
     width: 180,
     valueGetter: (params) => params.value ? new Date(params.value).toLocaleString('ru-RU') : '-'
   },
-  { field: 'type', headerName: 'Тип', width: 120 },
-  { field: 'status', headerName: 'Статус', width: 120 },
+  {
+    field: 'missionName',
+    headerName: 'Сценарий',
+    width: 200,
+    valueGetter: (params) => params.value || '-'
+  },
+  {
+    field: 'playersCount',
+    headerName: 'Игроков',
+    width: 100,
+    valueGetter: (params) => Array.isArray(params.row.players) ? params.row.players.length : '-'
+  },
   {
     field: 'actions',
     headerName: '',
