@@ -37,9 +37,6 @@ const columns = (handleEdit, handleDelete, handleBan, handleUnban, handleWarning
         <Tooltip title="Редактировать">
           <IconButton size="small" color="primary" onClick={() => handleEdit(params.row)}><EditIcon /></IconButton>
         </Tooltip>
-        <Tooltip title="Удалить">
-          <IconButton size="small" color="error" onClick={() => handleDelete(params.row.id)}><DeleteIcon /></IconButton>
-        </Tooltip>
         <Tooltip title="Предупреждения">
           <IconButton size="small" color="warning" onClick={() => handleWarnings(params.row)}><WarningIcon /></IconButton>
         </Tooltip>
@@ -60,7 +57,6 @@ const columns = (handleEdit, handleDelete, handleBan, handleUnban, handleWarning
 const UserTable = ({ users, refreshUsers }) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
-  const [deleteId, setDeleteId] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [banUser, setBanUser] = useState(null);
   const [banReason, setBanReason] = useState('');
@@ -86,11 +82,6 @@ const UserTable = ({ users, refreshUsers }) => {
       refreshUsers();
       setSnackbar({ open: true, message: editingUser ? 'Пользователь обновлен' : 'Пользователь создан', severity: 'success' });
     }
-  };
-  const handleDelete = (id) => {
-    setDeleteId(id);
-    // TODO: реализовать удаление
-    setSnackbar({ open: true, message: 'Пользователь удалён (заглушка)', severity: 'info' });
   };
 
   // --- БАН ---
@@ -272,10 +263,6 @@ const UserTable = ({ users, refreshUsers }) => {
           {snackbar.message}
         </Alert>
       </Snackbar>
-      {/* Диалог удаления (реализовать по необходимости) */}
-      <Dialog open={!!deleteId} onClose={() => setDeleteId(null)}>
-        {/* ... */}
-      </Dialog>
       {/* Диалог бана */}
       <Dialog open={!!banUser} onClose={() => setBanUser(null)}>
         <Box sx={{ p: 3, minWidth: 350 }}>

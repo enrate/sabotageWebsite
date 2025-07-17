@@ -9,15 +9,21 @@ import { useNavigate } from 'react-router-dom';
 
 const columns = (handleEdit, handleDelete, handleDetails) => [
   {
-    field: 'icon',
+    field: 'logo',
     headerName: '',
     width: 56,
     sortable: false,
-    renderCell: () => (
-      <Avatar sx={{ bgcolor: 'secondary.main', width: 40, height: 40 }}>
-        <GroupIcon />
-      </Avatar>
-    ),
+    renderCell: (params) => {
+      const avatarUrl = params;
+      if (avatarUrl && typeof avatarUrl === 'string' && avatarUrl.trim() !== '') {
+        return <Avatar src={avatarUrl} sx={{ width: 40, height: 40 }} />;
+      }
+      return (
+        <Avatar sx={{ bgcolor: 'secondary.main', width: 40, height: 40 }}>
+          <GroupIcon />
+        </Avatar>
+      );
+    },
   },
   { field: 'name', headerName: 'Название', flex: 1, minWidth: 140 },
   { field: 'tag', headerName: 'Тег', width: 100 },

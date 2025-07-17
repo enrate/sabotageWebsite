@@ -146,9 +146,9 @@ export default function AdminDashboard() {
             }
           });
         });
-        // Преобразуем в массив и сортируем по дате
+        // Преобразуем в массив и сортируем по дате (свежие сверху)
         const statsArr = Object.entries(dayMap).map(([date, set]) => ({ date, online: set.size }));
-        statsArr.sort((a, b) => a.date.localeCompare(b.date));
+        statsArr.sort((a, b) => b.date.localeCompare(a.date)); // свежие сверху
         setOnlineStats(statsArr);
         setOnlinePlayersByDay(playersMap);
       } catch {
@@ -250,8 +250,8 @@ export default function AdminDashboard() {
                   label: 'Матчей',
                   color: '#1976d2',
                 }]}
-                height={350}
-                width={600}
+                height={400}
+                width={1200}
                 margin={{ left: 60, right: 20, top: 40, bottom: 60 }}
                 grid={{ vertical: true, horizontal: true }}
               />
