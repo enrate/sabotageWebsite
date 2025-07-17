@@ -24,7 +24,11 @@ const columns = (handleDetail, handleDelete) => [
     field: 'playersCount',
     headerName: 'Игроков',
     width: 100,
-    valueGetter: (params) => (params && params.row && Array.isArray(params.row.players)) ? params.row.players.length : '-'
+    valueGetter: (params) => {
+      console.log('[DEBUG] params:', params);
+      if (params && params.row && Array.isArray(params.row.players)) return params.row.players.length;
+      return '-';
+    }
   },
   {
     field: 'actions',
