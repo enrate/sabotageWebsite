@@ -21,15 +21,15 @@ const columns = (handleEdit, handleDelete) => [
     field: 'author',
     headerName: 'Автор',
     width: 140,
-    valueGetter: (params) => params.value?.username || ''
+    valueGetter: (params) => (params) ? params.username : 'Автор не найден'
   },
   {
     field: 'createdAt',
     headerName: 'Дата',
     width: 120,
     valueGetter: (params) => {
-      if (!params.row || !params.row.createdAt) return '—';
-      return formatDate(params.row.createdAt);
+      if (!params) return '—';
+      return formatDate(params);
     },
   },
   {
@@ -38,7 +38,7 @@ const columns = (handleEdit, handleDelete) => [
     flex: 2,
     minWidth: 200,
     valueGetter: (params) => {
-      const text = params.value || '';
+      const text = params || '';
       return text.replace(/<[^>]*>/g, '').slice(0, 60) + '...';
     }
   },

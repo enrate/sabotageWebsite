@@ -25,6 +25,7 @@ const columns = (handleEdit, handleDelete, handleBan, handleUnban, handleWarning
   { field: 'email', headerName: 'Email', flex: 1, minWidth: 160 },
   { field: 'role', headerName: 'Роль', width: 110 },
   { field: 'description', headerName: 'Описание', flex: 1, minWidth: 160 },
+  { field: 'createdAt', headerName: 'Дата регистрации', flex: 1, minWidth: 160},
   {
     field: 'actions',
     headerName: '',

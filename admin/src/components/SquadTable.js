@@ -26,22 +26,22 @@ const columns = (handleEdit, handleDelete, handleDetails) => [
     headerName: 'Создан',
     width: 110,
     valueGetter: (params) => {
-      if (!params || !params.value) return '—';
-      const d = new Date(params.value);
+      if (!params) return '—';
+      const d = new Date(params);
       return d.toLocaleDateString('ru-RU');
     }
   },
   {
-    field: 'membersCount',
+    field: 'members',
     headerName: 'Участники',
     width: 110,
-    valueGetter: (params) => (params && params.row && Array.isArray(params.row.members) ? params.row.members.length : 0)
+    valueGetter: (params) => (Array.isArray(params) ? params.length : 0)
   },
   {
-    field: 'leaderName',
+    field: 'leader',
     headerName: 'Лидер',
     width: 140,
-    valueGetter: (params) => (params && params.row && params.row.leader?.username) || '—'
+    valueGetter: (params) => (params && params.username) ? params.username : '—'
   },
   {
     field: 'description',
@@ -49,7 +49,7 @@ const columns = (handleEdit, handleDelete, handleDetails) => [
     flex: 2,
     minWidth: 180,
     valueGetter: (params) => {
-      const desc = params && params.value;
+      const desc = params;
       if (!desc || desc.trim() === '') return '—';
       return desc.length > 60 ? desc.slice(0, 60) + '…' : desc;
     }

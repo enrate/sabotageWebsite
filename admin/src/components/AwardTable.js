@@ -27,7 +27,7 @@ const columns = (handleEdit, handleDelete, handleRecipients) => [
     headerName: 'Описание',
     flex: 2,
     minWidth: 180,
-    valueGetter: (params) => params.value?.slice(0, 60) + '...'
+    valueGetter: (params) => (params) ? params?.slice(0, 60) + '...' : 'Нет описания'
   },
   {
     field: 'actions',

@@ -13,8 +13,8 @@ const columns = (handleEdit, handleDelete, awards) => [
     headerName: 'Начало',
     width: 120,
     valueGetter: (params) => {
-      if (!params.value) return '—';
-      const d = new Date(params.value);
+      if (!params) return '—';
+      const d = new Date(params);
       return d.toLocaleDateString('ru-RU');
     }
   },
@@ -23,8 +23,8 @@ const columns = (handleEdit, handleDelete, awards) => [
     headerName: 'Окончание',
     width: 120,
     valueGetter: (params) => {
-      if (!params.value) return '—';
-      const d = new Date(params.value);
+      if (!params) return '—';
+      const d = new Date(params);
       return d.toLocaleDateString('ru-RU');
     }
   },

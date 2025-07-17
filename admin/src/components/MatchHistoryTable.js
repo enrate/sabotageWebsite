@@ -12,7 +12,7 @@ const columns = (handleDetail, handleDelete) => [
     field: 'date',
     headerName: 'Дата',
     width: 180,
-    valueGetter: (params) => params.value ? new Date(params.value).toLocaleString('ru-RU') : '-'
+    valueGetter: (params) => params ? new Date(params).toLocaleString('ru-RU') : '-'
   },
   {
     field: 'missionName',
