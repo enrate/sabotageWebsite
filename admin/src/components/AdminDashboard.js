@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Grid, Card, CardContent, Typography, CircularProgress, Box, Paper, Table, TableHead, TableRow, TableCell, TableBody, Select, MenuItem, FormControl, InputLabel, Tabs, Tab, Dialog, DialogTitle, DialogContent, DialogActions, Button, TableContainer } from '@mui/material';
-import { RadarChart } from '@mui/x-charts/RadarChart';
+import { LineChart } from '@mui/x-charts/LineChart';
 import { Bar } from 'react-chartjs-2';
 import axios from 'axios';
 import {
@@ -211,7 +211,7 @@ export default function AdminDashboard() {
         <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>Статистика по сценариям (30 дней)</Typography>
         <Tabs value={scenarioTab} onChange={(_, v) => setScenarioTab(v)} sx={{ mb: 2 }}>
           <Tab label="Таблица" />
-          <Tab label="Radar Chart" />
+          <Tab label="Line Chart" />
         </Tabs>
         {scenarioTab === 0 && (
           loadingScenarios ? <CircularProgress /> : (
@@ -239,16 +239,21 @@ export default function AdminDashboard() {
         {scenarioTab === 1 && (
           loadingScenarios ? <CircularProgress /> : (
             <Box sx={{ width: '100%', minHeight: 350 }}>
-              <RadarChart
-                series={[
-                  {
-                    data: scenarioStats.map(row => row.count),
-                    label: 'Матчей',
-                  },
-                ]}
+              <LineChart
+                xAxis={[{
+                  data: scenarioStats.map(row => row.missionName),
+                  scaleType: 'point',
+                  label: 'Сценарий',
+                }]}
+                series={[{
+                  data: scenarioStats.map(row => row.count),
+                  label: 'Матчей',
+                  color: '#1976d2',
+                }]}
                 height={350}
-                width={500}
-                axisAngleLabels={scenarioStats.map(row => row.missionName)}
+                width={600}
+                margin={{ left: 60, right: 20, top: 40, bottom: 60 }}
+                grid={{ vertical: true, horizontal: true }}
               />
             </Box>
           )
