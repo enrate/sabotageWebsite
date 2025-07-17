@@ -15,7 +15,7 @@ root.render(
         <BrowserRouter>
           <Routes>
             <Route path="/admin/login" element={<AdminLoginPage />} />
-            <Route path="/*" element={
+            <Route path="/admin/*" element={
               <AdminPrivateRoute>
                 <AdminPage />
               </AdminPrivateRoute>
