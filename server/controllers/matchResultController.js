@@ -330,14 +330,24 @@ async function processMatchResults(req, res) {
         }
       }
       const K = 64;
+      // Собираем PlayerId всех, кто выбрал роль (не -1)
+      let activePlayerIds = new Set();
+      if (req.body.PlayersToPlayables && Array.isArray(req.body.PlayersToPlayables)) {
+        req.body.PlayersToPlayables.forEach(mapping => {
+          if (typeof mapping.PlayerId === 'number' && mapping.PlayerId !== -1) {
+            activePlayerIds.add(mapping.PlayerId);
+          }
+        });
+      }
       for (const armaId of armaIds) {
         try {
           const stats = playerStats.find(s => s.armaId === armaId);
           if (!stats) continue;
           const playerResult = playersResults.find(p => p.playerIdentity === armaId);
           if (!playerResult) continue;
-          // --- Новая проверка: если нет фракции, эло не меняется ---
-          if (!playerResult.faction) continue;
+          // Найти PlayerId по GUID
+          const player = (req.body.Players || []).find(p => p.GUID === armaId);
+          if (!player || !activePlayerIds.has(player.PlayerId)) continue; // Зритель — пропускаем
           let isWin = playerResult.result === 'win';
           let isLose = playerResult.result === 'lose';
           let isDraw = playerResult.result === 'draw';
